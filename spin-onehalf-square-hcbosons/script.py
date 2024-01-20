@@ -1,34 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import state
-
-
-def target_distribution(x):
-    # Define the target distribution, for example, a Gaussian distribution
-    return np.exp(-0.5 * x**2) / np.sqrt(2 * np.pi)
-
-
-def metropolis_algorithm(initial_state, num_samples, proposal_std):
-    samples = [initial_state]
-    current_state = initial_state
-
-    for _ in range(num_samples):
-        # Propose a new state from a normal distribution
-        proposed_state = np.random.normal(current_state, proposal_std)
-
-        # Calculate the acceptance ratio
-        acceptance_ratio = min(
-            1, target_distribution(proposed_state) / target_distribution(current_state)
-        )
-
-        # Accept or reject the proposed state
-        if np.random.rand() < acceptance_ratio:
-            current_state = proposed_state
-
-        samples.append(current_state)
-
-    return np.array(samples)
-
+import montecarlo
+import hamiltonian
+from randomgenerator import RandomGenerator
 
 if __name__ == "__main__":
     # # Parameters
@@ -50,16 +25,34 @@ if __name__ == "__main__":
     # plt.show()
 
     test = state.SquareSystemNonPeriodicState(3)
-    # test2 = state.SquareSystemNonPeriodicState(3)
 
-    # test.get_state()[1] = 1  # direct manipulation IS possible
-    # print(test.get_state())
-    # test2.get_state()[1] = 1
-
-    # print(test.scalar_product(test2))
-
+    # test.get_state_array()[1] = 1  # direct manipulation IS possible
+    # print(test.get_state_array())
     # print(test.get_nearest_neighbor_indices(4))
     # print(test.get_nearest_neighbor_indices(7))
     # print(test.get_nearest_neighbor_indices(13))
     # print(test.get_nearest_neighbor_indices(16))
     # print(test.get_nearest_neighbor_indices(17))
+
+    generator = RandomGenerator("testabq")
+
+    print(test.get_state_array())
+    print(test.init_random_filling(0.5, generator))
+    print(test.get_state_array())
+
+    beta = 0.4
+    U = 0.4
+    E = 0.4
+    J = 0.4
+    phi = np.pi / 4
+    ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+
+    sampler = montecarlo.MonteCarloSampler(
+        system_state=test,
+        beta=beta,
+        system_hamiltonian=ham,
+        generator=generator,
+    )
+
+    sampler.do_metropolis_steps(100)
+    print(test.get_state_array())
