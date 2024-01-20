@@ -69,14 +69,19 @@ class SystemState(ABC):
                     self.state[place_index] = 0
                     removed += 1
 
-    def get_random_swap_copy(self, generator: RandomGenerator) -> np.ndarray:
+    def get_random_swap_copy(
+        self, no_swaps: int, generator: RandomGenerator
+    ) -> np.ndarray:
         all_sites = self.get_number_sites()
-        first_index = generator.randint(0, all_sites - 1)
-        second_index = generator.randint(0, all_sites - 1)
-
         new_state = self.state.copy()
-        new_state[first_index] = self.state[second_index]
-        new_state[second_index] = self.state[first_index]
+
+        for _ in range(no_swaps):
+            first_index = generator.randint(0, all_sites - 1)
+            second_index = generator.randint(0, all_sites - 1)
+
+            buffer = new_state[second_index]
+            new_state[second_index] = new_state[first_index]
+            new_state[first_index] = buffer
 
         return new_state
 
@@ -100,6 +105,10 @@ class SystemState(ABC):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
+        pass
+
+    @abstractmethod
+    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
         pass
 
 
@@ -157,7 +166,13 @@ class SquareSystemNonPeriodicState(SystemState):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
+        phi  # get rid of unused error, sorry
+
         ## TODO: cache
         M = self.size
-        phi  # get rid of unused error, sorry
         return cos_phi * (index % M) + sin_phi * (index // M)
+
+    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+        system_state_array  # get rid of unused error, sorry
+
+        return 1 / (2 ** self.get_number_sites_wo_spin_degree())

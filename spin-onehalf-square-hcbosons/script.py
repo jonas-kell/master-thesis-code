@@ -1,19 +1,18 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 import state
-import montecarlo
+import sampler
 import hamiltonian
 from randomgenerator import RandomGenerator
 
 if __name__ == "__main__":
+    # import matplotlib.pyplot as plt
     # # Parameters
     # initial_state = 0.0
     # num_samples = 100000
     # proposal_std = 0.5
-
     # # Run Metropolis algorithm
     # samples = metropolis_algorithm(initial_state, num_samples, proposal_std)
-
     # # Plot the results
     # plt.hist(samples, bins=50, density=True, label="Samples")
     # x_range = np.linspace(-3, 3, 100)
@@ -40,19 +39,33 @@ if __name__ == "__main__":
     print(test.init_random_filling(0.5, generator))
     print(test.get_state_array())
 
-    beta = 0.4
     U = 0.4
     E = 0.4
     J = 0.4
     phi = np.pi / 4
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
-    sampler = montecarlo.MonteCarloSampler(
+    # beta = 0.4
+    # sampler = sampler.MonteCarloSampler(
+    #     system_state=test,
+    #     beta=beta,
+    #     system_hamiltonian=ham,
+    #     generator=generator,
+    #     no_intermediate_mc_steps=100,
+    #     no_random_swaps=2,
+    #     no_samples=10,
+    #     no_thermalization_steps=1000,
+    # )
+
+    sampler = sampler.ExactSampler(
         system_state=test,
-        beta=beta,
-        system_hamiltonian=ham,
-        generator=generator,
     )
 
-    sampler.do_metropolis_steps(100)
-    print(test.get_state_array())
+    sample_generator_object = sampler.sample_generator()
+
+    while True:
+        try:
+            tmp = next(sample_generator_object)
+            print(tmp.get_state_array())
+        except StopIteration:
+            break

@@ -1,6 +1,15 @@
 {
     "cSpell.enableFiletypes": ["python"],
-    "cSpell.words": ["Bosonic", "dtype", "montecarlo", "ndarray", "randomgenerator"],
+    "cSpell.words": [
+        "Bosonic",
+        "dtype",
+        "montecarlo",
+        "ndarray",
+        "randomgenerator",
+        "thermalization",
+        "thermalize",
+        "thermalized"
+    ],
     "files.exclude": {
         "**/*.fdb_latexmk": true,
         "**/*.fls": true,
