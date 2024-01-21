@@ -5,6 +5,7 @@ import sampler
 import hamiltonian
 from randomgenerator import RandomGenerator
 
+
 if __name__ == "__main__":
     # import matplotlib.pyplot as plt
     # # Parameters
@@ -35,8 +36,8 @@ if __name__ == "__main__":
 
     generator = RandomGenerator("testabq")
 
-    print(test.get_state_array())
-    print(test.init_random_filling(0.5, generator))
+    # print(test.get_state_array())
+    test.init_random_filling(0.5, generator)
     print(test.get_state_array())
 
     U = 0.4
@@ -45,8 +46,10 @@ if __name__ == "__main__":
     phi = np.pi / 4
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
+    print(ham.V_parts(test, test.get_state_array()))
+
     # beta = 0.4
-    # sampler = sampler.MonteCarloSampler(
+    # state_sampler = sampler.MonteCarloSampler(
     #     system_state=test,
     #     beta=beta,
     #     system_hamiltonian=ham,
@@ -57,15 +60,28 @@ if __name__ == "__main__":
     #     no_thermalization_steps=1000,
     # )
 
-    sampler = sampler.ExactSampler(
-        system_state=test,
-    )
+    # state_sampler = sampler.ExactSampler(
+    #     system_state=test,
+    # )
 
-    sample_generator_object = sampler.sample_generator()
+    # sample_generator_object = state_sampler.sample_generator()
 
-    while True:
-        try:
-            tmp = next(sample_generator_object)
-            print(tmp.get_state_array())
-        except StopIteration:
-            break
+    # while True:
+    #     try:
+    #         tmp = next(sample_generator_object)
+    #         print(tmp.get_state_array())
+    #     except StopIteration:
+    #         break
+
+    # sample_generator_object = state_sampler.sample_generator()
+
+    # sample_count = 0
+    # while True:
+    #     try:
+    #         sampled_state_n = next(sample_generator_object)
+    #         ## generate averages using sampled state
+    #         sample_count += 1
+
+    #         ## end generate averages using sampled state
+    #     except StopIteration:
+    #         break
