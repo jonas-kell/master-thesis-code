@@ -88,23 +88,11 @@ class SystemState(ABC):
     def set_state(self, new_state: np.ndarray) -> None:
         self.state = new_state
 
-    def get_eps_multiplier_from_to(
-        self,
-        index_from: int,
-        index_to: int,
-        phi: float,
-        sin_phi: float,
-        cos_phi: float,
-    ) -> float:
-        ## TODO: cache
-        return self.get_eps_multiplier(
-            index_to, phi, sin_phi, cos_phi
-        ) - self.get_eps_multiplier(index_from, phi, sin_phi, cos_phi)
-
     @abstractmethod
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
+        ## TODO: cache
         pass
 
     @abstractmethod

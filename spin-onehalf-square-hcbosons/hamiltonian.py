@@ -97,8 +97,74 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         system_state_object: state.SystemState,
         system_state_array: np.ndarray,
     ) -> float:
-        # TODO generate t K states that could potentially overlap when summing over the <l,m>
-        pass
+        operator_evaluations = self.V_parts(
+            system_state_object=system_state_object,
+            system_state_array=system_state_array,
+        )
+
+        psi_N = system_state_object.get_Psi_of_N(system_state_array=system_state_array)
+
+        # one_over_epsm_minus_epsl
+        # one_over_epsm_minus_epsl_plus_U
+        # one_over_epsm_minus_epsl_minus_U
+        # e_to_the_t_epsm_minus_epsl
+        # e_to_the_t_epsm_minus_epsl_plus_U
+        # e_to_the_t_epsm_minus_epsl_minus_U
+        # psi_K_over_psi_N
+
+        # see above comments, what these Tuple elements are
+        cache = Dict[
+            VPartsMapping,
+            List[
+                Tuple[
+                    float,
+                    float,
+                    float,
+                    np.complex128,
+                    np.complex128,
+                    np.complex128,
+                    float,
+                ]
+            ],
+        ]
+        for val in VPartsMapping:
+            cache[val] = []
+            for l, m, K in operator_evaluations[val]:
+                psi_K = system_state_object.get_Psi_of_N(system_state_array=K)
+
+                eps_m_minus_eps_l = system_state_object.get_eps_multiplier(
+                    index=m, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+                ) - system_state_object.get_eps_multiplier(
+                    index=l, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+                )
+
+                one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l
+                one_over_epsm_minus_epsl_plus_U = 1 / (eps_m_minus_eps_l + self.U)
+                one_over_epsm_minus_epsl_minus_U = 1 / (eps_m_minus_eps_l - self.U)
+                e_to_the_t_epsm_minus_epsl = np.exp(1j * time * eps_m_minus_eps_l)
+                e_to_the_t_epsm_minus_epsl_plus_U = np.exp(
+                    1j * time * (eps_m_minus_eps_l + self.U)
+                )
+                e_to_the_t_epsm_minus_epsl_minus_U = np.exp(
+                    1j * time * (eps_m_minus_eps_l - self.U)
+                )
+
+                # probably inefficient and is always 1 but wanted to do it properly
+                psi_K_over_psi_N = psi_K / psi_N
+
+                cache[val].append(
+                    (
+                        one_over_epsm_minus_epsl,
+                        one_over_epsm_minus_epsl_plus_U,
+                        one_over_epsm_minus_epsl_minus_U,
+                        e_to_the_t_epsm_minus_epsl,
+                        e_to_the_t_epsm_minus_epsl_plus_U,
+                        e_to_the_t_epsm_minus_epsl_minus_U,
+                        psi_K_over_psi_N,
+                    )
+                )
+
+        # TODO assemble
 
     def V_parts(
         self, system_state_object: state.SystemState, system_state_array: np.ndarray
