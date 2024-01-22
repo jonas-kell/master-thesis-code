@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # print(test.get_nearest_neighbor_indices(16))
     # print(test.get_nearest_neighbor_indices(17))
 
-    generator = RandomGenerator("testabq")
+    generator = RandomGenerator("testabqasdsa")
 
     # print(test.get_state_array())
     test.init_random_filling(0.5, generator)
@@ -46,42 +46,51 @@ if __name__ == "__main__":
     phi = np.pi / 4
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
-    print(ham.get_H_n(3.141, test, test.get_state_array()))
-
-    # beta = 0.4
-    # state_sampler = sampler.MonteCarloSampler(
-    #     system_state=test,
-    #     beta=beta,
-    #     system_hamiltonian=ham,
-    #     generator=generator,
-    #     no_intermediate_mc_steps=100,
-    #     no_random_swaps=2,
-    #     no_samples=10,
-    #     no_thermalization_steps=1000,
-    # )
+    beta = 0.4
+    state_sampler = sampler.MonteCarloSampler(
+        system_state=test,
+        beta=beta,
+        system_hamiltonian=ham,
+        generator=generator,
+        no_intermediate_mc_steps=100,
+        no_random_swaps=2,
+        no_samples=20000,  # 262144
+        no_thermalization_steps=10000,
+    )
 
     # state_sampler = sampler.ExactSampler(
     #     system_state=test,
     # )
 
-    # sample_generator_object = state_sampler.sample_generator()
+    sample_generator_object = state_sampler.sample_generator()
 
-    # while True:
-    #     try:
-    #         tmp = next(sample_generator_object)
-    #         print(tmp.get_state_array())
-    #     except StopIteration:
-    #         break
+    sample_count = 0
+    total_sum = np.zeros((1,), dtype=np.complex128)[0]
+    time = 0
+    while True:
+        try:
+            sampled_state_n = next(sample_generator_object)
+            ## generate averages using sampled state
+            sample_count += 1
 
-    # sample_generator_object = state_sampler.sample_generator()
+            h_eff = ham.get_exp_H_effective_of_n_and_t(
+                time=time,
+                system_state_object=sampled_state_n,
+                system_state_array=sampled_state_n.get_state_array(),
+            )
+            psi_n = sampled_state_n.get_Psi_of_N(sampled_state_n.get_state_array())
+            total_sum += np.real(
+                np.conj(h_eff) * h_eff  # keep the autoformatter from rewriting ugly...
+            ) * np.real(
+                np.conj(psi_n) * psi_n  #
+            )
 
-    # sample_count = 0
-    # while True:
-    #     try:
-    #         sampled_state_n = next(sample_generator_object)
-    #         ## generate averages using sampled state
-    #         sample_count += 1
+            if sample_count % 1000 == 0:
+                print(sample_count)
 
-    #         ## end generate averages using sampled state
-    #     except StopIteration:
-    #         break
+            ## end generate averages using sampled state
+        except StopIteration:
+            break
+
+    print(total_sum)
+    print(sample_count)

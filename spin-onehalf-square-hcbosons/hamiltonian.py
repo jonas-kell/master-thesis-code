@@ -43,6 +43,19 @@ class Hamiltonian(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_exp_H_effective_of_n_and_t(
+        self,
+        time: float,
+        system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
+    ) -> float:
+        """
+        system_state_object is ONLY for index/eps calculations
+        all state data will be taken from the system_state_array
+        """
+        pass
+
 
 class VPartsMapping(Enum):
     ClCHm = "a"  # red
@@ -346,3 +359,25 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
 
         return result
+
+    def get_exp_H_effective_of_n_and_t(
+        self,
+        time: float,
+        system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
+    ) -> float:
+        return np.exp(
+            self.get_H_n(
+                time=time,
+                system_state_object=system_state_object,
+                system_state_array=system_state_array,
+            )
+            - (
+                1j
+                * self.get_base_energy(
+                    system_state_object=system_state_object,
+                    system_state_array=system_state_array,
+                )
+                * time
+            )
+        )

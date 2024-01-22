@@ -92,7 +92,6 @@ class SystemState(ABC):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
-        ## TODO: cache
         pass
 
     @abstractmethod
