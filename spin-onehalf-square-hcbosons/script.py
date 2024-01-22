@@ -1,12 +1,13 @@
-import numpy as np
+# cython: infer_types=True
 
+import numpy as np
 import state
 import sampler
 import hamiltonian
 from randomgenerator import RandomGenerator
+import cython
 
-
-if __name__ == "__main__":
+if __name__ == "__main__" or True:
     # import matplotlib.pyplot as plt
     # # Parameters
     # initial_state = 0.0
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     test.init_random_filling(0.5, generator)
     print(test.get_state_array())
 
+    U: cython.floating
     U = 0.4
     E = 0.4
     J = 0.4

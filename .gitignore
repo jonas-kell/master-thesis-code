@@ -2,3 +2,7 @@
 **/__pycache__
 **/*.pth
 **/nohup.out
+**/build
+**/*.c
+**/*.so
+**/*.html

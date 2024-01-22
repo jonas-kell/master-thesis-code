@@ -2,6 +2,7 @@
     "cSpell.enableFiletypes": ["python"],
     "cSpell.words": [
         "Bosonic",
+        "cython",
         "dtype",
         "montecarlo",
         "ndarray",
