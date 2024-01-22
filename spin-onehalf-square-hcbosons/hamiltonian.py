@@ -45,7 +45,14 @@ class Hamiltonian(ABC):
 
 
 class VPartsMapping(Enum):
-    ClCHm = "a"
+    ClCHm = "a"  # red
+    DlDHm = "b"  # red
+    ClCmCHlCHmDlDHm = "c"  # green
+    ClCHmDlDmDHlDHm = "d"  # green
+    ClCHlDlDHm = "e"  # violet
+    ClCHmDlDHl = "f"  # violet
+    CmCHmDlDHm = "g"  # yellow
+    ClCHmDmDHm = "g"  # yellow
 
 
 class HardcoreBosonicHamiltonian(Hamiltonian):
@@ -113,10 +120,98 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
             for m, m_os in zip(index_neighbors, index_os_neighbors):
                 # The operators act left onto <system_state_array|operator|output K>
 
-                # c_l*c#_m
+                m_to_l_hopped_state_array = None
+
+                def get_m_to_l_hopped_state_array() -> np.ndarray:
+                    nonlocal m_to_l_hopped_state_array
+                    if m_to_l_hopped_state_array is None:
+                        m_to_l_hopped_state_array = system_state_array.copy()
+                        m_to_l_hopped_state_array[l] = 1
+                        m_to_l_hopped_state_array[m] = 0
+                    return m_to_l_hopped_state_array
+
+                os_m_to_l_hopped_state_array = None
+
+                def get_os_m_to_l_hopped_state_array() -> np.ndarray:
+                    nonlocal os_m_to_l_hopped_state_array
+                    if os_m_to_l_hopped_state_array is None:
+                        os_m_to_l_hopped_state_array = system_state_array.copy()
+                        os_m_to_l_hopped_state_array[l_os] = 1
+                        os_m_to_l_hopped_state_array[m_os] = 0
+                    return os_m_to_l_hopped_state_array
+
+                # ClCHm: c_l * c#_m
                 if system_state_array[l] == 0 and system_state_array[m] == 1:
-                    tmp = system_state_array.copy()
-                    tmp[l] = 1
-                    tmp[m] = 0
-                    result[VPartsMapping.ClCHm].append((l, m, tmp))
+                    result[VPartsMapping.ClCHm].append(
+                        (l, m, get_m_to_l_hopped_state_array())
+                    )
+
+                # DlDHm: d_l * d#_m
+                if system_state_array[l_os] == 0 and system_state_array[l_os] == 1:
+                    result[VPartsMapping.DlDHm].append(
+                        (l, m, get_os_m_to_l_hopped_state_array())
+                    )
+
+                # ClCmCHlCHmDlDHm: c_l * c_m * c#_l * c#_m * d_l * d#_m
+                if (
+                    system_state_array[l] == 1
+                    and system_state_array[m] == 1
+                    and system_state_array[l_os] == 0
+                    and system_state_array[m_os] == 1
+                ):
+                    result[VPartsMapping.ClCmCHlCHmDlDHm].append(
+                        (l, m, get_os_m_to_l_hopped_state_array())
+                    )
+
+                # ClCHmDlDmDHlDHm: c_l * c#_m * d_l * d_m * d#_l * d#_m
+                if (
+                    system_state_array[l_os] == 1
+                    and system_state_array[m_os] == 1
+                    and system_state_array[l] == 0
+                    and system_state_array[m] == 1
+                ):
+                    result[VPartsMapping.ClCHmDlDmDHlDHm].append(
+                        (l, m, get_m_to_l_hopped_state_array())
+                    )
+
+                # ClCHlDlDHm: c_l * c#_l * d_l * d#_m
+                if (
+                    system_state_array[l] == 1
+                    and system_state_array[l_os] == 0
+                    and system_state_array[m_os] == 1
+                ):
+                    result[VPartsMapping.ClCHlDlDHm].append(
+                        (l, m, get_os_m_to_l_hopped_state_array())
+                    )
+
+                # ClCHmDlDHl: c_l * c#_m * d_l * d#_l
+                if (
+                    system_state_array[l_os] == 1
+                    and system_state_array[l] == 0
+                    and system_state_array[m] == 1
+                ):
+                    result[VPartsMapping.ClCHmDlDHl].append(
+                        (l, m, get_m_to_l_hopped_state_array())
+                    )
+
+                # CmCHmDlDHm: c_m * c#_m * d_l * d#_m
+                if (
+                    system_state_array[m] == 1
+                    and system_state_array[l_os] == 0
+                    and system_state_array[m_os] == 1
+                ):
+                    result[VPartsMapping.CmCHmDlDHm].append(
+                        (l, m, get_os_m_to_l_hopped_state_array())
+                    )
+
+                # ClCHmDmDHm: c_l * c#_m * d_m * d#_m
+                if (
+                    system_state_array[m_os] == 1
+                    and system_state_array[l] == 0
+                    and system_state_array[m] == 1
+                ):
+                    result[VPartsMapping.ClCHmDmDHm].append(
+                        (l, m, get_m_to_l_hopped_state_array())
+                    )
+
         return result
