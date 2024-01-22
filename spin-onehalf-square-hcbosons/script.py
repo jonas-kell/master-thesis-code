@@ -46,7 +46,7 @@ if __name__ == "__main__":
     phi = np.pi / 4
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
-    print(ham.V_parts(test, test.get_state_array()))
+    print(ham.get_H_n(3.141, test, test.get_state_array()))
 
     # beta = 0.4
     # state_sampler = sampler.MonteCarloSampler(

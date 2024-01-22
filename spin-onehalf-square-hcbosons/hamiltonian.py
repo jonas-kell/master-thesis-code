@@ -96,7 +96,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         time: float,
         system_state_object: state.SystemState,
         system_state_array: np.ndarray,
-    ) -> float:
+    ) -> np.complex128:
         operator_evaluations = self.V_parts(
             system_state_object=system_state_object,
             system_state_array=system_state_array,
@@ -113,7 +113,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         # psi_K_over_psi_N
 
         # see above comments, what these Tuple elements are
-        cache = Dict[
+        cache: Dict[
             VPartsMapping,
             List[
                 Tuple[
@@ -126,7 +126,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     float,
                 ]
             ],
-        ]
+        ] = {}
         for val in VPartsMapping:
             cache[val] = []
             for l, m, K in operator_evaluations[val]:
@@ -164,7 +164,72 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
                 )
 
-        # TODO assemble
+        total_sum = np.zeros((1,), dtype=np.complex128)[0]
+        sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
+            [
+                (VPartsMapping.ClCHm, 10),
+                (VPartsMapping.DlDHm, 10),
+                (VPartsMapping.ClCmCHlCHmDlDHm, 4),
+                (VPartsMapping.ClCHmDlDmDHlDHm, 4),
+                (VPartsMapping.ClCHlDlDHm, 6),
+                (VPartsMapping.ClCHmDlDHl, 6),
+                (VPartsMapping.CmCHmDlDHm, 6),
+                (VPartsMapping.ClCHmDmDHm, 6),
+            ],
+            [
+                (VPartsMapping.ClCHm, 4),
+                (VPartsMapping.DlDHm, 4),
+                (VPartsMapping.ClCmCHlCHmDlDHm, 2),
+                (VPartsMapping.ClCHmDlDmDHlDHm, 2),
+                (VPartsMapping.ClCHlDlDHm, 2),
+                (VPartsMapping.ClCHmDlDHl, 2),
+                (VPartsMapping.CmCHmDlDHm, 4),
+                (VPartsMapping.ClCHmDmDHm, 4),
+            ],
+            [
+                (VPartsMapping.ClCHm, 4),
+                (VPartsMapping.DlDHm, 4),
+                (VPartsMapping.ClCmCHlCHmDlDHm, 2),
+                (VPartsMapping.ClCHmDlDmDHlDHm, 2),
+                (VPartsMapping.ClCHlDlDHm, 4),
+                (VPartsMapping.ClCHmDlDHl, 4),
+                (VPartsMapping.CmCHmDlDHm, 2),
+                (VPartsMapping.ClCHmDmDHm, 2),
+            ],
+        ]
+        for i, sum_map in enumerate(sum_map_controller):
+            for map_key, number in sum_map:
+                for (
+                    one_over_epsm_minus_epsl,
+                    one_over_epsm_minus_epsl_plus_U,
+                    one_over_epsm_minus_epsl_minus_U,
+                    e_to_the_t_epsm_minus_epsl,
+                    e_to_the_t_epsm_minus_epsl_plus_U,
+                    e_to_the_t_epsm_minus_epsl_minus_U,
+                    psi_K_over_psi_N,
+                ) in cache[map_key]:
+                    product = np.ones((1,), dtype=np.complex128)[0]
+                    product *= number * psi_K_over_psi_N
+
+                    if i == 0:
+                        # A part of the first order
+                        product *= one_over_epsm_minus_epsl * (
+                            e_to_the_t_epsm_minus_epsl + 1
+                        )
+                    elif i == 1:
+                        # B part of the first order
+                        product *= one_over_epsm_minus_epsl_plus_U * (
+                            e_to_the_t_epsm_minus_epsl_plus_U + 1
+                        )
+                    elif i == 2:
+                        # C part of the first order
+                        product *= one_over_epsm_minus_epsl_minus_U * (
+                            e_to_the_t_epsm_minus_epsl_minus_U + 1
+                        )
+
+                    total_sum += product
+
+        return total_sum * self.J
 
     def V_parts(
         self, system_state_object: state.SystemState, system_state_array: np.ndarray
