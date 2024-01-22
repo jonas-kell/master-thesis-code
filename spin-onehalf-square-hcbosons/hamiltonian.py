@@ -154,8 +154,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # ClCmCHlCHmDlDHm: c_l * c_m * c#_l * c#_m * d_l * d#_m
                 if (
-                    system_state_array[l] == 1
-                    and system_state_array[m] == 1
+                    system_state_array[l] == 0
+                    and system_state_array[m] == 0
                     and system_state_array[l_os] == 0
                     and system_state_array[m_os] == 1
                 ):
@@ -165,8 +165,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # ClCHmDlDmDHlDHm: c_l * c#_m * d_l * d_m * d#_l * d#_m
                 if (
-                    system_state_array[l_os] == 1
-                    and system_state_array[m_os] == 1
+                    system_state_array[l_os] == 0
+                    and system_state_array[m_os] == 0
                     and system_state_array[l] == 0
                     and system_state_array[m] == 1
                 ):
@@ -176,7 +176,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # ClCHlDlDHm: c_l * c#_l * d_l * d#_m
                 if (
-                    system_state_array[l] == 1
+                    system_state_array[l] == 0
                     and system_state_array[l_os] == 0
                     and system_state_array[m_os] == 1
                 ):
@@ -186,7 +186,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # ClCHmDlDHl: c_l * c#_m * d_l * d#_l
                 if (
-                    system_state_array[l_os] == 1
+                    system_state_array[l_os] == 0
                     and system_state_array[l] == 0
                     and system_state_array[m] == 1
                 ):
@@ -196,7 +196,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # CmCHmDlDHm: c_m * c#_m * d_l * d#_m
                 if (
-                    system_state_array[m] == 1
+                    system_state_array[m] == 0
                     and system_state_array[l_os] == 0
                     and system_state_array[m_os] == 1
                 ):
@@ -206,7 +206,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                 # ClCHmDmDHm: c_l * c#_m * d_m * d#_m
                 if (
-                    system_state_array[m_os] == 1
+                    system_state_array[m_os] == 0
                     and system_state_array[l] == 0
                     and system_state_array[m] == 1
                 ):
