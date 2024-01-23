@@ -13,34 +13,35 @@ if __name__ == "__main__":
     E = 0.4
     J = 0.4
     phi = np.pi / 4
-    starting_fill_level: float = 0.5
 
     random_generator = RandomGenerator(randomness_seed)
-    system_state = state.SquareSystemNonPeriodicState(2)
-    system_state.init_random_filling(
-        fill_ratio=starting_fill_level, random_generator=random_generator
-    )
-    print("Initial Configuration")
-    print(system_state.get_state_array())
+    system_state = state.SquareSystemNonPeriodicState(1)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
     obs = observables.DoubleOccupation()
 
-    # beta = 0.4
-    # no_monte_carlo_samples: int = 20000  # 3x3 system has 262144 states
-    # state_sampler = sampler.MonteCarloSampler(
-    #     system_state=system_state,
-    #     beta=beta,
-    #     system_hamiltonian=ham,
-    #     random_generator=random_generator,
-    #     no_intermediate_mc_steps=100,
-    #     no_random_swaps=2,
-    #     no_samples=no_monte_carlo_samples,
-    #     no_thermalization_steps=10000,
-    # )
+    beta = 0.4
+    no_monte_carlo_samples: int = 1000  # 3x3 system has 262144 states
+    no_thermalization_steps: int = 1000
+    no_intermediate_mc_steps: int = 100
+    no_random_flips: int = 4
+    starting_fill_level: float = 1.0
 
-    state_sampler = sampler.ExactSampler(
+    state_sampler = sampler.MonteCarloSampler(
         system_state=system_state,
+        beta=beta,
+        system_hamiltonian=ham,
+        random_generator=random_generator,
+        no_intermediate_mc_steps=no_intermediate_mc_steps,
+        no_random_flips=no_random_flips,
+        no_samples=no_monte_carlo_samples,
+        no_thermalization_steps=no_thermalization_steps,
+        initial_fill_level=starting_fill_level,
     )
+
+    if True:
+        state_sampler = sampler.ExactSampler(
+            system_state=system_state,
+        )
 
     start_time: float = 0.0
     time_step: float = 0.1

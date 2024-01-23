@@ -69,19 +69,16 @@ class SystemState(ABC):
                     self.state[place_index] = 0
                     removed += 1
 
-    def get_random_swap_copy(
-        self, no_swaps: int, random_generator: RandomGenerator
+    def get_random_flipped_copy(
+        self, no_flips: int, random_generator: RandomGenerator
     ) -> np.ndarray:
         all_sites = self.get_number_sites()
         new_state = self.state.copy()
 
-        for _ in range(no_swaps):
-            first_index = random_generator.randint(0, all_sites - 1)
-            second_index = random_generator.randint(0, all_sites - 1)
+        for _ in range(no_flips):
+            flip_index = random_generator.randint(0, all_sites - 1)
 
-            buffer = new_state[second_index]
-            new_state[second_index] = new_state[first_index]
-            new_state[first_index] = buffer
+            new_state[flip_index] = (self.state[flip_index] + 1) % 2
 
         return new_state
 

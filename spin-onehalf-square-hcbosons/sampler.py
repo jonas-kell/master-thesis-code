@@ -34,17 +34,20 @@ class MonteCarloSampler(GeneralSampler):
         random_generator: RandomGenerator,
         no_samples: int,
         no_intermediate_mc_steps: int,
-        no_random_swaps: int,
+        no_random_flips: int,
         no_thermalization_steps: int,
+        initial_fill_level: float,
     ):
         self.beta = beta
         self.system_hamiltonian = system_hamiltonian
         self.random_generator = random_generator
         self.no_samples = no_samples
         self.no_intermediate_mc_steps = no_intermediate_mc_steps
-        self.no_random_swaps = no_random_swaps
+        self.no_random_flips = no_random_flips
         self.no_thermalization_steps = no_thermalization_steps
         self.thermalized = False
+        self.fill_level_initialized = False
+        self.initial_fill_level = initial_fill_level
         super().__init__(system_state=system_state)
 
     def do_metropolis_steps(self, num_steps: int) -> None:
@@ -54,8 +57,8 @@ class MonteCarloSampler(GeneralSampler):
         for _ in range(num_steps):
             # Propose a new state by random swap
             original_state_array = self.system_state.get_state_array()
-            proposed_state_array = self.system_state.get_random_swap_copy(
-                no_swaps=self.no_random_swaps, random_generator=self.random_generator
+            proposed_state_array = self.system_state.get_random_flipped_copy(
+                no_flips=self.no_random_flips, random_generator=self.random_generator
             )
 
             # Calculate the energies
@@ -82,12 +85,22 @@ class MonteCarloSampler(GeneralSampler):
             if self.random_generator.probability() < acceptance_ratio:
                 self.system_state.set_state(proposed_state_array)
 
+    def initialize_fill_level(self):
+        if not self.fill_level_initialized:
+            self.system_state.init_random_filling(
+                fill_ratio=self.initial_fill_level,
+                random_generator=self.random_generator,
+            )
+
+            self.fill_level_initialized = True
+
     def thermalize(self):
         if not self.thermalized:
             self.do_metropolis_steps(self.no_thermalization_steps)
             self.thermalized = True
 
     def sample_generator(self) -> Generator[state.SystemState, None, None]:
+        self.initialize_fill_level()
         self.thermalize()  # make sure, to thermalize the system at least once
 
         for _ in range(self.no_samples):
