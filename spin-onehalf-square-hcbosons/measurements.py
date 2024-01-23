@@ -4,6 +4,7 @@ import sampler as samplerImport
 import numpy as np
 from typing import Tuple, List
 import matplotlib.pyplot as plt
+import time as computerTime
 
 
 def main_measurement_function(
@@ -21,16 +22,22 @@ def main_measurement_function(
     used_sample_count = state_sampler.produces_samples_count()
     correction_fraction = float(exact_sample_count) / used_sample_count
 
+    function_start_time = None
+    sample_count = 0
+    total_needed_sample_count = used_sample_count * number_of_time_steps
+
     for time_step_nr in range(number_of_time_steps):
         time: float = start_time + time_step * time_step_nr
 
         sample_generator_object = state_sampler.sample_generator()
 
-        sample_count = 0
         total_sum: float = 0.0
         while True:
             try:
                 sampled_state_n = next(sample_generator_object)
+                # track time from of after thermalization
+                if function_start_time is None:
+                    function_start_time = computerTime.time()
                 ## generate averages using sampled state
                 sample_count += 1
 
@@ -48,7 +55,13 @@ def main_measurement_function(
                 )
 
                 if sample_count % 1000 == 0:
-                    print(f"sampled {sample_count} of {used_sample_count}")
+                    percentage = sample_count / total_needed_sample_count * 100
+                    time_needed_so_far = computerTime.time() - function_start_time
+                    probable_total_time = time_needed_so_far / percentage * 100
+
+                    print(
+                        f"In total sampled {sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
+                    )
 
                 ## end generate averages using sampled state
             except StopIteration:
@@ -61,6 +74,10 @@ def main_measurement_function(
         )
         time_list.append(time)
         values_list.append(sampled_value)
+
+    print(
+        f"Whole computation took {computerTime.time()-function_start_time:.3f} seconds"
+    )
 
     return (time_list, values_list)
 
