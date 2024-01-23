@@ -357,17 +357,12 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         time: float,
         system_state_object: state.SystemState,
     ) -> float:
-        return np.exp(
-            self.get_H_n(
-                time=time,
-                system_state_object=system_state_object,
-            )
-            - (
-                1j
-                * self.get_base_energy(
-                    system_state_object=system_state_object,
-                    system_state_array=system_state_object.get_state_array(),
-                )
-                * time
-            )
+        H_n = self.get_H_n(
+            time=time,
+            system_state_object=system_state_object,
         )
+        E_zero_n = self.get_base_energy(
+            system_state_object=system_state_object,
+            system_state_array=system_state_object.get_state_array(),
+        )
+        return np.exp(H_n - (1j * E_zero_n * time))

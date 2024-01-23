@@ -39,7 +39,7 @@ if __name__ == "__main__":
     )
 
     sample_exactly = False
-    # sample_exactly = True
+    sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
