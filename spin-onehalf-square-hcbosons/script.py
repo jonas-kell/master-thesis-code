@@ -15,15 +15,15 @@ if __name__ == "__main__":
     phi = np.pi / 4
 
     random_generator = RandomGenerator(randomness_seed)
-    system_state = state.SquareSystemNonPeriodicState(1)
+    system_state = state.SquareSystemNonPeriodicState(2)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
     obs = observables.DoubleOccupation()
 
-    beta = 0.4
-    no_monte_carlo_samples: int = 1000  # 3x3 system has 262144 states
-    no_thermalization_steps: int = 1000
-    no_intermediate_mc_steps: int = 100
-    no_random_flips: int = 4
+    beta = 0.05
+    no_monte_carlo_samples: int = 1600  # 3x3 system has 262144 states
+    no_thermalization_steps: int = 100000
+    no_intermediate_mc_steps: int = 200
+    no_random_flips: int = 1
     starting_fill_level: float = 1.0
 
     state_sampler = sampler.MonteCarloSampler(
@@ -38,14 +38,17 @@ if __name__ == "__main__":
         initial_fill_level=starting_fill_level,
     )
 
-    if True:
+    sample_exactly = False
+    # sample_exactly = True
+    if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
         )
 
     start_time: float = 0.0
-    time_step: float = 0.1
-    number_of_time_steps: int = 50
+    precision_multiplier: float = 2
+    time_step: float = 0.01 * precision_multiplier
+    number_of_time_steps: int = int(40 / precision_multiplier)
 
     (sampled_times, sampled_values) = measurements.main_measurement_function(
         start_time=start_time,

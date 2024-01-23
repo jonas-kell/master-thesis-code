@@ -17,6 +17,10 @@ def main_measurement_function(
     time_list: List(float) = []
     values_list: List(float) = []
 
+    exact_sample_count = state_sampler.all_samples_count()
+    used_sample_count = state_sampler.produces_samples_count()
+    correction_fraction = float(exact_sample_count) / used_sample_count
+
     for time_step_nr in range(number_of_time_steps):
         time: float = start_time + time_step * time_step_nr
 
@@ -43,16 +47,18 @@ def main_measurement_function(
                     * observed_quantity
                 )
 
-                # if sample_count % 1000 == 0:
-                #     print(sample_count)
+                if sample_count % 1000 == 0:
+                    print(f"sampled {sample_count} of {used_sample_count}")
 
                 ## end generate averages using sampled state
             except StopIteration:
                 break
 
-        sampled_value: float = total_sum
+        sampled_value: float = total_sum * correction_fraction
 
-        print(f"Time: {time:.3f} {sampled_value} ({sample_count} samples)")
+        print(
+            f"Time: {time:.3f} {sampled_value} ({sample_count} samples, while exact needs {exact_sample_count})"
+        )
         time_list.append(time)
         values_list.append(sampled_value)
 

@@ -20,6 +20,15 @@ class GeneralSampler(ABC):
         """
         pass
 
+    def all_samples_count(self) -> int:
+        number_samples = 2 ** self.system_state.get_number_sites()
+
+        return number_samples
+
+    @abstractmethod
+    def produces_samples_count(self) -> int:
+        pass
+
 
 class MonteCarloSampler(GeneralSampler):
     """
@@ -107,6 +116,9 @@ class MonteCarloSampler(GeneralSampler):
             yield self.system_state
             self.do_metropolis_steps(self.no_intermediate_mc_steps)
 
+    def produces_samples_count(self) -> int:
+        return self.no_samples
+
 
 class ExactSampler(GeneralSampler):
     """
@@ -123,11 +135,9 @@ class ExactSampler(GeneralSampler):
         working_state = np.zeros_like(self.system_state.get_state_array())
         self.system_state.set_state(working_state)
 
-        number_samples = 2 ** self.system_state.get_number_sites()
-
         array_length = working_state.shape[0]
 
-        for _ in range(number_samples):
+        for _ in range(self.all_samples_count()):
             yield self.system_state
 
             carry = 1
@@ -136,3 +146,6 @@ class ExactSampler(GeneralSampler):
 
                 working_state[i] = res % 2
                 carry = res // 2
+
+    def produces_samples_count(self) -> int:
+        return self.all_samples_count()
