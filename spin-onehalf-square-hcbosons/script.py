@@ -20,7 +20,7 @@ if __name__ == "__main__":
     obs = observables.DoubleOccupation()
 
     beta = 0.05
-    no_monte_carlo_samples: int = 1600  # 3x3 system has 262144 states
+    no_monte_carlo_samples: int = 3200  # 3x3 system has 262144 states
     no_thermalization_steps: int = 100000
     no_intermediate_mc_steps: int = 200
     no_random_flips: int = 1
