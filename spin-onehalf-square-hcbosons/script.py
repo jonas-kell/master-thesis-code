@@ -11,8 +11,8 @@ if __name__ == "__main__":
 
     U = 0.4
     E = 0.4
-    J = 0.4
-    phi = np.pi / 4
+    J = 0.001
+    phi = np.pi / 4  # putting this to /8 completely changes the graph
 
     random_generator = RandomGenerator(randomness_seed)
     system_state = state.SquareSystemNonPeriodicState(2)
