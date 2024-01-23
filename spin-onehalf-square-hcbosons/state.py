@@ -38,7 +38,7 @@ class SystemState(ABC):
         pass
 
     def init_random_filling(
-        self, fill_ratio: float, generator: RandomGenerator
+        self, fill_ratio: float, random_generator: RandomGenerator
     ) -> None:
         if fill_ratio < 0:
             raise Exception("Fill ratio must be at least 0")
@@ -54,7 +54,7 @@ class SystemState(ABC):
             added = 0
             self.state = np.zeros_like(self.state)
             while added < target_num_filling:
-                place_index = generator.randint(0, all_sites - 1)
+                place_index = random_generator.randint(0, all_sites - 1)
                 if self.state[place_index] == 0:
                     self.state[place_index] = 1
                     added += 1
@@ -64,20 +64,20 @@ class SystemState(ABC):
             removed = 0
             target_num_removing = all_sites - target_num_filling
             while removed < target_num_removing:
-                place_index = generator.randint(0, all_sites - 1)
+                place_index = random_generator.randint(0, all_sites - 1)
                 if self.state[place_index] == 1:
                     self.state[place_index] = 0
                     removed += 1
 
     def get_random_swap_copy(
-        self, no_swaps: int, generator: RandomGenerator
+        self, no_swaps: int, random_generator: RandomGenerator
     ) -> np.ndarray:
         all_sites = self.get_number_sites()
         new_state = self.state.copy()
 
         for _ in range(no_swaps):
-            first_index = generator.randint(0, all_sites - 1)
-            second_index = generator.randint(0, all_sites - 1)
+            first_index = random_generator.randint(0, all_sites - 1)
+            second_index = random_generator.randint(0, all_sites - 1)
 
             buffer = new_state[second_index]
             new_state[second_index] = new_state[first_index]

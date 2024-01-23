@@ -31,7 +31,7 @@ class MonteCarloSampler(GeneralSampler):
         system_state: state.SystemState,
         beta: float,
         system_hamiltonian: hamiltonian.Hamiltonian,
-        generator: RandomGenerator,
+        random_generator: RandomGenerator,
         no_samples: int,
         no_intermediate_mc_steps: int,
         no_random_swaps: int,
@@ -39,7 +39,7 @@ class MonteCarloSampler(GeneralSampler):
     ):
         self.beta = beta
         self.system_hamiltonian = system_hamiltonian
-        self.generator = generator
+        self.random_generator = random_generator
         self.no_samples = no_samples
         self.no_intermediate_mc_steps = no_intermediate_mc_steps
         self.no_random_swaps = no_random_swaps
@@ -55,7 +55,7 @@ class MonteCarloSampler(GeneralSampler):
             # Propose a new state by random swap
             original_state_array = self.system_state.get_state_array()
             proposed_state_array = self.system_state.get_random_swap_copy(
-                no_swaps=self.no_random_swaps, generator=self.generator
+                no_swaps=self.no_random_swaps, random_generator=self.random_generator
             )
 
             # Calculate the energies
@@ -79,7 +79,7 @@ class MonteCarloSampler(GeneralSampler):
             )
 
             # Accept or reject the proposed state
-            if self.generator.probability() < acceptance_ratio:
+            if self.random_generator.probability() < acceptance_ratio:
                 self.system_state.set_state(proposed_state_array)
 
     def thermalize(self):

@@ -1,96 +1,64 @@
 import numpy as np
-
+from randomgenerator import RandomGenerator
 import state
 import sampler
 import hamiltonian
-from randomgenerator import RandomGenerator
-
+import observables
+import measurements
 
 if __name__ == "__main__":
-    # import matplotlib.pyplot as plt
-    # # Parameters
-    # initial_state = 0.0
-    # num_samples = 100000
-    # proposal_std = 0.5
-    # # Run Metropolis algorithm
-    # samples = metropolis_algorithm(initial_state, num_samples, proposal_std)
-    # # Plot the results
-    # plt.hist(samples, bins=50, density=True, label="Samples")
-    # x_range = np.linspace(-3, 3, 100)
-    # plt.plot(
-    #     x_range, target_distribution(x_range), label="Target Distribution", color="red"
-    # )
-    # plt.title("Metropolis Algorithm for Monte Carlo Sampling")
-    # plt.legend()
-    # plt.show()
-
-    test = state.SquareSystemNonPeriodicState(3)
-
-    # test.get_state_array()[1] = 1  # direct manipulation IS possible
-    # print(test.get_state_array())
-    # print(test.get_nearest_neighbor_indices(4))
-    # print(test.get_nearest_neighbor_indices(7))
-    # print(test.get_nearest_neighbor_indices(13))
-    # print(test.get_nearest_neighbor_indices(16))
-    # print(test.get_nearest_neighbor_indices(17))
-
-    generator = RandomGenerator("testabqasdsa")
-
-    # print(test.get_state_array())
-    test.init_random_filling(0.5, generator)
-    print(test.get_state_array())
+    randomness_seed = "k"
 
     U = 0.4
     E = 0.4
     J = 0.4
     phi = np.pi / 4
-    ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+    starting_fill_level: float = 0.5
 
-    beta = 0.4
-    state_sampler = sampler.MonteCarloSampler(
-        system_state=test,
-        beta=beta,
-        system_hamiltonian=ham,
-        generator=generator,
-        no_intermediate_mc_steps=100,
-        no_random_swaps=2,
-        no_samples=20000,  # 262144
-        no_thermalization_steps=10000,
+    random_generator = RandomGenerator(randomness_seed)
+    system_state = state.SquareSystemNonPeriodicState(2)
+    system_state.init_random_filling(
+        fill_ratio=starting_fill_level, random_generator=random_generator
     )
+    print("Initial Configuration")
+    print(system_state.get_state_array())
+    ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+    obs = observables.DoubleOccupation()
 
-    # state_sampler = sampler.ExactSampler(
-    #     system_state=test,
+    # beta = 0.4
+    # no_monte_carlo_samples: int = 20000  # 3x3 system has 262144 states
+    # state_sampler = sampler.MonteCarloSampler(
+    #     system_state=system_state,
+    #     beta=beta,
+    #     system_hamiltonian=ham,
+    #     random_generator=random_generator,
+    #     no_intermediate_mc_steps=100,
+    #     no_random_swaps=2,
+    #     no_samples=no_monte_carlo_samples,
+    #     no_thermalization_steps=10000,
     # )
 
-    sample_generator_object = state_sampler.sample_generator()
+    state_sampler = sampler.ExactSampler(
+        system_state=system_state,
+    )
 
-    sample_count = 0
-    total_sum = np.zeros((1,), dtype=np.complex128)[0]
-    time = 0
-    while True:
-        try:
-            sampled_state_n = next(sample_generator_object)
-            ## generate averages using sampled state
-            sample_count += 1
+    start_time: float = 0.0
+    time_step: float = 0.1
+    number_of_time_steps: int = 50
 
-            h_eff = ham.get_exp_H_effective_of_n_and_t(
-                time=time,
-                system_state_object=sampled_state_n,
-                system_state_array=sampled_state_n.get_state_array(),
-            )
-            psi_n = sampled_state_n.get_Psi_of_N(sampled_state_n.get_state_array())
-            total_sum += np.real(
-                np.conj(h_eff) * h_eff  # keep the autoformatter from rewriting ugly...
-            ) * np.real(
-                np.conj(psi_n) * psi_n  #
-            )
+    (sampled_times, sampled_values) = measurements.main_measurement_function(
+        start_time=start_time,
+        time_step=time_step,
+        number_of_time_steps=number_of_time_steps,
+        hamiltonian=ham,
+        observable=obs,
+        state_sampler=state_sampler,
+    )
 
-            if sample_count % 1000 == 0:
-                print(sample_count)
-
-            ## end generate averages using sampled state
-        except StopIteration:
-            break
-
-    print(total_sum)
-    print(sample_count)
+    measurements.plot_measurements(
+        times=sampled_times,
+        values=sampled_values,
+        title="Calculations on Spin System",
+        x_label="time t",
+        y_label="observed value",
+    )

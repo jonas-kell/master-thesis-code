@@ -35,12 +35,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
-        system_state_array: np.ndarray,
     ) -> float:
-        """
-        system_state_object is ONLY for index/eps calculations
-        all state data will be taken from the system_state_array
-        """
         pass
 
     @abstractmethod
@@ -48,12 +43,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
-        system_state_array: np.ndarray,
     ) -> float:
-        """
-        system_state_object is ONLY for index/eps calculations
-        all state data will be taken from the system_state_array
-        """
         pass
 
 
@@ -108,11 +98,10 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
-        system_state_array: np.ndarray,
     ) -> np.complex128:
+        system_state_array = system_state_object.get_state_array()
         operator_evaluations = self.V_parts(
             system_state_object=system_state_object,
-            system_state_array=system_state_array,
         )
 
         psi_N = system_state_object.get_Psi_of_N(system_state_array=system_state_array)
@@ -177,7 +166,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
                 )
 
-        total_sum = np.zeros((1,), dtype=np.complex128)[0]
+        total_sum = np.complex128(0)
         sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
             [
                 (VPartsMapping.ClCHm, 10),
@@ -221,7 +210,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     e_to_the_t_epsm_minus_epsl_minus_U,
                     psi_K_over_psi_N,
                 ) in cache[map_key]:
-                    product = np.ones((1,), dtype=np.complex128)[0]
+                    product = np.complex128(1)
                     product *= number * psi_K_over_psi_N
 
                     if i == 0:
@@ -245,12 +234,15 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         return total_sum * self.J
 
     def V_parts(
-        self, system_state_object: state.SystemState, system_state_array: np.ndarray
+        self,
+        system_state_object: state.SystemState,
     ) -> Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]]:
         """
         returns Tuple[l,m,K] The neighbor summation indices l&m and the resulting state K where a match was made
         """
         number_sites = system_state_object.get_number_sites_wo_spin_degree()
+        system_state_array = system_state_object.get_state_array()
+
         result: Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]] = {}
         for val in VPartsMapping:
             result[val] = []
@@ -364,19 +356,17 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
-        system_state_array: np.ndarray,
     ) -> float:
         return np.exp(
             self.get_H_n(
                 time=time,
                 system_state_object=system_state_object,
-                system_state_array=system_state_array,
             )
             - (
                 1j
                 * self.get_base_energy(
                     system_state_object=system_state_object,
-                    system_state_array=system_state_array,
+                    system_state_array=system_state_object.get_state_array(),
                 )
                 * time
             )
