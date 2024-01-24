@@ -216,17 +216,17 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     if i == 0:
                         # A part of the first order
                         product *= one_over_epsm_minus_epsl * (
-                            e_to_the_t_epsm_minus_epsl + 1
+                            e_to_the_t_epsm_minus_epsl - 1
                         )
                     elif i == 1:
                         # B part of the first order
                         product *= one_over_epsm_minus_epsl_plus_U * (
-                            e_to_the_t_epsm_minus_epsl_plus_U + 1
+                            e_to_the_t_epsm_minus_epsl_plus_U - 1
                         )
                     elif i == 2:
                         # C part of the first order
                         product *= one_over_epsm_minus_epsl_minus_U * (
-                            e_to_the_t_epsm_minus_epsl_minus_U + 1
+                            e_to_the_t_epsm_minus_epsl_minus_U - 1
                         )
 
                     total_sum += product

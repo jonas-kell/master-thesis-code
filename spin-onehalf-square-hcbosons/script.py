@@ -11,8 +11,8 @@ if __name__ == "__main__":
 
     U = 0.4
     E = 0.4
-    J = 0.001
-    phi = np.pi / 4  # putting this to /8 completely changes the graph
+    J = 0.01
+    phi = np.pi / 8  # putting this to /8 completely changes the graph
 
     random_generator = RandomGenerator(randomness_seed)
     system_state = state.SquareSystemNonPeriodicState(2)
@@ -20,9 +20,9 @@ if __name__ == "__main__":
     obs = observables.DoubleOccupation()
 
     beta = 0.05
-    no_monte_carlo_samples: int = 3200  # 3x3 system has 262144 states
-    no_thermalization_steps: int = 100000
-    no_intermediate_mc_steps: int = 200
+    no_monte_carlo_samples: int = 2000  # 3x3 system has 262144 states
+    no_thermalization_steps: int = 1000
+    no_intermediate_mc_steps: int = 20
     no_random_flips: int = 1
     starting_fill_level: float = 1.0
 
@@ -46,9 +46,8 @@ if __name__ == "__main__":
         )
 
     start_time: float = 0.0
-    precision_multiplier: float = 2
-    time_step: float = 0.01 * precision_multiplier
-    number_of_time_steps: int = int(40 / precision_multiplier)
+    time_step: float = 0.05
+    number_of_time_steps: int = int(80 * 20)
 
     (sampled_times, sampled_values) = measurements.main_measurement_function(
         start_time=start_time,
