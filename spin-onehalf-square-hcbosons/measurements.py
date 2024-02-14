@@ -15,8 +15,8 @@ def main_measurement_function(
     time_step: float,
     number_of_time_steps: int,
 ) -> Tuple[List[float], List[float]]:
-    time_list: List(float) = []
-    values_list: List(float) = []
+    time_list: List[float] = []
+    values_list: List[float] = []
 
     exact_sample_count = state_sampler.all_samples_count()
     used_sample_count = state_sampler.produces_samples_count()
