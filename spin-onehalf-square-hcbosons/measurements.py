@@ -29,7 +29,7 @@ def main_measurement_function(
     for time_step_nr in range(number_of_time_steps):
         time: float = start_time + time_step * time_step_nr
 
-        sample_generator_object = state_sampler.sample_generator()
+        sample_generator_object = state_sampler.sample_generator(time=time)
 
         total_sum: float = 0.0
         while True:
@@ -44,6 +44,7 @@ def main_measurement_function(
                 h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
                     time=time,
                     system_state_object=sampled_state_n,
+                    system_state_array=sampled_state_n.get_state_array(),
                 )
                 psi_n = sampled_state_n.get_Psi_of_N(sampled_state_n.get_state_array())
                 observed_quantity = observable.get_expectation_value(sampled_state_n)

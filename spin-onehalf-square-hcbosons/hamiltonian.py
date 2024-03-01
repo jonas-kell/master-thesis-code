@@ -35,6 +35,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
     ) -> float:
         pass
 
@@ -43,6 +44,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
     ) -> float:
         pass
 
@@ -98,10 +100,11 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
     ) -> np.complex128:
-        system_state_array = system_state_object.get_state_array()
         operator_evaluations = self.V_parts(
             system_state_object=system_state_object,
+            system_state_array=system_state_array,
         )
 
         psi_N = system_state_object.get_Psi_of_N(system_state_array=system_state_array)
@@ -234,14 +237,12 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         return total_sum * self.J
 
     def V_parts(
-        self,
-        system_state_object: state.SystemState,
+        self, system_state_object: state.SystemState, system_state_array: np.ndarray
     ) -> Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]]:
         """
         returns Tuple[l,m,K] The neighbor summation indices l&m and the resulting state K where a match was made
         """
         number_sites = system_state_object.get_number_sites_wo_spin_degree()
-        system_state_array = system_state_object.get_state_array()
 
         result: Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]] = {}
         for val in VPartsMapping:
@@ -356,13 +357,15 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
+        system_state_array: np.ndarray,
     ) -> float:
         H_n = self.get_H_n(
             time=time,
             system_state_object=system_state_object,
+            system_state_array=system_state_array,
         )
         E_zero_n = self.get_base_energy(
             system_state_object=system_state_object,
-            system_state_array=system_state_object.get_state_array(),
+            system_state_array=system_state_array,
         )
         return np.exp(H_n - (1j * E_zero_n * time))

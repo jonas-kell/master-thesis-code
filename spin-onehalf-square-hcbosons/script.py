@@ -19,16 +19,16 @@ if __name__ == "__main__":
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
     obs = observables.DoubleOccupation()
 
-    beta = 0.05
-    no_monte_carlo_samples: int = 2000  # 3x3 system has 262144 states
-    no_thermalization_steps: int = 1000
-    no_intermediate_mc_steps: int = 20
+    no_monte_carlo_samples: int = 400  # 3x3 system has 262144 states
+    no_intermediate_mc_steps: int = 1 * (
+        2 * system_state.get_number_sites_wo_spin_degree()
+    )
+    no_thermalization_steps: int = 10 * no_intermediate_mc_steps
     no_random_flips: int = 1
-    starting_fill_level: float = 1.0
+    starting_fill_level: float = 0.5
 
     state_sampler = sampler.MonteCarloSampler(
         system_state=system_state,
-        beta=beta,
         system_hamiltonian=ham,
         random_generator=random_generator,
         no_intermediate_mc_steps=no_intermediate_mc_steps,
@@ -39,15 +39,15 @@ if __name__ == "__main__":
     )
 
     sample_exactly = False
-    sample_exactly = True
+    # sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
         )
 
     start_time: float = 0.0
-    time_step: float = 0.05
-    number_of_time_steps: int = int(80 * 20)
+    time_step: float = 0.5
+    number_of_time_steps: int = int(20)
 
     (sampled_times, sampled_values) = measurements.main_measurement_function(
         start_time=start_time,
