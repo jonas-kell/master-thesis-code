@@ -27,6 +27,7 @@ def main_measurement_function(
     total_needed_sample_count = used_sample_count * number_of_time_steps
 
     for time_step_nr in range(number_of_time_steps):
+        step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
 
         sample_generator_object = state_sampler.sample_generator(time=time)
@@ -40,6 +41,7 @@ def main_measurement_function(
                     function_start_time = computerTime.time()
                 ## generate averages using sampled state
                 sample_count += 1
+                step_sample_count += 1
 
                 h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
                     time=time,
@@ -71,7 +73,7 @@ def main_measurement_function(
         sampled_value: float = total_sum * correction_fraction
 
         print(
-            f"Time: {time:.3f} {sampled_value} ({sample_count} samples, while exact needs {exact_sample_count})"
+            f"Time: {time:.3f} {sampled_value:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
         )
         time_list.append(time)
         values_list.append(sampled_value)
