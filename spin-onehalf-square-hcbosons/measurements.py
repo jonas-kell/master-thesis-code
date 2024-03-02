@@ -26,6 +26,9 @@ def main_measurement_function(
     sample_count = 0
     total_needed_sample_count = used_sample_count * number_of_time_steps
 
+    # DEFAULT PRINTS
+    default_prints = True
+
     for time_step_nr in range(number_of_time_steps):
         step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
@@ -62,9 +65,10 @@ def main_measurement_function(
                     time_needed_so_far = computerTime.time() - function_start_time
                     probable_total_time = time_needed_so_far / percentage * 100
 
-                    print(
-                        f"In total sampled {sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
-                    )
+                    if default_prints:
+                        print(
+                            f"In total sampled {sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
+                        )
 
                 ## end generate averages using sampled state
             except StopIteration:
@@ -72,15 +76,17 @@ def main_measurement_function(
 
         sampled_value: float = total_sum * correction_fraction
 
-        print(
-            f"Time: {time:.3f} {sampled_value:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
-        )
+        if default_prints:
+            print(
+                f"Time: {time:.3f} {sampled_value:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
+            )
         time_list.append(time)
         values_list.append(sampled_value)
 
-    print(
-        f"Whole computation took {computerTime.time()-function_start_time:.3f} seconds"
-    )
+    if default_prints:
+        print(
+            f"Whole computation took {computerTime.time()-function_start_time:.3f} seconds"
+        )
 
     return (time_list, values_list)
 
