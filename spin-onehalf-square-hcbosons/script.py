@@ -22,7 +22,7 @@ if __name__ == "__main__":
     system_state = state.LinearChainNonPeriodicState(3)
 
     # observables
-    obs = observables.DoubleOccupation()
+    obs = observables.DoubleOccupationFraction()
     obs = observables.DoubleOccupationAtSite(0, system_state)
 
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states

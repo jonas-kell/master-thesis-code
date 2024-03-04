@@ -13,7 +13,7 @@ class Observable(ABC):
         pass
 
 
-class DoubleOccupation(Observable):
+class DoubleOccupationFraction(Observable):
     def __init__(
         self,
     ):
@@ -22,6 +22,7 @@ class DoubleOccupation(Observable):
     def get_expectation_value(self, system_state_object: state.SystemState) -> float:
         nr_sites = system_state_object.get_number_sites_wo_spin_degree()
         system_state_array = system_state_object.get_state_array()
+        domain_size = system_state_object.get_number_sites_wo_spin_degree()
 
         running_sum = 0
         for i in range(nr_sites):
@@ -30,7 +31,7 @@ class DoubleOccupation(Observable):
             # only because occupation is either 1 or 0
             running_sum += system_state_array[i] * system_state_array[i_os]
 
-        return running_sum
+        return running_sum / domain_size
 
 
 class DoubleOccupationAtSite(Observable):
