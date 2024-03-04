@@ -137,10 +137,19 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
             for l, m, K in operator_evaluations[val]:
                 psi_K = system_state_object.get_Psi_of_N(system_state_array=K)
 
-                eps_m_minus_eps_l = system_state_object.get_eps_multiplier(
-                    index=m, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
-                ) - system_state_object.get_eps_multiplier(
-                    index=l, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+                eps_m_minus_eps_l = self.E * (
+                    system_state_object.get_eps_multiplier(
+                        index=m,
+                        phi=self.phi,
+                        sin_phi=self.sin_phi,
+                        cos_phi=self.cos_phi,
+                    )
+                    - system_state_object.get_eps_multiplier(
+                        index=l,
+                        phi=self.phi,
+                        sin_phi=self.sin_phi,
+                        cos_phi=self.cos_phi,
+                    )
                 )
 
                 one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l

@@ -10,12 +10,12 @@ if __name__ == "__main__":
     randomness_seed = "k"
 
     U = 0.4
-    E = 0.4
+    E = -0.4
     J = 0.001
 
     # phi = np.pi # orthogonal to linear chain, so should not change due to electrical field
     # phi = 0  # linear chain should change due to electrical field
-    phi = np.pi / 2 - np.pi / 100
+    phi = np.pi / 4
 
     random_generator = RandomGenerator(randomness_seed)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
@@ -61,8 +61,8 @@ if __name__ == "__main__":
         )
 
     start_time: float = 0
-    time_step: float = 0.3
-    number_of_time_steps: int = int(13)
+    time_step: float = 0.5
+    number_of_time_steps: int = int(15)
 
     measurements.main_measurement_function(
         start_time=start_time,
