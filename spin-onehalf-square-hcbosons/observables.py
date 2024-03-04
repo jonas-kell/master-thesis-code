@@ -50,4 +50,7 @@ class DoubleOccupationAtSite(Observable):
     def get_expectation_value(self, system_state_object: state.SystemState) -> float:
         system_state_array = system_state_object.get_state_array()
 
-        return system_state_array[self.site] * system_state_array[self.site]
+        return (
+            system_state_array[self.site]
+            * system_state_array[system_state_object.get_opposite_spin_index(self.site)]
+        )
