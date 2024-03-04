@@ -31,3 +31,23 @@ class DoubleOccupation(Observable):
             running_sum += system_state_array[i] * system_state_array[i_os]
 
         return running_sum
+
+
+class DoubleOccupationAtSite(Observable):
+
+    def __init__(self, site: int, system_state_object: state.SystemState):
+        super().__init__()
+
+        if site < 0:
+            raise Exception("Site must be at least 0")
+
+        domain_size = system_state_object.get_number_sites_wo_spin_degree()
+        if site >= domain_size:
+            raise Exception(f"Site must be smaller than {domain_size} to fit")
+
+        self.site = site
+
+    def get_expectation_value(self, system_state_object: state.SystemState) -> float:
+        system_state_array = system_state_object.get_state_array()
+
+        return system_state_array[self.site] * system_state_array[self.site]

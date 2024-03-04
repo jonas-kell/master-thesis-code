@@ -15,9 +15,15 @@ if __name__ == "__main__":
     phi = np.pi / 8  # putting this to /8 completely changes the graph
 
     random_generator = RandomGenerator(randomness_seed)
-    system_state = state.SquareSystemNonPeriodicState(2)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+
+    # state
+    system_state = state.SquareSystemNonPeriodicState(2)
+    system_state = state.LinearChainNonPeriodicState(3)
+
+    # observables
     obs = observables.DoubleOccupation()
+    obs = observables.DoubleOccupationAtSite(0, system_state)
 
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     no_intermediate_mc_steps: int = 2 * (

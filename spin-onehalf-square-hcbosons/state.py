@@ -154,7 +154,56 @@ class SquareSystemNonPeriodicState(SystemState):
 
         ## TODO: cache
         M = self.size
-        return cos_phi * (index % M) + sin_phi * (index // M)
+        domain_size = self.get_number_sites_wo_spin_degree()
+        cut_index = index % domain_size
+        return cos_phi * (cut_index % M) + sin_phi * (cut_index // M)
+
+    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+        system_state_array  # get rid of unused error, sorry
+
+        return 1 / (2 ** self.get_number_sites_wo_spin_degree())
+
+
+class LinearChainNonPeriodicState(SystemState):
+    """
+    Will be numbered the following way (example for size M = 3)
+
+     Spin Up
+      0    1    2
+     Spin Down
+      3    4    5
+    """
+
+    def __init__(self, size: int):
+        self.size = size
+        super().__init__()
+
+    def get_number_sites_wo_spin_degree(self) -> int:
+        return self.size
+
+    def get_nearest_neighbor_indices(self, index: int) -> List[int]:
+        domain_size = self.get_number_sites_wo_spin_degree()
+
+        res = []
+
+        # left neighbor
+        if index > 0:
+            res.append(index - 1)
+        # right neighbor
+        if index < domain_size - 1:
+            res.append(index + 1)
+
+        return res
+
+    def get_eps_multiplier(
+        self, index: int, phi: float, sin_phi: float, cos_phi: float
+    ) -> float:
+        phi  # get rid of unused error, sorry
+        sin_phi
+
+        domain_size = self.get_number_sites_wo_spin_degree()
+
+        return cos_phi * (index % domain_size)
 
     def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
         system_state_array  # get rid of unused error, sorry

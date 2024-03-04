@@ -38,10 +38,11 @@ def main_measurement_function(
         total_sum: float = 0.0
         while True:
             try:
-                sampled_state_n = next(sample_generator_object)
-                # track time from of after thermalization
+                # track time from start (includes thermalization, because will be required when we use multiple cores/generator-chains for processing)
                 if function_start_time is None:
                     function_start_time = computerTime.time()
+                sampled_state_n = next(sample_generator_object)
+
                 ## generate averages using sampled state
                 sample_count += 1
                 step_sample_count += 1
