@@ -72,5 +72,5 @@ if __name__ == "__main__":
         observables=obs,
         state_sampler=state_sampler,
         plot=True,
-        plot_title=f"obs for phi = {phi/(2*np.pi) * 360:.1f}°",
+        plot_title=f"obs for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
     )
