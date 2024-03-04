@@ -12,6 +12,10 @@ class Observable(ABC):
     def get_expectation_value(self, system_state_object: state.SystemState) -> float:
         pass
 
+    @abstractmethod
+    def get_title(self) -> str:
+        pass
+
 
 class DoubleOccupationFraction(Observable):
     def __init__(
@@ -32,6 +36,9 @@ class DoubleOccupationFraction(Observable):
             running_sum += system_state_array[i] * system_state_array[i_os]
 
         return running_sum / domain_size
+
+    def get_title(self) -> str:
+        return "Average amount of double Occupation"
 
 
 class DoubleOccupationAtSite(Observable):
@@ -55,3 +62,6 @@ class DoubleOccupationAtSite(Observable):
             system_state_array[self.site]
             * system_state_array[system_state_object.get_opposite_spin_index(self.site)]
         )
+
+    def get_title(self) -> str:
+        return f"Double Occupation at site {self.site}"

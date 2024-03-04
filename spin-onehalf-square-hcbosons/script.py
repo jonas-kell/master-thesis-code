@@ -11,19 +11,27 @@ if __name__ == "__main__":
 
     U = 0.4
     E = 0.4
-    J = 0.01
-    phi = np.pi / 8  # putting this to /8 completely changes the graph
+    J = 0.001
+
+    # phi = np.pi # orthogonal to linear chain, so should not change due to electrical field
+    # phi = 0  # linear chain should change due to electrical field
+    phi = np.pi / 2 - np.pi / 100
 
     random_generator = RandomGenerator(randomness_seed)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
     # state
     system_state = state.SquareSystemNonPeriodicState(2)
-    system_state = state.LinearChainNonPeriodicState(3)
+    # system_state = state.LinearChainNonPeriodicState(4)
 
     # observables
-    obs = observables.DoubleOccupationFraction()
-    obs = observables.DoubleOccupationAtSite(0, system_state)
+    # obs = [observables.DoubleOccupationFraction()]
+    obs = [
+        observables.DoubleOccupationAtSite(0, system_state),
+        observables.DoubleOccupationAtSite(1, system_state),
+        observables.DoubleOccupationAtSite(2, system_state),
+        observables.DoubleOccupationAtSite(3, system_state),
+    ]
 
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     no_intermediate_mc_steps: int = 2 * (
@@ -44,30 +52,31 @@ if __name__ == "__main__":
         initial_fill_level=starting_fill_level,
     )
 
-    sample_exactly = False
-    # sample_exactly = True
+    # sample_exactly = False
+    sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
         )
 
-    start_time: float = 1
-    time_step: float = 0.5
-    number_of_time_steps: int = int(1)
+    start_time: float = 0
+    time_step: float = 0.3
+    number_of_time_steps: int = int(30)
 
-    (sampled_times, sampled_values) = measurements.main_measurement_function(
-        start_time=start_time,
-        time_step=time_step,
-        number_of_time_steps=number_of_time_steps,
-        hamiltonian=ham,
-        observable=obs,
-        state_sampler=state_sampler,
-    )
+    for ob in obs:
+        (sampled_times, sampled_values) = measurements.main_measurement_function(
+            start_time=start_time,
+            time_step=time_step,
+            number_of_time_steps=number_of_time_steps,
+            hamiltonian=ham,
+            observable=ob,
+            state_sampler=state_sampler,
+        )
 
-    measurements.plot_measurements(
-        times=sampled_times,
-        values=sampled_values,
-        title="Calculations on Spin System",
-        x_label="time t",
-        y_label="observed value",
-    )
+        measurements.plot_measurements(
+            times=sampled_times,
+            values=sampled_values,
+            title=ob.get_title(),
+            x_label="time t",
+            y_label=f"obs for phi = {phi/(2*np.pi) * 360:.1f}°",
+        )
