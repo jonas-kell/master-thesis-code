@@ -28,9 +28,9 @@ if __name__ == "__main__":
     # obs = [observables.DoubleOccupationFraction()]
     obs = [
         observables.DoubleOccupationAtSite(0, system_state),
-        observables.DoubleOccupationAtSite(1, system_state),
-        observables.DoubleOccupationAtSite(2, system_state),
-        observables.DoubleOccupationAtSite(3, system_state),
+        # observables.DoubleOccupationAtSite(1, system_state),
+        # observables.DoubleOccupationAtSite(2, system_state),
+        # observables.DoubleOccupationAtSite(3, system_state),
     ]
 
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
@@ -52,8 +52,8 @@ if __name__ == "__main__":
         initial_fill_level=starting_fill_level,
     )
 
-    # sample_exactly = False
-    sample_exactly = True
+    sample_exactly = False
+    # sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     start_time: float = 0
     time_step: float = 0.3
-    number_of_time_steps: int = int(30)
+    number_of_time_steps: int = int(13)
 
     for ob in obs:
         (sampled_times, sampled_values) = measurements.main_measurement_function(
