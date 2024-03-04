@@ -28,9 +28,10 @@ if __name__ == "__main__":
     # obs = [observables.DoubleOccupationFraction()]
     obs = [
         observables.DoubleOccupationAtSite(0, system_state),
-        # observables.DoubleOccupationAtSite(1, system_state),
-        # observables.DoubleOccupationAtSite(2, system_state),
-        # observables.DoubleOccupationAtSite(3, system_state),
+        observables.DoubleOccupationAtSite(1, system_state),
+        observables.DoubleOccupationAtSite(2, system_state),
+        observables.DoubleOccupationAtSite(3, system_state),
+        observables.DoubleOccupationFraction(),
     ]
 
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     )
 
     sample_exactly = False
-    # sample_exactly = True
+    sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
@@ -63,20 +64,13 @@ if __name__ == "__main__":
     time_step: float = 0.3
     number_of_time_steps: int = int(13)
 
-    for ob in obs:
-        (sampled_times, sampled_values) = measurements.main_measurement_function(
-            start_time=start_time,
-            time_step=time_step,
-            number_of_time_steps=number_of_time_steps,
-            hamiltonian=ham,
-            observable=ob,
-            state_sampler=state_sampler,
-        )
-
-        measurements.plot_measurements(
-            times=sampled_times,
-            values=sampled_values,
-            title=ob.get_title(),
-            x_label="time t",
-            y_label=f"obs for phi = {phi/(2*np.pi) * 360:.1f}°",
-        )
+    measurements.main_measurement_function(
+        start_time=start_time,
+        time_step=time_step,
+        number_of_time_steps=number_of_time_steps,
+        hamiltonian=ham,
+        observables=obs,
+        state_sampler=state_sampler,
+        plot=True,
+        plot_title=f"obs for phi = {phi/(2*np.pi) * 360:.1f}°",
+    )

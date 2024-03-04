@@ -13,7 +13,7 @@ class Observable(ABC):
         pass
 
     @abstractmethod
-    def get_title(self) -> str:
+    def get_label(self) -> str:
         pass
 
 
@@ -37,7 +37,7 @@ class DoubleOccupationFraction(Observable):
 
         return running_sum / domain_size
 
-    def get_title(self) -> str:
+    def get_label(self) -> str:
         return "Average amount of double Occupation"
 
 
@@ -63,5 +63,5 @@ class DoubleOccupationAtSite(Observable):
             * system_state_array[system_state_object.get_opposite_spin_index(self.site)]
         )
 
-    def get_title(self) -> str:
+    def get_label(self) -> str:
         return f"Double Occupation at site {self.site}"
