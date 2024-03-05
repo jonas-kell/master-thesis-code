@@ -39,18 +39,18 @@ class MonteCarloSampler(GeneralSampler):
         initial_system_state: state.InitialSystemState,
         system_hamiltonian: hamiltonian.Hamiltonian,
         random_generator: RandomGenerator,
-        no_samples: int,
-        no_intermediate_mc_steps: int,
-        no_random_flips: int,
-        no_thermalization_steps: int,
+        num_samples: int,
+        num_intermediate_mc_steps: int,
+        num_random_flips: int,
+        num_thermalization_steps: int,
         initial_fill_level: float,
     ):
         self.system_hamiltonian = system_hamiltonian
         self.random_generator = random_generator
-        self.no_samples = no_samples
-        self.no_intermediate_mc_steps = no_intermediate_mc_steps
-        self.no_random_flips = no_random_flips
-        self.no_thermalization_steps = no_thermalization_steps
+        self.num_samples = num_samples
+        self.num_intermediate_mc_steps = num_intermediate_mc_steps
+        self.num_random_flips = num_random_flips
+        self.num_thermalization_steps = num_thermalization_steps
         self.thermalized = False
         self.initial_fill_level = initial_fill_level
         super().__init__(
@@ -65,7 +65,7 @@ class MonteCarloSampler(GeneralSampler):
             # Propose a new state by random swap
             original_state_array = self.system_state.get_state_array()
             proposed_state_array = self.system_state.get_random_flipped_copy(
-                no_flips=self.no_random_flips, random_generator=self.random_generator
+                num_flips=self.num_random_flips, random_generator=self.random_generator
             )
 
             # Calculate the energies and probabilities
@@ -120,19 +120,19 @@ class MonteCarloSampler(GeneralSampler):
 
     def thermalize(self, time: float):
         if not self.thermalized:
-            self.do_metropolis_steps(self.no_thermalization_steps, time=time)
+            self.do_metropolis_steps(self.num_thermalization_steps, time=time)
             self.thermalized = True
 
     def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
         self.initialize_fill_level()
         self.thermalize(time)  # make sure, to thermalize the system at least once
 
-        for _ in range(self.no_samples):
+        for _ in range(self.num_samples):
             yield self.system_state
-            self.do_metropolis_steps(self.no_intermediate_mc_steps, time=time)
+            self.do_metropolis_steps(self.num_intermediate_mc_steps, time=time)
 
     def produces_samples_count(self) -> int:
-        return self.no_samples
+        return self.num_samples
 
 
 class ExactSampler(GeneralSampler):

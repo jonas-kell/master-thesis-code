@@ -41,22 +41,22 @@ if __name__ == "__main__":
 
     # ! Sampling Strategy
     # Monte Carlo Sampler
-    no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
-    no_intermediate_mc_steps: int = 2 * (
+    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
+    num_intermediate_mc_steps: int = 2 * (
         2 * system_state.get_number_sites_wo_spin_degree()
     )
-    no_thermalization_steps: int = 10 * no_intermediate_mc_steps
-    no_random_flips: int = 1
+    num_thermalization_steps: int = 10 * num_intermediate_mc_steps
+    num_random_flips: int = 1
     starting_fill_level: float = 0.5
     state_sampler = sampler.MonteCarloSampler(
         system_state=system_state,
         initial_system_state=initial_system_state,
         system_hamiltonian=ham,
         random_generator=random_generator,
-        no_intermediate_mc_steps=no_intermediate_mc_steps,
-        no_random_flips=no_random_flips,
-        no_samples=no_monte_carlo_samples,
-        no_thermalization_steps=no_thermalization_steps,
+        num_intermediate_mc_steps=num_intermediate_mc_steps,
+        num_random_flips=num_random_flips,
+        num_samples=num_monte_carlo_samples,
+        num_thermalization_steps=num_thermalization_steps,
         initial_fill_level=starting_fill_level,
     )
     # Exact Sampler

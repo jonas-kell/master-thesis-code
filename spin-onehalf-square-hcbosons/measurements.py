@@ -33,7 +33,7 @@ def main_measurement_function(
     # DEFAULT PRINTS
     default_prints = True
 
-    no_observables = len(observables)
+    num_observables = len(observables)
 
     for time_step_nr in range(number_of_time_steps):
         step_sample_count = 0
@@ -41,7 +41,7 @@ def main_measurement_function(
 
         sample_generator_object = state_sampler.sample_generator(time=time)
 
-        total_sums: List[float] = [0.0] * no_observables
+        total_sums: List[float] = [0.0] * num_observables
         while True:
             try:
                 # track time from start (includes thermalization, because will be required when we use multiple cores/generator-chains for processing)
@@ -88,7 +88,7 @@ def main_measurement_function(
                 break
 
         # scale observables
-        for i in range(no_observables):
+        for i in range(num_observables):
             total_sums[i] *= correction_fraction
 
         if default_prints:

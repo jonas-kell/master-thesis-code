@@ -70,12 +70,12 @@ class SystemState(ABC):
                     removed += 1
 
     def get_random_flipped_copy(
-        self, no_flips: int, random_generator: RandomGenerator
+        self, num_flips: int, random_generator: RandomGenerator
     ) -> np.ndarray:
         all_sites = self.get_number_sites()
         new_state = self.state.copy()
 
-        for _ in range(no_flips):
+        for _ in range(num_flips):
             flip_index = random_generator.randint(0, all_sites - 1)
 
             new_state[flip_index] = (self.state[flip_index] + 1) % 2
