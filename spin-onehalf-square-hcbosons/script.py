@@ -9,28 +9,27 @@ import measurements
 if __name__ == "__main__":
     randomness_seed = "k"
 
+    # ! General Hamiltonian properties
     U = 0.4
     E = -0.4
     J = 0.001
-
-    # phi = np.pi # orthogonal to linear chain, so should not change due to electrical field
-    # phi = 0  # linear chain should change due to electrical field
+    # must not be integer-multiples of np.pi/2 or you get division by zero
     phi = np.pi / 100
 
     random_generator = RandomGenerator(randomness_seed)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
-    # state
+    # ! Type of system (mainly Geometry)
     # system_state = state.LinearChainNonPeriodicState(4)
     system_state = state.SquareSystemNonPeriodicState(2)
 
-    # initial state
+    # ! Initial System State
     initial_system_state = state.SingularDoubleOccupationInitialSystemState(
         0, 1000.0, system_state
     )
     # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
-    # observables
+    # ! Observables that are tested for
     # obs = [observables.DoubleOccupationFraction()]
     obs = [
         observables.DoubleOccupationAtSite(0, system_state),
@@ -40,6 +39,8 @@ if __name__ == "__main__":
         observables.DoubleOccupationFraction(),
     ]
 
+    # ! Sampling Strategy
+    # Monte Carlo Sampler
     no_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     no_intermediate_mc_steps: int = 2 * (
         2 * system_state.get_number_sites_wo_spin_degree()
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         no_thermalization_steps=no_thermalization_steps,
         initial_fill_level=starting_fill_level,
     )
-
+    # Exact Sampler
     sample_exactly = False
     sample_exactly = True
     if sample_exactly:
@@ -67,6 +68,7 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
         )
 
+    # ! Simulation Scope settings
     start_time: float = 0
     time_step: float = 0.5
     number_of_time_steps: int = int(15)
