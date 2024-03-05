@@ -10,8 +10,10 @@ class GeneralSampler(ABC):
     def __init__(
         self,
         system_state: state.SystemState,
+        initial_system_state: state.InitialSystemState,
     ):
         self.system_state = system_state
+        self.initial_system_state = initial_system_state
 
     @abstractmethod
     def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
@@ -34,6 +36,7 @@ class MonteCarloSampler(GeneralSampler):
     def __init__(
         self,
         system_state: state.SystemState,
+        initial_system_state: state.InitialSystemState,
         system_hamiltonian: hamiltonian.Hamiltonian,
         random_generator: RandomGenerator,
         no_samples: int,
@@ -50,7 +53,9 @@ class MonteCarloSampler(GeneralSampler):
         self.no_thermalization_steps = no_thermalization_steps
         self.thermalized = False
         self.initial_fill_level = initial_fill_level
-        super().__init__(system_state=system_state)
+        super().__init__(
+            system_state=system_state, initial_system_state=initial_system_state
+        )
 
     def do_metropolis_steps(self, num_steps: int, time: float) -> None:
         """
@@ -64,22 +69,24 @@ class MonteCarloSampler(GeneralSampler):
             )
 
             # Calculate the energies and probabilities
-            original_state_psi = self.system_state.get_Psi_of_N(
+            original_state_psi = self.initial_system_state.get_Psi_of_N(
                 system_state_array=original_state_array
             )
             original_state_energy_exp = (
                 self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
                     system_state_object=self.system_state,
                     system_state_array=original_state_array,
+                    initial_system_state=self.initial_system_state,
                     time=time,
                 )
             )
-            proposed_state_psi = self.system_state.get_Psi_of_N(
+            proposed_state_psi = self.initial_system_state.get_Psi_of_N(
                 system_state_array=proposed_state_array
             )
             proposed_state_energy_exp = (
                 self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
                     system_state_object=self.system_state,
+                    initial_system_state=self.initial_system_state,
                     system_state_array=proposed_state_array,
                     time=time,
                 )
@@ -132,8 +139,11 @@ class ExactSampler(GeneralSampler):
     def __init__(
         self,
         system_state: state.SystemState,
+        initial_system_state: state.InitialSystemState,
     ):
-        super().__init__(system_state=system_state)
+        super().__init__(
+            system_state=system_state, initial_system_state=initial_system_state
+        )
 
     def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
         time  # this generator is independent of time

@@ -35,6 +35,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
+        initial_system_state: state.InitialSystemState,
         system_state_array: np.ndarray,
     ) -> float:
         pass
@@ -44,6 +45,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state_object: state.SystemState,
+        initial_system_state: state.InitialSystemState,
         system_state_array: np.ndarray,
     ) -> float:
         pass
@@ -100,6 +102,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
+        initial_system_state: state.InitialSystemState,
         system_state_array: np.ndarray,
     ) -> np.complex128:
         operator_evaluations = self.V_parts(
@@ -107,7 +110,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
             system_state_array=system_state_array,
         )
 
-        psi_N = system_state_object.get_Psi_of_N(system_state_array=system_state_array)
+        psi_N = initial_system_state.get_Psi_of_N(system_state_array=system_state_array)
 
         # one_over_epsm_minus_epsl
         # one_over_epsm_minus_epsl_plus_U
@@ -135,7 +138,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         for val in VPartsMapping:
             cache[val] = []
             for l, m, K in operator_evaluations[val]:
-                psi_K = system_state_object.get_Psi_of_N(system_state_array=K)
+                psi_K = initial_system_state.get_Psi_of_N(system_state_array=K)
 
                 eps_m_minus_eps_l = self.E * (
                     system_state_object.get_eps_multiplier(
@@ -366,11 +369,13 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
         system_state_object: state.SystemState,
+        initial_system_state: state.InitialSystemState,
         system_state_array: np.ndarray,
     ) -> float:
         H_n = self.get_H_n(
             time=time,
             system_state_object=system_state_object,
+            initial_system_state=initial_system_state,
             system_state_array=system_state_array,
         )
         E_zero_n = self.get_base_energy(

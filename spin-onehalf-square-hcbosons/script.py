@@ -15,14 +15,20 @@ if __name__ == "__main__":
 
     # phi = np.pi # orthogonal to linear chain, so should not change due to electrical field
     # phi = 0  # linear chain should change due to electrical field
-    phi = np.pi / 4
+    phi = np.pi / 100
 
     random_generator = RandomGenerator(randomness_seed)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
     # state
-    system_state = state.SquareSystemNonPeriodicState(2)
     # system_state = state.LinearChainNonPeriodicState(4)
+    system_state = state.SquareSystemNonPeriodicState(2)
+
+    # initial state
+    initial_system_state = state.SingularDoubleOccupationInitialSystemState(
+        0, 1000.0, system_state
+    )
+    # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
     # observables
     # obs = [observables.DoubleOccupationFraction()]
@@ -41,9 +47,9 @@ if __name__ == "__main__":
     no_thermalization_steps: int = 10 * no_intermediate_mc_steps
     no_random_flips: int = 1
     starting_fill_level: float = 0.5
-
     state_sampler = sampler.MonteCarloSampler(
         system_state=system_state,
+        initial_system_state=initial_system_state,
         system_hamiltonian=ham,
         random_generator=random_generator,
         no_intermediate_mc_steps=no_intermediate_mc_steps,
@@ -58,6 +64,7 @@ if __name__ == "__main__":
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
             system_state=system_state,
+            initial_system_state=initial_system_state,
         )
 
     start_time: float = 0
@@ -70,6 +77,7 @@ if __name__ == "__main__":
         number_of_time_steps=number_of_time_steps,
         hamiltonian=ham,
         observables=obs,
+        initial_system_state=initial_system_state,
         state_sampler=state_sampler,
         plot=True,
         plot_title=f"obs for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",

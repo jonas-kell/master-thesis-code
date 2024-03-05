@@ -91,15 +91,6 @@ class SystemState(ABC):
     ) -> float:
         pass
 
-    @abstractmethod
-    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
-        pass
-
-
-# from typing import Type
-# def scalar_product(self, mp_with: Type["SystemState"]) -> float:
-#     return np.dot(self.state.ravel(), mp_with.state.ravel())
-
 
 class SquareSystemNonPeriodicState(SystemState):
     """
@@ -158,11 +149,6 @@ class SquareSystemNonPeriodicState(SystemState):
         cut_index = index % domain_size
         return cos_phi * (cut_index % M) + sin_phi * (cut_index // M)
 
-    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
-        system_state_array  # get rid of unused error, sorry
-
-        return 1 / (2 ** self.get_number_sites_wo_spin_degree())
-
 
 class LinearChainNonPeriodicState(SystemState):
     """
@@ -205,7 +191,72 @@ class LinearChainNonPeriodicState(SystemState):
 
         return cos_phi * (index % domain_size)
 
+
+class InitialSystemState(ABC):
+    def __init__(self, system_state_object: SystemState):
+        self.domain_size = system_state_object.get_number_sites_wo_spin_degree()
+
+    @abstractmethod
+    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+        pass
+
+
+class HomogenousInitialSystemState(InitialSystemState):
+    def __init__(self, system_state_object: SystemState):
+        super().__init__(system_state_object)
+
+        self.cached_answer: float = 1 / (
+            2 ** system_state_object.get_number_sites_wo_spin_degree()
+        )
+        print(self.cached_answer)
+
     def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
         system_state_array  # get rid of unused error, sorry
 
-        return 1 / (2 ** self.get_number_sites_wo_spin_degree())
+        return self.cached_answer
+
+
+class SingularDoubleOccupationInitialSystemState(InitialSystemState):
+    def __init__(
+        self, site: int, more_important_factor: float, system_state_object: SystemState
+    ):
+        super().__init__(system_state_object)
+
+        if site < 0:
+            raise Exception("Site must be at least 0")
+
+        if site >= self.domain_size:
+            raise Exception(f"Site must be smaller than {self.domain_size} to fit")
+
+        self.site = site
+        self.site_os = system_state_object.get_opposite_spin_index(site)
+
+        number_states = 2 ** system_state_object.get_number_sites()
+        pre_factor_important_case = np.sqrt(
+            1.0 / (1.0 + (number_states - 1.0) * (1.0 / more_important_factor**2))
+        )
+        pre_factor_not_important_case = (
+            pre_factor_important_case / more_important_factor
+        )
+
+        self.pre_factor_not_important_case = pre_factor_not_important_case
+        self.additional_for_important_case = (
+            pre_factor_important_case - pre_factor_not_important_case
+        )
+
+    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+        # pre-mature optimization to save on case, but this is a
+        # answer=0 -> pre_factor_not_important_case
+        # answer=1 -> pre_factor_important_case
+
+        # probably switch would be faster, with branch prediction, as we take the same case in nearly ALL situations and these operations waste many cycles because python
+
+        return (
+            self.pre_factor_not_important_case
+            + (
+                np.count_nonzero(system_state_array) == 2
+                and system_state_array[self.site] == 1
+                and system_state_array[self.site_os] == 1
+            )
+            * self.additional_for_important_case
+        )
