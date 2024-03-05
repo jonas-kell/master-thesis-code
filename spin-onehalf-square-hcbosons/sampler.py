@@ -4,6 +4,7 @@ from randomgenerator import RandomGenerator
 import hamiltonian
 from abc import ABC, abstractmethod
 from typing import Generator
+import math
 
 
 class GeneralSampler(ABC):
@@ -16,7 +17,9 @@ class GeneralSampler(ABC):
         self.initial_system_state = initial_system_state
 
     @abstractmethod
-    def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
+    def sample_generator(
+        self, time: float, worker_index: int, num_workers: int
+    ) -> Generator[state.SystemState, None, None]:
         """
         Generator of system states. Call next(gen) to get more SystemStates
         """
@@ -123,11 +126,19 @@ class MonteCarloSampler(GeneralSampler):
             self.do_metropolis_steps(self.num_thermalization_steps, time=time)
             self.thermalized = True
 
-    def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
+    def sample_generator(
+        self, time: float, worker_index: int, num_workers: int
+    ) -> Generator[state.SystemState, None, None]:
+        worker_index  # this generator is independent of worker_index
+
         self.initialize_fill_level()
         self.thermalize(time)  # make sure, to thermalize the system at least once
 
-        for _ in range(self.num_samples):
+        # TODO Support multiple chain-runs per worker
+
+        # TODO rewrite so that system_state object is not shared, as this breaks if multiple processes use one reference
+
+        for _ in range(math.ceil(self.num_samples / num_workers)):
             yield self.system_state
             self.do_metropolis_steps(self.num_intermediate_mc_steps, time=time)
 
@@ -145,12 +156,16 @@ class ExactSampler(GeneralSampler):
             system_state=system_state, initial_system_state=initial_system_state
         )
 
-    def sample_generator(self, time: float) -> Generator[state.SystemState, None, None]:
+    def sample_generator(
+        self, time: float, worker_index: int, num_workers: int
+    ) -> Generator[state.SystemState, None, None]:
         time  # this generator is independent of time
+
         working_state = np.zeros_like(self.system_state.get_state_array())
+        array_length = working_state.shape[0]
         self.system_state.set_state(working_state)
 
-        array_length = working_state.shape[0]
+        # TODO rewrite so that system_state object is not shared, as this breaks if multiple processes use one reference
 
         for _ in range(self.all_samples_count()):
             yield self.system_state

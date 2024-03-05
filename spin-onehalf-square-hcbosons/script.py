@@ -5,6 +5,7 @@ import sampler
 import hamiltonian
 import observables
 import measurements
+import multiprocessing
 
 if __name__ == "__main__":
     randomness_seed = "k"
@@ -69,6 +70,8 @@ if __name__ == "__main__":
         )
 
     # ! Simulation Scope settings
+    number_workers = multiprocessing.cpu_count()
+
     start_time: float = 0
     time_step: float = 0.5
     number_of_time_steps: int = int(15)
@@ -81,6 +84,7 @@ if __name__ == "__main__":
         observables=obs,
         initial_system_state=initial_system_state,
         state_sampler=state_sampler,
+        number_workers=number_workers,
         plot=True,
         plot_title=f"obs for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
     )

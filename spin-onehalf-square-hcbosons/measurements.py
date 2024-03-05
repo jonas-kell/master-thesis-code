@@ -6,6 +6,7 @@ import numpy as np
 from typing import Tuple, List
 import matplotlib.pyplot as plt
 import time as computerTime
+import multiprocessing
 
 
 def main_measurement_function(
@@ -16,6 +17,7 @@ def main_measurement_function(
     start_time: float,
     time_step: float,
     number_of_time_steps: int,
+    number_workers: int,
     plot: bool = False,
     plot_title: str = "Calculations on Spin System",
 ) -> Tuple[List[float], List[List[float]]]:
@@ -26,66 +28,55 @@ def main_measurement_function(
     used_sample_count = state_sampler.produces_samples_count()
     correction_fraction = float(exact_sample_count) / used_sample_count
 
-    function_start_time = None
-    sample_count = 0
+    num_observables = len(observables)
+
+    function_start_time = computerTime.time()
     total_needed_sample_count = used_sample_count * number_of_time_steps
 
     # DEFAULT PRINTS
     default_prints = True
-
-    num_observables = len(observables)
+    if default_prints:
+        print(f"Started measurement process with {number_workers} workers")
 
     for time_step_nr in range(number_of_time_steps):
         step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
 
-        sample_generator_object = state_sampler.sample_generator(time=time)
-
         total_sums: List[float] = [0.0] * num_observables
-        while True:
-            try:
-                # track time from start (includes thermalization, because will be required when we use multiple cores/generator-chains for processing)
-                if function_start_time is None:
-                    function_start_time = computerTime.time()
-                sampled_state_n = next(sample_generator_object)
 
-                ## generate averages using sampled state
-                sample_count += 1
-                step_sample_count += 1
+        # ! Branch out jobs into worker-functions
 
-                h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
-                    time=time,
-                    system_state_object=sampled_state_n,
-                    initial_system_state=initial_system_state,
-                    system_state_array=sampled_state_n.get_state_array(),
-                )
-                psi_n = initial_system_state.get_Psi_of_N(
-                    sampled_state_n.get_state_array()
-                )
+        pool = multiprocessing.Pool(processes=number_workers)
 
-                energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(
-                    np.conj(psi_n) * psi_n
-                )
+        tasks = [
+            (
+                job_number,
+                time,
+                observables,
+                initial_system_state,
+                state_sampler,
+                hamiltonian,
+                number_workers,
+                total_needed_sample_count,
+                function_start_time,
+                # only one core reports approximate status to save on necessary joining/waiting/coordinating
+                default_prints and job_number == 0,
+            )
+            for job_number in range(number_workers)
+        ]
 
-                for i, observable in enumerate(observables):
-                    observed_quantity = observable.get_expectation_value(
-                        sampled_state_n
-                    )
-                    total_sums[i] += energy_factor * observed_quantity
+        results = pool.starmap(run_worker_chain, tasks)
+        pool.close()
+        pool.join()
 
-                if sample_count % 1000 == 0:
-                    percentage = sample_count / total_needed_sample_count * 100
-                    time_needed_so_far = computerTime.time() - function_start_time
-                    probable_total_time = time_needed_so_far / percentage * 100
+        for result in results:
+            worker_sample_count, worker_sums = result
 
-                    if default_prints:
-                        print(
-                            f"In total sampled {sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
-                        )
+            step_sample_count += worker_sample_count
+            for i in range(num_observables):
+                total_sums[i] += worker_sums[i]
 
-                ## end generate averages using sampled state
-            except StopIteration:
-                break
+        # ! Collected branched out jobs from worker-functions
 
         # scale observables
         for i in range(num_observables):
@@ -114,6 +105,72 @@ def main_measurement_function(
         )
 
     return (time_list, values_list)
+
+
+def run_worker_chain(
+    job_number: int,
+    time: float,
+    observables: List[observablesImport.Observable],
+    initial_system_state: stateImport.InitialSystemState,
+    state_sampler: samplerImport.GeneralSampler,
+    hamiltonian: hamiltonianImport.Hamiltonian,
+    number_workers: int,
+    total_needed_sample_count: int,
+    function_start_time: float,
+    default_prints: bool,
+) -> Tuple[int, List[float]]:
+    """
+    returns: (worker_sample_count, worker_sums)
+    """
+    num_observables = len(observables)
+    worker_sums: List[float] = [0.0] * num_observables
+
+    worker_sample_count = 0
+
+    sample_generator_object = state_sampler.sample_generator(
+        time=time, num_workers=number_workers, worker_index=job_number
+    )
+
+    while True:
+        try:
+            sampled_state_n = next(sample_generator_object)
+
+            ## generate measurements using sampled state
+            worker_sample_count += 1
+
+            h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
+                time=time,
+                system_state_object=sampled_state_n,
+                initial_system_state=initial_system_state,
+                system_state_array=sampled_state_n.get_state_array(),
+            )
+            psi_n = initial_system_state.get_Psi_of_N(sampled_state_n.get_state_array())
+
+            energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(
+                np.conj(psi_n) * psi_n
+            )
+
+            for i, observable in enumerate(observables):
+                observed_quantity = observable.get_expectation_value(sampled_state_n)
+                worker_sums[i] += energy_factor * observed_quantity
+
+            ## end generate measurements using sampled state
+
+            if worker_sample_count % 1000 == 0:
+                extrapolated_sample_count = worker_sample_count * number_workers
+                percentage = extrapolated_sample_count / total_needed_sample_count * 100
+                time_needed_so_far = computerTime.time() - function_start_time
+                probable_total_time = time_needed_so_far / percentage * 100
+
+                if default_prints:
+                    print(
+                        f"In total sampled (extrapolated) {extrapolated_sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
+                    )
+
+        except StopIteration:
+            break
+
+    return worker_sample_count, worker_sums
 
 
 def plot_measurements(
