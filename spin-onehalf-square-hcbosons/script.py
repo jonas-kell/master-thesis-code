@@ -6,6 +6,7 @@ import hamiltonian
 import observables
 import measurements
 import multiprocessing
+import systemgeometry
 
 if __name__ == "__main__":
     randomness_seed = "k"
@@ -20,23 +21,23 @@ if __name__ == "__main__":
     random_generator = RandomGenerator(randomness_seed)
     ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
-    # ! Type of system (mainly Geometry)
-    # system_state = state.LinearChainNonPeriodicState(4)
-    system_state = state.SquareSystemNonPeriodicState(2)
+    # ! Geometry of system
+    # system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
+    system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
 
     # ! Initial System State
     initial_system_state = state.SingularDoubleOccupationInitialSystemState(
-        0, 1000.0, system_state
+        0, 1000.0, system_geometry
     )
     # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
     # ! Observables that are tested for
     # obs = [observables.DoubleOccupationFraction()]
     obs = [
-        observables.DoubleOccupationAtSite(0, system_state),
-        observables.DoubleOccupationAtSite(1, system_state),
-        observables.DoubleOccupationAtSite(2, system_state),
-        observables.DoubleOccupationAtSite(3, system_state),
+        observables.DoubleOccupationAtSite(0, system_geometry),
+        observables.DoubleOccupationAtSite(1, system_geometry),
+        observables.DoubleOccupationAtSite(2, system_geometry),
+        observables.DoubleOccupationAtSite(3, system_geometry),
         observables.DoubleOccupationFraction(),
     ]
 
@@ -44,13 +45,13 @@ if __name__ == "__main__":
     # Monte Carlo Sampler
     num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     num_intermediate_mc_steps: int = 2 * (
-        2 * system_state.get_number_sites_wo_spin_degree()
+        2 * system_geometry.get_number_sites_wo_spin_degree()
     )
     num_thermalization_steps: int = 10 * num_intermediate_mc_steps
     num_random_flips: int = 1
     starting_fill_level: float = 0.5
     state_sampler = sampler.MonteCarloSampler(
-        system_state=system_state,
+        system_geometry=system_geometry,
         initial_system_state=initial_system_state,
         system_hamiltonian=ham,
         random_generator=random_generator,
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     sample_exactly = True
     if sample_exactly:
         state_sampler = sampler.ExactSampler(
-            system_state=system_state,
+            system_geometry=system_geometry,
             initial_system_state=initial_system_state,
         )
 
@@ -82,7 +83,6 @@ if __name__ == "__main__":
         number_of_time_steps=number_of_time_steps,
         hamiltonian=ham,
         observables=obs,
-        initial_system_state=initial_system_state,
         state_sampler=state_sampler,
         number_workers=number_workers,
         plot=True,

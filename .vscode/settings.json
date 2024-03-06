@@ -2,13 +2,18 @@
     "cSpell.enableFiletypes": ["python"],
     "cSpell.words": [
         "Bosonic",
+        "delaxes",
         "dtype",
         "montecarlo",
         "ndarray",
         "randomgenerator",
+        "suptitle",
+        "systemgeometry",
         "thermalization",
         "thermalize",
-        "thermalized"
+        "thermalized",
+        "xlabel",
+        "ylabel"
     ],
     "files.exclude": {
         "**/*.fdb_latexmk": true,

@@ -22,10 +22,11 @@ class Hamiltonian(ABC):
 
     @abstractmethod
     def get_base_energy(
-        self, system_state_object: state.SystemState, system_state_array: np.ndarray
+        self,
+        system_state: state.SystemState,
     ) -> float:
         """
-        system_state_object is ONLY for index/eps calculations
+        system_geometry is ONLY for index/eps calculations
         all state data will be taken from the system_state_array
         """
         pass
@@ -34,9 +35,7 @@ class Hamiltonian(ABC):
     def get_H_n(
         self,
         time: float,
-        system_state_object: state.SystemState,
-        initial_system_state: state.InitialSystemState,
-        system_state_array: np.ndarray,
+        system_state: state.SystemState,
     ) -> float:
         pass
 
@@ -44,9 +43,7 @@ class Hamiltonian(ABC):
     def get_exp_H_effective_of_n_and_t(
         self,
         time: float,
-        system_state_object: state.SystemState,
-        initial_system_state: state.InitialSystemState,
-        system_state_array: np.ndarray,
+        system_state: state.SystemState,
     ) -> float:
         pass
 
@@ -73,26 +70,30 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         super().__init__(U=U, E=E, J=J, phi=phi)
 
     def get_base_energy(
-        self, system_state_object: state.SystemState, system_state_array: np.ndarray
+        self,
+        system_state: state.SystemState,
     ) -> float:
         u_count = 0.0
         eps_collector = 0.0
 
-        for index in range(system_state_object.get_number_sites_wo_spin_degree()):
+        for index in range(system_state.get_number_sites_wo_spin_degree()):
             # opposite spin
-            index_os = system_state_object.get_opposite_spin_index(index)
+            index_os = system_state.get_opposite_spin_index(index)
 
             # count number of double occupancies
-            u_count += system_state_array[index] * system_state_array[index_os]
+            u_count += (
+                system_state.get_state_array()[index]
+                * system_state.get_state_array()[index_os]
+            )
 
             # collect epsilon values
-            eps_collector += system_state_array[
+            eps_collector += system_state.get_state_array()[
                 index
-            ] * system_state_object.get_eps_multiplier(
+            ] * system_state.get_eps_multiplier(
                 index=index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
-            ) + system_state_array[
+            ) + system_state.get_state_array()[
                 index_os
-            ] * system_state_object.get_eps_multiplier(
+            ] * system_state.get_eps_multiplier(
                 index=index_os, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
             )
 
@@ -101,16 +102,11 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
     def get_H_n(
         self,
         time: float,
-        system_state_object: state.SystemState,
-        initial_system_state: state.InitialSystemState,
-        system_state_array: np.ndarray,
+        system_state: state.SystemState,
     ) -> np.complex128:
-        operator_evaluations = self.V_parts(
-            system_state_object=system_state_object,
-            system_state_array=system_state_array,
-        )
+        operator_evaluations = self.V_parts(system_state=system_state)
 
-        psi_N = initial_system_state.get_Psi_of_N(system_state_array=system_state_array)
+        psi_N = system_state.get_Psi_of_N()
 
         # one_over_epsm_minus_epsl
         # one_over_epsm_minus_epsl_plus_U
@@ -138,16 +134,16 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         for val in VPartsMapping:
             cache[val] = []
             for l, m, K in operator_evaluations[val]:
-                psi_K = initial_system_state.get_Psi_of_N(system_state_array=K)
+                psi_K = K.get_Psi_of_N()
 
                 eps_m_minus_eps_l = self.E * (
-                    system_state_object.get_eps_multiplier(
+                    system_state.get_eps_multiplier(
                         index=m,
                         phi=self.phi,
                         sin_phi=self.sin_phi,
                         cos_phi=self.cos_phi,
                     )
-                    - system_state_object.get_eps_multiplier(
+                    - system_state.get_eps_multiplier(
                         index=l,
                         phi=self.phi,
                         sin_phi=self.sin_phi,
@@ -249,45 +245,48 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         return total_sum * self.J
 
     def V_parts(
-        self, system_state_object: state.SystemState, system_state_array: np.ndarray
-    ) -> Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]]:
+        self,
+        system_state: state.SystemState,
+    ) -> Dict[VPartsMapping, List[Tuple[int, int, state.SystemState]]]:
         """
         returns Tuple[l,m,K] The neighbor summation indices l&m and the resulting state K where a match was made
         """
-        number_sites = system_state_object.get_number_sites_wo_spin_degree()
+        number_sites = system_state.get_number_sites_wo_spin_degree()
 
-        result: Dict[VPartsMapping, List[Tuple[int, int, np.ndarray]]] = {}
+        result: Dict[VPartsMapping, List[Tuple[int, int, state.SystemState]]] = {}
         for val in VPartsMapping:
             result[val] = []
 
         for l in range(number_sites):
-            l_os = system_state_object.get_opposite_spin_index(l)
+            l_os = system_state.get_opposite_spin_index(l)
 
-            index_neighbors = system_state_object.get_nearest_neighbor_indices(l)
-            index_os_neighbors = system_state_object.get_nearest_neighbor_indices(l_os)
+            index_neighbors = system_state.get_nearest_neighbor_indices(l)
+            index_os_neighbors = system_state.get_nearest_neighbor_indices(l_os)
 
             for m, m_os in zip(index_neighbors, index_os_neighbors):
                 # The operators act left onto <system_state_array|operator|output K>
 
-                m_to_l_hopped_state_array = None
+                m_to_l_hopped_state = None
 
-                def get_m_to_l_hopped_state_array() -> np.ndarray:
-                    nonlocal m_to_l_hopped_state_array
-                    if m_to_l_hopped_state_array is None:
-                        m_to_l_hopped_state_array = system_state_array.copy()
-                        m_to_l_hopped_state_array[l] = 1
-                        m_to_l_hopped_state_array[m] = 0
-                    return m_to_l_hopped_state_array
+                def get_m_to_l_hopped_state_array() -> state.SystemState:
+                    nonlocal m_to_l_hopped_state
+                    if m_to_l_hopped_state is None:
+                        m_to_l_hopped_state = system_state.get_editable_copy()
+                        m_to_l_hopped_state.get_state_array()[l] = 1
+                        m_to_l_hopped_state.get_state_array()[m] = 0
+                    return m_to_l_hopped_state
 
-                os_m_to_l_hopped_state_array = None
+                os_m_to_l_hopped_state = None
 
-                def get_os_m_to_l_hopped_state_array() -> np.ndarray:
-                    nonlocal os_m_to_l_hopped_state_array
-                    if os_m_to_l_hopped_state_array is None:
-                        os_m_to_l_hopped_state_array = system_state_array.copy()
-                        os_m_to_l_hopped_state_array[l_os] = 1
-                        os_m_to_l_hopped_state_array[m_os] = 0
-                    return os_m_to_l_hopped_state_array
+                def get_os_m_to_l_hopped_state_array() -> state.SystemState:
+                    nonlocal os_m_to_l_hopped_state
+                    if os_m_to_l_hopped_state is None:
+                        os_m_to_l_hopped_state = system_state.get_editable_copy()
+                        os_m_to_l_hopped_state.get_state_array()[l_os] = 1
+                        os_m_to_l_hopped_state.get_state_array()[m_os] = 0
+                    return os_m_to_l_hopped_state
+
+                system_state_array = system_state.get_state_array()
 
                 # ClCHm: c_l * c#_m
                 if system_state_array[l] == 0 and system_state_array[m] == 1:
@@ -368,18 +367,9 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
     def get_exp_H_effective_of_n_and_t(
         self,
         time: float,
-        system_state_object: state.SystemState,
-        initial_system_state: state.InitialSystemState,
-        system_state_array: np.ndarray,
+        system_state: state.SystemState,
     ) -> float:
-        H_n = self.get_H_n(
-            time=time,
-            system_state_object=system_state_object,
-            initial_system_state=initial_system_state,
-            system_state_array=system_state_array,
-        )
-        E_zero_n = self.get_base_energy(
-            system_state_object=system_state_object,
-            system_state_array=system_state_array,
-        )
+        H_n = self.get_H_n(time=time, system_state=system_state)
+        E_zero_n = self.get_base_energy(system_state=system_state)
+
         return np.exp(H_n - (1j * E_zero_n * time))

@@ -10,10 +10,10 @@ import math
 class GeneralSampler(ABC):
     def __init__(
         self,
-        system_state: state.SystemState,
+        system_geometry: state.SystemGeometry,
         initial_system_state: state.InitialSystemState,
     ):
-        self.system_state = system_state
+        self.system_geometry = system_geometry
         self.initial_system_state = initial_system_state
 
     @abstractmethod
@@ -26,8 +26,7 @@ class GeneralSampler(ABC):
         pass
 
     def all_samples_count(self) -> int:
-        number_samples = 2 ** self.system_state.get_number_sites()
-
+        number_samples = 2 ** self.system_geometry.get_number_sites()
         return number_samples
 
     @abstractmethod
@@ -38,7 +37,7 @@ class GeneralSampler(ABC):
 class MonteCarloSampler(GeneralSampler):
     def __init__(
         self,
-        system_state: state.SystemState,
+        system_geometry: state.SystemGeometry,
         initial_system_state: state.InitialSystemState,
         system_hamiltonian: hamiltonian.Hamiltonian,
         random_generator: RandomGenerator,
@@ -48,6 +47,9 @@ class MonteCarloSampler(GeneralSampler):
         num_thermalization_steps: int,
         initial_fill_level: float,
     ):
+        super().__init__(
+            system_geometry=system_geometry, initial_system_state=initial_system_state
+        )
         self.system_hamiltonian = system_hamiltonian
         self.random_generator = random_generator
         self.num_samples = num_samples
@@ -56,9 +58,6 @@ class MonteCarloSampler(GeneralSampler):
         self.num_thermalization_steps = num_thermalization_steps
         self.thermalized = False
         self.initial_fill_level = initial_fill_level
-        super().__init__(
-            system_state=system_state, initial_system_state=initial_system_state
-        )
 
     def do_metropolis_steps(self, num_steps: int, time: float) -> None:
         """
@@ -77,7 +76,7 @@ class MonteCarloSampler(GeneralSampler):
             )
             original_state_energy_exp = (
                 self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
-                    system_state_object=self.system_state,
+                    system_geometry=self.system_state,
                     system_state_array=original_state_array,
                     initial_system_state=self.initial_system_state,
                     time=time,
@@ -88,7 +87,7 @@ class MonteCarloSampler(GeneralSampler):
             )
             proposed_state_energy_exp = (
                 self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
-                    system_state_object=self.system_state,
+                    system_geometry=self.system_state,
                     initial_system_state=self.initial_system_state,
                     system_state_array=proposed_state_array,
                     time=time,
@@ -112,7 +111,7 @@ class MonteCarloSampler(GeneralSampler):
 
             # Accept or reject the proposed state
             if self.random_generator.probability() < acceptance_ratio:
-                self.system_state.set_state(proposed_state_array)
+                self.system_state.set_state_array(proposed_state_array)
 
     def initialize_fill_level(self):
         self.system_state.init_random_filling(
@@ -149,11 +148,11 @@ class MonteCarloSampler(GeneralSampler):
 class ExactSampler(GeneralSampler):
     def __init__(
         self,
-        system_state: state.SystemState,
+        system_geometry: state.SystemGeometry,
         initial_system_state: state.InitialSystemState,
     ):
         super().__init__(
-            system_state=system_state, initial_system_state=initial_system_state
+            system_geometry=system_geometry, initial_system_state=initial_system_state
         )
 
     def sample_generator(
@@ -161,20 +160,24 @@ class ExactSampler(GeneralSampler):
     ) -> Generator[state.SystemState, None, None]:
         time  # this generator is independent of time
 
-        working_state = np.zeros_like(self.system_state.get_state_array())
-        array_length = working_state.shape[0]
-        self.system_state.set_state(working_state)
+        working_state = state.SystemState(
+            system_geometry=self.system_geometry,
+            initial_system_state=self.initial_system_state,
+        )
+        array_length = working_state.get_state_array().shape[0]
 
-        # TODO rewrite so that system_state object is not shared, as this breaks if multiple processes use one reference
+        # TODO init state and upper bound
+        worker_index
+        num_workers
 
         for _ in range(self.all_samples_count()):
-            yield self.system_state
+            yield working_state
 
             carry = 1
             for i in range(array_length):
-                res = working_state[i] + carry
+                res = working_state.get_state_array()[i] + carry
 
-                working_state[i] = res % 2
+                working_state.get_state_array()[i] = res % 2
                 carry = res // 2
 
     def produces_samples_count(self) -> int:

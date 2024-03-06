@@ -1,7 +1,6 @@
 import hamiltonian as hamiltonianImport
 import observables as observablesImport
 import sampler as samplerImport
-import state as stateImport
 import numpy as np
 from typing import Tuple, List
 import matplotlib.pyplot as plt
@@ -13,7 +12,6 @@ def main_measurement_function(
     state_sampler: samplerImport.GeneralSampler,
     hamiltonian: hamiltonianImport.Hamiltonian,
     observables: List[observablesImport.Observable],
-    initial_system_state: stateImport.InitialSystemState,
     start_time: float,
     time_step: float,
     number_of_time_steps: int,
@@ -53,7 +51,6 @@ def main_measurement_function(
                 job_number,
                 time,
                 observables,
-                initial_system_state,
                 state_sampler,
                 hamiltonian,
                 number_workers,
@@ -111,7 +108,6 @@ def run_worker_chain(
     job_number: int,
     time: float,
     observables: List[observablesImport.Observable],
-    initial_system_state: stateImport.InitialSystemState,
     state_sampler: samplerImport.GeneralSampler,
     hamiltonian: hamiltonianImport.Hamiltonian,
     number_workers: int,
@@ -139,12 +135,9 @@ def run_worker_chain(
             worker_sample_count += 1
 
             h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
-                time=time,
-                system_state_object=sampled_state_n,
-                initial_system_state=initial_system_state,
-                system_state_array=sampled_state_n.get_state_array(),
+                time=time, system_state=sampled_state_n
             )
-            psi_n = initial_system_state.get_Psi_of_N(sampled_state_n.get_state_array())
+            psi_n = sampled_state_n.get_Psi_of_N()
 
             energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(
                 np.conj(psi_n) * psi_n
