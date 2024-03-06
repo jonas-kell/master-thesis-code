@@ -68,7 +68,7 @@ class SquareSystemNonPeriodicState(SystemGeometry):
         col_index = (index % domain_size) % M
         row_index = (index % domain_size) // M
 
-        res = []
+        res: List[int] = []
 
         # top neighbor
         if row_index > 0:
@@ -88,7 +88,7 @@ class SquareSystemNonPeriodicState(SystemGeometry):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
-        phi  # get rid of unused error, sorry
+        _ = phi  # get rid of unused error
 
         ## TODO: cache
         M = self.size
@@ -117,7 +117,7 @@ class LinearChainNonPeriodicState(SystemGeometry):
     def get_nearest_neighbor_indices(self, index: int) -> List[int]:
         domain_size = self.get_number_sites_wo_spin_degree()
 
-        res = []
+        res: List[int] = []
 
         # left neighbor
         if index > 0:
@@ -131,8 +131,8 @@ class LinearChainNonPeriodicState(SystemGeometry):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
-        phi  # get rid of unused error, sorry
-        sin_phi
+        _ = phi
+        _ = sin_phi  # get rid of unused error
 
         domain_size = self.get_number_sites_wo_spin_degree()
 

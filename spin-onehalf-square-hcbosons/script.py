@@ -7,6 +7,7 @@ import observables
 import measurements
 import multiprocessing
 import systemgeometry
+from typing import List
 
 if __name__ == "__main__":
     randomness_seed = "k"
@@ -32,8 +33,8 @@ if __name__ == "__main__":
     # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
     # ! Observables that are tested for
-    # obs = [observables.DoubleOccupationFraction()]
-    obs = [
+    # obs: List[observables.Observable] = [observables.DoubleOccupationFraction()]
+    obs: List[observables.Observable] = [
         observables.DoubleOccupationAtSite(0, system_geometry),
         observables.DoubleOccupationAtSite(1, system_geometry),
         observables.DoubleOccupationAtSite(2, system_geometry),

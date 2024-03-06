@@ -36,7 +36,7 @@ class Hamiltonian(ABC):
         self,
         time: float,
         system_state: state.SystemState,
-    ) -> float:
+    ) -> np.complex128:
         pass
 
     @abstractmethod

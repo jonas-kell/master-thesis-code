@@ -4,6 +4,7 @@ from systemgeometry import SystemGeometry
 from randomgenerator import RandomGenerator
 from typing import List
 from typing import Union
+import numpy.typing as npt
 
 
 class InitialSystemState(ABC):
@@ -11,7 +12,7 @@ class InitialSystemState(ABC):
         self.domain_size = system_geometry.get_number_sites_wo_spin_degree()
 
     @abstractmethod
-    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
         pass
 
 
@@ -23,8 +24,8 @@ class HomogenousInitialSystemState(InitialSystemState):
             2 ** system_geometry.get_number_sites_wo_spin_degree()
         )
 
-    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
-        system_state_array  # get rid of unused error, sorry
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
+        _ = system_state_array  # get rid of unused error
 
         return self.cached_answer
 
@@ -60,7 +61,7 @@ class SingularDoubleOccupationInitialSystemState(InitialSystemState):
             pre_factor_important_case - pre_factor_not_important_case
         )
 
-    def get_Psi_of_N(self, system_state_array: np.ndarray) -> float:
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
         # pre-mature optimization to save on case, but this is a
         # answer=0 -> pre_factor_not_important_case
         # answer=1 -> pre_factor_important_case
@@ -70,7 +71,7 @@ class SingularDoubleOccupationInitialSystemState(InitialSystemState):
         return (
             self.pre_factor_not_important_case
             + (
-                np.count_nonzero(system_state_array) == 2
+                np.count_nonzero(system_state_array) == 2  # type: ignore -> function not properly typed. but input is ndarray, which works in this configuration
                 and system_state_array[self.site] == 1
                 and system_state_array[self.site_os] == 1
             )
@@ -83,48 +84,48 @@ class SystemState:
         self,
         system_geometry: SystemGeometry,
         initial_system_state: InitialSystemState,
-        state: Union[np.ndarray, None] = None,
+        state_array: Union[npt.NDArray[np.uint8], None] = None,
     ):
         self.system_geometry = system_geometry
         self.initial_system_state = initial_system_state
 
-        if state is None:
-            self.state = np.zeros(
+        if state_array is None:
+            self.state_array: npt.NDArray[np.uint8] = np.zeros(
                 (self.system_geometry.get_number_sites(),), dtype=np.uint8
             )
         else:
-            self.state = state
+            self.state_array = state_array
 
-    def get_state_array(self) -> np.ndarray:
-        return self.state
+    def get_state_array(self) -> npt.NDArray[np.uint8]:
+        return self.state_array
 
-    def set_state_array(self, new_state: np.ndarray) -> None:
-        self.state = new_state
+    def set_state_array(self, new_state: npt.NDArray[np.uint8]) -> None:
+        self.state_array = new_state
 
     def get_random_flipped_copy(
         self, num_flips: int, random_generator: RandomGenerator
     ) -> "SystemState":
         all_sites = self.get_number_sites()
-        new_state = self.state.copy()
+        new_state = self.state_array.copy()
 
         for _ in range(num_flips):
             flip_index = random_generator.randint(0, all_sites - 1)
 
-            new_state[flip_index] = (self.state[flip_index] + 1) % 2
+            new_state[flip_index] = (self.state_array[flip_index] + 1) % 2
 
         return SystemState(
             system_geometry=self.system_geometry,
             initial_system_state=self.initial_system_state,
-            state=new_state,
+            state_array=new_state,
         )
 
     def get_editable_copy(self) -> "SystemState":
-        new_state = self.state.copy()
+        new_state = self.state_array.copy()
 
         return SystemState(
             system_geometry=self.system_geometry,
             initial_system_state=self.initial_system_state,
-            state=new_state,
+            state_array=new_state,
         )
 
     def init_random_filling(
@@ -142,21 +143,21 @@ class SystemState:
         if fill_ratio <= 0.5:
             # init with zeros and add
             added = 0
-            self.state = np.zeros_like(self.state)
+            self.state_array = np.zeros_like(self.state_array)
             while added < target_num_filling:
                 place_index = random_generator.randint(0, all_sites - 1)
-                if self.state[place_index] == 0:
-                    self.state[place_index] = 1
+                if self.state_array[place_index] == 0:
+                    self.state_array[place_index] = 1
                     added += 1
         else:
             # init with ones and remove
-            self.state = np.ones_like(self.state)
+            self.state_array = np.ones_like(self.state_array)
             removed = 0
             target_num_removing = all_sites - target_num_filling
             while removed < target_num_removing:
                 place_index = random_generator.randint(0, all_sites - 1)
-                if self.state[place_index] == 1:
-                    self.state[place_index] = 0
+                if self.state_array[place_index] == 1:
+                    self.state_array[place_index] = 0
                     removed += 1
 
     # !! Function access helpers to internal system_geometry and initial_system_state from here on

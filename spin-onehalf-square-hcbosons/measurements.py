@@ -139,7 +139,7 @@ def run_worker_chain(
             )
             psi_n = sampled_state_n.get_Psi_of_N()
 
-            energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(
+            energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
                 np.conj(psi_n) * psi_n
             )
 
@@ -181,13 +181,12 @@ def plot_measurements(
     )  # Divide by root to get approximate square arrangement
     num_cols = int(np.ceil(num_observables / num_rows))
 
-    fig, axes = plt.subplots(num_rows, num_cols, figsize=(8, 6))
-
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(8, 6))  # type: ignore -> matplotlib typing is non-existent
     if num_rows == 1 and num_cols == 1:
-        axes = np.array([[axes]])
+        axes = np.array([[axes]])  # type: ignore -> matplotlib typing is non-existent
     else:
         if num_rows == 1 or num_cols == 1:
-            axes = np.array([axes]).T
+            axes = np.array([axes]).T  # type: ignore -> matplotlib typing is non-existent
 
     for i, obs in enumerate(observables):
         row = i // num_cols
@@ -204,6 +203,6 @@ def plot_measurements(
         col = i % num_cols
         fig.delaxes(axes[row, col])
 
-    plt.suptitle(title)
-    plt.tight_layout()
-    plt.show()
+    plt.suptitle(title)  # type: ignore -> matplotlib typing is non-existent
+    plt.tight_layout()  # type: ignore -> matplotlib typing is non-existent
+    plt.show()  # type: ignore -> matplotlib typing is non-existent
