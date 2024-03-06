@@ -10,7 +10,7 @@ import systemgeometry
 from typing import List
 
 if __name__ == "__main__":
-    randomness_seed = "k"
+    randomness_seed = "ok"
 
     # ! General Hamiltonian properties
     U = 0.4
@@ -24,11 +24,11 @@ if __name__ == "__main__":
 
     # ! Geometry of system
     # system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
-    system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
+    system_geometry = systemgeometry.SquareSystemNonPeriodicState(3)
 
     # ! Initial System State
     initial_system_state = state.SingularDoubleOccupationInitialSystemState(
-        0, 1000.0, system_geometry
+        4, 1000.0, system_geometry
     )
     # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
@@ -39,6 +39,11 @@ if __name__ == "__main__":
         observables.DoubleOccupationAtSite(1, system_geometry),
         observables.DoubleOccupationAtSite(2, system_geometry),
         observables.DoubleOccupationAtSite(3, system_geometry),
+        observables.DoubleOccupationAtSite(4, system_geometry),
+        observables.DoubleOccupationAtSite(5, system_geometry),
+        observables.DoubleOccupationAtSite(6, system_geometry),
+        observables.DoubleOccupationAtSite(7, system_geometry),
+        observables.DoubleOccupationAtSite(8, system_geometry),
         observables.DoubleOccupationFraction(),
     ]
 
@@ -88,4 +93,5 @@ if __name__ == "__main__":
         number_workers=number_workers,
         plot=True,
         plot_title=f"obs for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
+        write_to_file=True,
     )

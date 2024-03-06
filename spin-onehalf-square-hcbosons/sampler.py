@@ -4,6 +4,7 @@ import hamiltonian
 from abc import ABC, abstractmethod
 from typing import Generator
 import math
+from typing import Dict, Union, Any
 
 
 class GeneralSampler(ABC):
@@ -32,6 +33,15 @@ class GeneralSampler(ABC):
     def produces_samples_count(self) -> int:
         pass
 
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[Any, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {
+            "system_geometry": self.system_geometry.get_log_info(),
+            "initial_system_state": self.initial_system_state.get_log_info(),
+            **additional_info,
+        }
+
 
 class MonteCarloSampler(GeneralSampler):
     def __init__(
@@ -55,7 +65,6 @@ class MonteCarloSampler(GeneralSampler):
         self.num_intermediate_mc_steps = num_intermediate_mc_steps
         self.num_random_flips = num_random_flips
         self.num_thermalization_steps = num_thermalization_steps
-        self.thermalized = False
         self.initial_fill_level = initial_fill_level
 
     def do_metropolis_steps(
@@ -142,6 +151,23 @@ class MonteCarloSampler(GeneralSampler):
     def produces_samples_count(self) -> int:
         return self.num_samples
 
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[Any, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+
+        return super().get_log_info(
+            {
+                "type": "MonteCarloSampler",
+                "random_generator": self.random_generator.get_log_info(),
+                "num_samples": self.num_samples,
+                "num_intermediate_mc_steps": self.num_intermediate_mc_steps,
+                "num_random_flips": self.num_random_flips,
+                "num_thermalization_steps": self.num_thermalization_steps,
+                "initial_fill_level": self.initial_fill_level,
+                **additional_info,
+            }
+        )
+
 
 class ExactSampler(GeneralSampler):
     def __init__(
@@ -191,3 +217,8 @@ class ExactSampler(GeneralSampler):
 
     def produces_samples_count(self) -> int:
         return self.all_samples_count()
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[Any, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return super().get_log_info({"type": "ExactSampler", **additional_info})

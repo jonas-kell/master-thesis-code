@@ -17,8 +17,8 @@ class Hamiltonian(ABC):
         self.E = E
         self.J = J
         self.phi = phi
-        self.cos_phi = np.cos(self.phi)
-        self.sin_phi = np.sin(self.phi)
+        self.cos_phi: float = np.cos(self.phi)
+        self.sin_phi: float = np.sin(self.phi)
 
     @abstractmethod
     def get_base_energy(
@@ -46,6 +46,16 @@ class Hamiltonian(ABC):
         system_state: state.SystemState,
     ) -> float:
         pass
+
+    def get_log_info(
+        self,
+    ) -> Dict[str, float]:
+        return {
+            "U": self.U,
+            "E": self.E,
+            "J": self.J,
+            "phi": self.phi,
+        }
 
 
 class VPartsMapping(Enum):

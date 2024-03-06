@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import state
 import systemgeometry
+from typing import Dict, Union, Any
 
 
 class Observable(ABC):
@@ -15,6 +16,10 @@ class Observable(ABC):
 
     @abstractmethod
     def get_label(self) -> str:
+        pass
+
+    @abstractmethod
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         pass
 
 
@@ -41,6 +46,9 @@ class DoubleOccupationFraction(Observable):
     def get_label(self) -> str:
         return "Average amount of double Occupation"
 
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "DoubleOccupationFraction", "label": self.get_label()}
+
 
 class DoubleOccupationAtSite(Observable):
 
@@ -66,3 +74,10 @@ class DoubleOccupationAtSite(Observable):
 
     def get_label(self) -> str:
         return f"Double Occupation at site {self.site}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {
+            "type": "DoubleOccupationAtSite",
+            "label": self.get_label(),
+            "site": self.site,
+        }

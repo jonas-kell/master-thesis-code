@@ -2,10 +2,13 @@ import hamiltonian as hamiltonianImport
 import observables as observablesImport
 import sampler as samplerImport
 import numpy as np
-from typing import Tuple, List
 import matplotlib.pyplot as plt
 import time as computerTime
 import multiprocessing
+from datetime import datetime
+import os
+import json
+from typing import Dict, Union, Any, Tuple, List, cast
 
 
 def main_measurement_function(
@@ -18,6 +21,8 @@ def main_measurement_function(
     number_workers: int,
     plot: bool = False,
     plot_title: str = "Calculations on Spin System",
+    plot_x_label: str = "time t",
+    write_to_file: bool = True,
 ) -> Tuple[List[float], List[List[float]]]:
     time_list: List[float] = []
     values_list: List[List[float]] = []
@@ -30,6 +35,31 @@ def main_measurement_function(
 
     function_start_time = computerTime.time()
     total_needed_sample_count = used_sample_count * number_of_time_steps
+    total_sample_count = 0
+
+    # file-writing
+    current_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "./../run-outputs/" + datetime.now().strftime("%Y-%m-%d__%H,%M,%S") + ".json",
+    )
+    if write_to_file:  # write the base file information
+        with open(current_file_path, mode="w", newline="") as file:
+            json.dump(
+                {
+                    "hamiltonian": hamiltonian.get_log_info(),
+                    "start_time": start_time,
+                    "time_step": time_step,
+                    "number_of_time_steps": number_of_time_steps,
+                    "sampler": state_sampler.get_log_info(),
+                    "observables": [
+                        observable.get_log_info() for observable in observables
+                    ],
+                    "plot_title": plot_title,
+                    "plot_x_label": plot_x_label,
+                    "measurements": [],
+                },
+                file,
+            )
 
     # DEFAULT PRINTS
     default_prints = True
@@ -54,6 +84,7 @@ def main_measurement_function(
                 state_sampler,
                 hamiltonian,
                 number_workers,
+                total_sample_count,
                 total_needed_sample_count,
                 function_start_time,
                 # only one core reports approximate status to save on necessary joining/waiting/coordinating
@@ -70,6 +101,7 @@ def main_measurement_function(
             worker_sample_count, worker_sums = result
 
             step_sample_count += worker_sample_count
+            total_sample_count += worker_sample_count
             for i in range(num_observables):
                 total_sums[i] += worker_sums[i]
 
@@ -81,8 +113,29 @@ def main_measurement_function(
 
         if default_prints:
             print(
-                f"Time: {time:.3f} {total_sums[0]:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
+                f"Time: {time:.3f} (step {time_step_nr+1}/{number_of_time_steps}) {total_sums[0]:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
             )
+        if write_to_file:  # write the base file information
+            data: Dict[str, Union[float, str, Dict[Any, Any], List[Any]]] = {}
+            with open(current_file_path, mode="r") as file:
+                data = json.load(file)
+            with open(current_file_path, mode="w", newline="") as file:
+                measurements: List[Dict[Any, Any]] = data["measurements"]  # type: ignore
+
+                measurements.append(
+                    {
+                        "time": time,
+                        "step_sample_count": step_sample_count,
+                        "data": total_sums,
+                    }
+                )
+
+                data["measurements"] = measurements
+
+                json.dump(
+                    data,
+                    file,
+                )
 
         time_list.append(time)
         values_list.append(total_sums)
@@ -96,9 +149,9 @@ def main_measurement_function(
         plot_measurements(
             times=time_list,
             values=values_list,
-            observables=observables,
+            observable_labels=[obs.get_label() for obs in observables],
             title=plot_title,
-            x_label="time t",
+            x_label=plot_x_label,
         )
 
     return (time_list, values_list)
@@ -111,6 +164,7 @@ def run_worker_chain(
     state_sampler: samplerImport.GeneralSampler,
     hamiltonian: hamiltonianImport.Hamiltonian,
     number_workers: int,
+    total_sample_count: int,
     total_needed_sample_count: int,
     function_start_time: float,
     default_prints: bool,
@@ -150,7 +204,9 @@ def run_worker_chain(
             ## end generate measurements using sampled state
 
             if worker_sample_count % 1000 == 0:
-                extrapolated_sample_count = worker_sample_count * number_workers
+                extrapolated_sample_count = (
+                    total_sample_count + worker_sample_count * number_workers
+                )
                 percentage = extrapolated_sample_count / total_needed_sample_count * 100
                 time_needed_so_far = computerTime.time() - function_start_time
                 probable_total_time = time_needed_so_far / percentage * 100
@@ -169,13 +225,13 @@ def run_worker_chain(
 def plot_measurements(
     times: List[float],
     values: List[List[float]],
-    observables: List[observablesImport.Observable],
+    observable_labels: List[str],
     title: str,
     x_label: str,
 ):
     data = np.array(values).T  # Transpose to extract form we want to plot
 
-    num_observables = len(observables)
+    num_observables = len(observable_labels)
     num_rows = max(
         1, int(np.ceil(num_observables / np.sqrt(num_observables)))
     )  # Divide by root to get approximate square arrangement
@@ -188,14 +244,14 @@ def plot_measurements(
         if num_rows == 1 or num_cols == 1:
             axes = np.array([axes]).T  # type: ignore -> matplotlib typing is non-existent
 
-    for i, obs in enumerate(observables):
+    for i, obs in enumerate(observable_labels):
         row = i // num_cols
         col = i % num_cols
 
         # Plot the results
         axes[row, col].plot(times, data[i], color="red")
         axes[row, col].set_xlabel(x_label)
-        axes[row, col].set_ylabel(obs.get_label())
+        axes[row, col].set_ylabel(obs)
 
     # Remove any unused subplots
     for i in range(num_observables, num_rows * num_cols):
@@ -206,3 +262,39 @@ def plot_measurements(
     plt.suptitle(title)  # type: ignore -> matplotlib typing is non-existent
     plt.tight_layout()  # type: ignore -> matplotlib typing is non-existent
     plt.show()  # type: ignore -> matplotlib typing is non-existent
+
+
+if __name__ == "__main__":
+    file_name = "2024-03-06__12,45,44.json"
+    current_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "./../run-outputs/" + file_name,
+    )
+
+    print(f"plotting measurements from file: {current_file_path}")
+
+    data: Dict[str, Union[float, str, Dict[Any, Any], List[Any]]] = {}
+    with open(current_file_path, mode="r") as file:
+        data = json.load(file)
+
+    title: str = data["plot_title"]  # type: ignore
+    plot_x_label: str = data["plot_x_label"]  # type: ignore
+
+    times: List[float] = []
+    values: List[List[float]] = []
+    for tmp in data["measurements"]:  # type: ignore
+        time = cast(float, tmp["time"])
+        value = cast(List[float], tmp["data"])
+
+        times.append(time)
+        values.append(value)
+
+    observable_labels: List[str] = [tmp["label"] for tmp in data["observables"]]  # type: ignore
+
+    plot_measurements(
+        observable_labels=observable_labels,
+        times=times,
+        values=values,
+        title=title,
+        x_label=plot_x_label,
+    )

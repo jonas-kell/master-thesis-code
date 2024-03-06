@@ -2,8 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from systemgeometry import SystemGeometry
 from randomgenerator import RandomGenerator
-from typing import List
-from typing import Union
+from typing import Dict, Union, Any, List
 import numpy.typing as npt
 
 
@@ -13,6 +12,10 @@ class InitialSystemState(ABC):
 
     @abstractmethod
     def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
+        pass
+
+    @abstractmethod
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         pass
 
 
@@ -28,6 +31,9 @@ class HomogenousInitialSystemState(InitialSystemState):
         _ = system_state_array  # get rid of unused error
 
         return self.cached_answer
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "HomogenousInitialSystemState"}
 
 
 class SingularDoubleOccupationInitialSystemState(InitialSystemState):
@@ -77,6 +83,9 @@ class SingularDoubleOccupationInitialSystemState(InitialSystemState):
             )
             * self.additional_for_important_case
         )
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "SingularDoubleOccupationInitialSystemState", "site": self.site}
 
 
 class SystemState:

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from typing import Dict, Union, Any
 
 
 class SystemGeometry(ABC):
@@ -36,6 +37,10 @@ class SystemGeometry(ABC):
     def get_eps_multiplier(
         self, index: int, phi: float, sin_phi: float, cos_phi: float
     ) -> float:
+        pass
+
+    @abstractmethod
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         pass
 
 
@@ -96,6 +101,9 @@ class SquareSystemNonPeriodicState(SystemGeometry):
         cut_index = index % domain_size
         return cos_phi * (cut_index % M) + sin_phi * (cut_index // M)
 
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "SquareSystemNonPeriodicState", "size": self.size}
+
 
 class LinearChainNonPeriodicState(SystemGeometry):
     """
@@ -137,3 +145,6 @@ class LinearChainNonPeriodicState(SystemGeometry):
         domain_size = self.get_number_sites_wo_spin_degree()
 
         return cos_phi * (index % domain_size)
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "LinearChainNonPeriodicState", "size": self.size}

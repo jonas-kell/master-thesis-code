@@ -1,4 +1,5 @@
 import random
+from typing import Dict
 
 
 class RandomGenerator:
@@ -20,3 +21,10 @@ class RandomGenerator:
         Return a random float probability
         """
         return random.random()
+
+    def get_log_info(
+        self,
+    ) -> Dict[str, str]:
+        return {
+            "seed": self.seed,
+        }
