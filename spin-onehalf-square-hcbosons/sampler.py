@@ -164,11 +164,22 @@ class ExactSampler(GeneralSampler):
         )
         array_length = working_state.get_state_array().shape[0]
 
-        # TODO init state and upper bound
-        _ = worker_index
-        _ = num_workers
+        # Calculate the range of indices for this worker
+        total_samples = self.all_samples_count()
+        start_index = (total_samples // num_workers) * worker_index
+        if worker_index == num_workers - 1:
+            # Assign the remaining samples to the last worker
+            end_index = total_samples
+        else:
+            end_index = (total_samples // num_workers) * (worker_index + 1)
 
-        for _ in range(self.all_samples_count()):
+        # initialize the working array
+        initializer_array = working_state.get_state_array()
+        for i in range(array_length):
+            initializer_array[i] = (start_index >> i) & 1
+
+        # produce the samples
+        for _ in range(end_index - start_index):
             yield working_state
 
             carry = 1
