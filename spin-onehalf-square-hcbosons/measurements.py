@@ -29,7 +29,6 @@ def main_measurement_function(
 
     exact_sample_count = state_sampler.all_samples_count()
     used_sample_count = state_sampler.produces_samples_count()
-    correction_fraction = float(exact_sample_count) / used_sample_count
 
     num_observables = len(observables)
 
@@ -108,6 +107,9 @@ def main_measurement_function(
         # ! Collected branched out jobs from worker-functions
 
         # scale observables
+        correction_fraction = (
+            float(exact_sample_count) / step_sample_count
+        )  # take exact amount of samples, could mismatch intended because of multi-worker-splitup
         for i in range(num_observables):
             total_sums[i] *= correction_fraction
 

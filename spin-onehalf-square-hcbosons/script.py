@@ -24,11 +24,11 @@ if __name__ == "__main__":
 
     # ! Geometry of system
     # system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
-    system_geometry = systemgeometry.SquareSystemNonPeriodicState(3)
+    system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
 
     # ! Initial System State
     initial_system_state = state.SingularDoubleOccupationInitialSystemState(
-        4, 1000.0, system_geometry
+        0, 1000.0, system_geometry
     )
     # initial_system_state = state.HomogenousInitialSystemState(system_state)
 
@@ -39,21 +39,17 @@ if __name__ == "__main__":
         observables.DoubleOccupationAtSite(1, system_geometry),
         observables.DoubleOccupationAtSite(2, system_geometry),
         observables.DoubleOccupationAtSite(3, system_geometry),
-        observables.DoubleOccupationAtSite(4, system_geometry),
-        observables.DoubleOccupationAtSite(5, system_geometry),
-        observables.DoubleOccupationAtSite(6, system_geometry),
-        observables.DoubleOccupationAtSite(7, system_geometry),
-        observables.DoubleOccupationAtSite(8, system_geometry),
         observables.DoubleOccupationFraction(),
     ]
 
     # ! Sampling Strategy
     # Monte Carlo Sampler
-    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
+    num_monte_carlo_samples: int = 20000  # 3x3 system has 262144 states
     num_intermediate_mc_steps: int = 2 * (
         2 * system_geometry.get_number_sites_wo_spin_degree()
     )
     num_thermalization_steps: int = 10 * num_intermediate_mc_steps
+    num_samples_per_chain: int = int(300)  # arbitrary at the moment
     num_random_flips: int = 1
     starting_fill_level: float = 0.5
     state_sampler = sampler.MonteCarloSampler(
@@ -66,6 +62,7 @@ if __name__ == "__main__":
         num_samples=num_monte_carlo_samples,
         num_thermalization_steps=num_thermalization_steps,
         initial_fill_level=starting_fill_level,
+        num_samples_per_chain=num_samples_per_chain,
     )
     # Exact Sampler
     sample_exactly = False

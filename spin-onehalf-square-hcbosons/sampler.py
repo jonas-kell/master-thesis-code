@@ -54,6 +54,7 @@ class MonteCarloSampler(GeneralSampler):
         num_intermediate_mc_steps: int,
         num_random_flips: int,
         num_thermalization_steps: int,
+        num_samples_per_chain: int,
         initial_fill_level: float,
     ):
         super().__init__(
@@ -66,6 +67,11 @@ class MonteCarloSampler(GeneralSampler):
         self.num_random_flips = num_random_flips
         self.num_thermalization_steps = num_thermalization_steps
         self.initial_fill_level = initial_fill_level
+        self.num_samples_per_chain = num_samples_per_chain
+
+        print(
+            f"Monte Carlo Sampling used. Approximately {self.num_samples} samples and {self.num_samples_per_chain} which means ca. {self.num_samples/self.num_samples_per_chain:.1f} chains will be run across all workers"
+        )
 
     def do_metropolis_steps(
         self, state_to_modify: state.SystemState, num_steps: int, time: float
@@ -132,21 +138,33 @@ class MonteCarloSampler(GeneralSampler):
     ) -> Generator[state.SystemState, None, None]:
         _ = worker_index  # this generator is independent of worker_index
 
-        working_state = state.SystemState(
-            system_geometry=self.system_geometry,
-            initial_system_state=self.initial_system_state,
+        number_of_chains = math.ceil(
+            (self.num_samples / self.num_samples_per_chain) / num_workers
         )
 
-        self.initialize_fill_level(working_state)
-        self.thermalize(working_state, time)
+        for chain_index in range(number_of_chains):
+            if chain_index == number_of_chains - 1:
+                # truncate last chain to not overdo on samples
+                chain_target_count = math.ceil(
+                    (self.num_samples / num_workers)
+                    - ((number_of_chains - 1) * self.num_samples_per_chain)
+                )
+            else:
+                chain_target_count = self.num_samples_per_chain
 
-        # TODO Support multiple chain-runs per worker
-
-        for _ in range(math.ceil(self.num_samples / num_workers)):
-            yield working_state
-            self.do_metropolis_steps(
-                working_state, num_steps=self.num_intermediate_mc_steps, time=time
+            working_state = state.SystemState(
+                system_geometry=self.system_geometry,
+                initial_system_state=self.initial_system_state,
             )
+
+            self.initialize_fill_level(working_state)
+            self.thermalize(working_state, time)
+
+            for _ in range(chain_target_count):
+                yield working_state
+                self.do_metropolis_steps(
+                    working_state, num_steps=self.num_intermediate_mc_steps, time=time
+                )
 
     def produces_samples_count(self) -> int:
         return self.num_samples
@@ -163,6 +181,7 @@ class MonteCarloSampler(GeneralSampler):
                 "num_intermediate_mc_steps": self.num_intermediate_mc_steps,
                 "num_random_flips": self.num_random_flips,
                 "num_thermalization_steps": self.num_thermalization_steps,
+                "num_samples_per_chain": self.num_samples_per_chain,
                 "initial_fill_level": self.initial_fill_level,
                 **additional_info,
             }
