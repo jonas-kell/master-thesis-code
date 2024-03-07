@@ -30,7 +30,7 @@ if __name__ == "__main__":
     initial_system_state = state.SingularDoubleOccupationInitialSystemState(
         0, 1000.0, system_geometry
     )
-    # initial_system_state = state.HomogenousInitialSystemState(system_state)
+    # initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
     # ! Observables that are tested for
     # obs: List[observables.Observable] = [observables.DoubleOccupationFraction()]
