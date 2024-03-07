@@ -27,10 +27,11 @@ if __name__ == "__main__":
     system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
 
     # ! Initial System State
-    initial_system_state = state.SingularDoubleOccupationInitialSystemState(
-        0, 1000.0, system_geometry
-    )
-    # initial_system_state = state.HomogenousInitialSystemState(system_geometry)
+    # initial_system_state = state.SingularDoubleOccupationInitialSystemState(
+    #     0, 1000.0, system_geometry # ! This can NOT be monte carlo sampled as it seems.
+    # # ! The answers are way over-inflated, as we seem to have a not smooth-enough energy landscape and can "drop" into the one high energy state for way too long once found
+    # )
+    initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
     # ! Observables that are tested for
     # obs: List[observables.Observable] = [observables.DoubleOccupationFraction()]
@@ -44,7 +45,7 @@ if __name__ == "__main__":
 
     # ! Sampling Strategy
     # Monte Carlo Sampler
-    num_monte_carlo_samples: int = 20000  # 3x3 system has 262144 states
+    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     num_intermediate_mc_steps: int = 2 * (
         2 * system_geometry.get_number_sites_wo_spin_degree()
     )
@@ -78,7 +79,7 @@ if __name__ == "__main__":
 
     start_time: float = 0
     time_step: float = 0.5
-    number_of_time_steps: int = int(15)
+    number_of_time_steps: int = int(10)
 
     measurements.main_measurement_function(
         start_time=start_time,

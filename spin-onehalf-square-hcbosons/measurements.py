@@ -183,6 +183,8 @@ def run_worker_chain(
         time=time, num_workers=number_workers, worker_index=job_number
     )
 
+    last_worker_report_time = computerTime.time()
+
     while True:
         try:
             sampled_state_n = next(sample_generator_object)
@@ -205,18 +207,24 @@ def run_worker_chain(
 
             ## end generate measurements using sampled state
 
-            if worker_sample_count % 1000 == 0:
-                extrapolated_sample_count = (
-                    total_sample_count + worker_sample_count * number_workers
-                )
-                percentage = extrapolated_sample_count / total_needed_sample_count * 100
-                time_needed_so_far = computerTime.time() - function_start_time
-                probable_total_time = time_needed_so_far / percentage * 100
+            if worker_sample_count % (number_workers * 10) == 0:
+                current_time = computerTime.time()
+                if current_time - last_worker_report_time > 10:
+                    last_worker_report_time = current_time
 
-                if default_prints:
-                    print(
-                        f"In total sampled (extrapolated) {extrapolated_sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
+                    extrapolated_sample_count = (
+                        total_sample_count + worker_sample_count * number_workers
                     )
+                    percentage = (
+                        extrapolated_sample_count / total_needed_sample_count * 100
+                    )
+                    time_needed_so_far = current_time - function_start_time
+                    probable_total_time = time_needed_so_far / percentage * 100
+
+                    if default_prints:
+                        print(
+                            f"In total sampled (extrapolated) {extrapolated_sample_count} of {total_needed_sample_count}. Took {time_needed_so_far:.2f}s ({percentage:.1f}%). 100% prognosis: {probable_total_time:.1f}s ({probable_total_time-time_needed_so_far:.1f}s remaining)"
+                        )
 
         except StopIteration:
             break
@@ -267,7 +275,7 @@ def plot_measurements(
 
 
 if __name__ == "__main__":
-    file_name = "2024-03-06__12,45,44.json"
+    file_name = "2024-XX-XX__XX,XX,XX.json"
     current_file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "./../run-outputs/" + file_name,
