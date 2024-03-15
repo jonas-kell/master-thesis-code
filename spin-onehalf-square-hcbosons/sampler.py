@@ -102,6 +102,8 @@ class MonteCarloSampler(GeneralSampler):
                 )
             )
 
+            # TODO fix: square, real part, adapted derivation
+
             # Calculate the acceptance ratio
             #
             # if proposed_state_energy (final) > original_state_energy (initial), then

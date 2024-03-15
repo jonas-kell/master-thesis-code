@@ -273,6 +273,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
             index_neighbors = system_state.get_nearest_neighbor_indices(l)
             index_os_neighbors = system_state.get_nearest_neighbor_indices(l_os)
 
+            # TODO fix, the combinations like (1,0) / (0,1) are served double
+
             for m, m_os in zip(index_neighbors, index_os_neighbors):
                 # The operators act left onto <system_state_array|operator|output K>
 
