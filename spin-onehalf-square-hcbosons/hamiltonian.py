@@ -190,34 +190,34 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         total_sum = np.complex128(0)
         sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
             [
-                (VPartsMapping.ClCHm, 10),
-                (VPartsMapping.DlDHm, 10),
-                (VPartsMapping.ClCmCHlCHmDlDHm, 4),
-                (VPartsMapping.ClCHmDlDmDHlDHm, 4),
-                (VPartsMapping.ClCHlDlDHm, 6),
-                (VPartsMapping.ClCHmDlDHl, 6),
-                (VPartsMapping.CmCHmDlDHm, 6),
-                (VPartsMapping.ClCHmDmDHm, 6),
-            ],
-            [
-                (VPartsMapping.ClCHm, 4),
-                (VPartsMapping.DlDHm, 4),
+                (VPartsMapping.ClCHm, 5),
+                (VPartsMapping.DlDHm, 5),
                 (VPartsMapping.ClCmCHlCHmDlDHm, 2),
                 (VPartsMapping.ClCHmDlDmDHlDHm, 2),
-                (VPartsMapping.ClCHlDlDHm, 2),
-                (VPartsMapping.ClCHmDlDHl, 2),
-                (VPartsMapping.CmCHmDlDHm, 4),
-                (VPartsMapping.ClCHmDmDHm, 4),
+                (VPartsMapping.ClCHlDlDHm, 3),
+                (VPartsMapping.ClCHmDlDHl, 3),
+                (VPartsMapping.CmCHmDlDHm, 3),
+                (VPartsMapping.ClCHmDmDHm, 3),
             ],
             [
-                (VPartsMapping.ClCHm, 4),
-                (VPartsMapping.DlDHm, 4),
-                (VPartsMapping.ClCmCHlCHmDlDHm, 2),
-                (VPartsMapping.ClCHmDlDmDHlDHm, 2),
-                (VPartsMapping.ClCHlDlDHm, 4),
-                (VPartsMapping.ClCHmDlDHl, 4),
+                (VPartsMapping.ClCHm, 2),
+                (VPartsMapping.DlDHm, 2),
+                (VPartsMapping.ClCmCHlCHmDlDHm, 1),
+                (VPartsMapping.ClCHmDlDmDHlDHm, 1),
+                (VPartsMapping.ClCHlDlDHm, 1),
+                (VPartsMapping.ClCHmDlDHl, 1),
                 (VPartsMapping.CmCHmDlDHm, 2),
                 (VPartsMapping.ClCHmDmDHm, 2),
+            ],
+            [
+                (VPartsMapping.ClCHm, 2),
+                (VPartsMapping.DlDHm, 2),
+                (VPartsMapping.ClCmCHlCHmDlDHm, 1),
+                (VPartsMapping.ClCHmDlDmDHlDHm, 1),
+                (VPartsMapping.ClCHlDlDHm, 2),
+                (VPartsMapping.ClCHmDlDHl, 2),
+                (VPartsMapping.CmCHmDlDHm, 1),
+                (VPartsMapping.ClCHmDmDHm, 1),
             ],
         ]
         for i, sum_map in enumerate(sum_map_controller):
@@ -267,13 +267,14 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         for val in VPartsMapping:
             result[val] = []
 
+        # CAUTION we NEED doubling here. Meaning for (l=0,m=1) we WANT (l=1,m=0) ALSO
+        # This resulted in a notation hickup in Calculate_V_5_rename_merge.mmdata that was corrected for in 01-EquationsOfMotionForOperators.xopp
+
         for l in range(number_sites):
             l_os = system_state.get_opposite_spin_index(l)
 
             index_neighbors = system_state.get_nearest_neighbor_indices(l)
             index_os_neighbors = system_state.get_nearest_neighbor_indices(l_os)
-
-            # TODO fix, the combinations like (1,0) / (0,1) are served double?? Or don't they
 
             for m, m_os in zip(index_neighbors, index_os_neighbors, strict=True):
                 # The operators act left onto <system_state_array|operator|output K>

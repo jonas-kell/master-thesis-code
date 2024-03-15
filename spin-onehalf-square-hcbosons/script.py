@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     start_time: float = 0
     time_step: float = 0.5
-    number_of_time_steps: int = int(10)
+    number_of_time_steps: int = int(15)
 
     measurements.main_measurement_function(
         start_time=start_time,
