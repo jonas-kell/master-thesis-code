@@ -126,13 +126,15 @@ class LinearChainNonPeriodicState(SystemGeometry):
         domain_size = self.get_number_sites_wo_spin_degree()
 
         res: List[int] = []
+        rel_index = index % domain_size
+        shift = (index // domain_size) * domain_size
 
         # left neighbor
-        if index > 0:
-            res.append(index - 1)
+        if rel_index > 0:
+            res.append(rel_index - 1 + shift)
         # right neighbor
-        if index < domain_size - 1:
-            res.append(index + 1)
+        if rel_index < domain_size - 1:
+            res.append(rel_index + 1 + shift)
 
         return res
 
