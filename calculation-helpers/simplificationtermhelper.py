@@ -9,7 +9,7 @@ UP = "↑"
 DOWN = "↓"
 UP_SYMBOL = Symbol(UP)
 DOWN_SYMBOL = Symbol(DOWN)
-OCCUPATION_NUMBER_FUNCTION = Function("n")  # type: ignore
+OCCUPATION_NUMBER_FUNCTION = Function("n", positive=True)  # type: ignore
 
 
 class OccupationNumber(ABC):
@@ -140,9 +140,61 @@ def join_op(op: List[OccupationNumber]) -> Any:
     return reduce(lambda a, b: Mul(a, b, evaluate=False), map(lambda c: c.get_sympy_repr(), op))  # type: ignore
 
 
+def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> str:
+    if expr.is_Add:
+        positive_terms: List[str] = []
+        negative_terms: List[str] = []
+        for term in expr.args:
+            if term.is_negative:
+                negative_terms.append(custom_printer(term, print_to_file, False))
+            else:
+                positive_terms.append(custom_printer(term, print_to_file, False))
+        out = ""
+        if not top_level:
+            out += "("
+        out += "+".join(positive_terms) + "".join(negative_terms)
+        if not top_level:
+            out += ")"
+        return out
+    elif expr.is_Mul:
+        factor_strings: List[str] = []
+        negative = False
+        for factor in expr.args:
+            if factor.is_negative:
+                negative = True
+                if factor != -1:
+                    factor_strings.append(custom_printer(-factor, print_to_file, False))
+            else:
+                factor_strings.append(custom_printer(factor, print_to_file, False))
+
+        out = ""
+        if negative:
+            out += "-"
+        if len(factor_strings) > 1 and not top_level:
+            out += "("
+        out += "*".join(factor_strings)
+        if len(factor_strings) > 1 and not top_level:
+            out += ")"
+        return out
+    elif expr.is_Function:
+        if print_to_file:
+            # name = expr.name  # always the same, only occupation n
+            spin = str(expr.args[0].name)
+            index = str(expr.args[1].name)
+
+            print(spin, index)
+
+            return ""
+        else:
+            return str(expr)
+    else:
+        return str(expr)
+
+
 def print_difference(
     op: List[OccupationNumber],
     simplify_output: bool,
+    print_to_file: bool,
 ):
     arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]
     for swap_spin_a in arr:
@@ -196,9 +248,11 @@ def print_difference(
                         is_zero = True
 
                 if not is_zero:
-                    out_arr.append(f"    {sum} {lam} {{{full_term}}}")
-
-            if len(out_arr):
+                    if not print_to_file:
+                        out_arr.append(
+                            f"    {sum} {lam} {{{custom_printer(full_term, False)}}}"
+                        )
+            if len(out_arr) and not print_to_file:
                 print(f"  Swap: n({swap_spin_a},i) <-> n({swap_spin_b},j)")
                 for out in out_arr:
                     print(out)
@@ -210,6 +264,8 @@ if __name__ == "__main__":
 
     for key in ops.keys():
         print(f"Part Operator: {key}")
-        print_difference(ops[key], True)
+        print_difference(ops[key], True, False)
         print(f"")
         print(f"")
+
+        # print_difference(ops[key], True, True)
