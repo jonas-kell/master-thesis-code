@@ -66,7 +66,7 @@ class VPartsMapping(Enum):
     ClCHlDlDHm = "e"  # violet
     ClCHmDlDHl = "f"  # violet
     CmCHmDlDHm = "g"  # yellow
-    ClCHmDmDHm = "g"  # yellow
+    ClCHmDmDHm = "h"  # yellow
 
 
 class HardcoreBosonicHamiltonian(Hamiltonian):
