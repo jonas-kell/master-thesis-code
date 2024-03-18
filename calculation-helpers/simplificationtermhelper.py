@@ -189,10 +189,13 @@ def print_difference(
                 with evaluate(False):
                     full_term = left_side - right_side
 
+                is_zero = str(left_side) == str(right_side)
                 if simplify_output:
                     full_term = simplify(full_term)  # type: ignore
+                    if full_term.is_zero == True:  # type: ignore
+                        is_zero = True
 
-                if left_side != right_side:
+                if not is_zero:
                     out_arr.append(f"    {sum} {lam} {{{full_term}}}")
 
             if len(out_arr):
