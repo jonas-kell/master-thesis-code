@@ -101,7 +101,7 @@ def print_difference(
                 ("j", "m"),  # i != m    j  = l
                 ("i", "m"),  # i  = l    j != m
             ]:
-                lam = "Λ(j,i)".replace("l", replace_l_with).replace("m", replace_m_with)
+                lam = "Λ(l,m)".replace("l", replace_l_with).replace("m", replace_m_with)
                 sum = "           "
                 if not (replace_l_with != "l" and replace_m_with != "m"):
                     sum = f"sum_nb({replace_l_with},{replace_m_with})"
