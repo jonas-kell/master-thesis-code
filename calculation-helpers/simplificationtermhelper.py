@@ -1,9 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union, Any
 from copy import deepcopy
+from sympy import simplify, evaluate, Function, Symbol, Mul  # type: ignore
+from sympy.core.sympify import sympify  # type: ignore
+from functools import reduce
 
 UP = "↑"
 DOWN = "↓"
+UP_SYMBOL = Symbol(UP)
+DOWN_SYMBOL = Symbol(DOWN)
+OCCUPATION_NUMBER_FUNCTION = Function("n")  # type: ignore
 
 
 class OccupationNumber(ABC):
@@ -25,6 +31,18 @@ class OccupationNumber(ABC):
     def overwrite_spin(self, spin: Union[Literal["↑"], Literal["↓"]]):
         self.spin = spin
 
+    def get_spin_symbol(self) -> Symbol:
+        if self.spin == UP:
+            return UP_SYMBOL
+        return DOWN_SYMBOL
+
+    def get_index_symbol(self) -> Symbol:
+        return Symbol(self.index)
+
+    @abstractmethod
+    def get_sympy_repr(self) -> Any:
+        pass
+
 
 class Occupied(OccupationNumber):
     def __init__(
@@ -37,6 +55,12 @@ class Occupied(OccupationNumber):
     def text_representation(self) -> str:
         return f"n({self.spin},{self.index})"
 
+    def get_sympy_repr(self) -> Any:
+        return OCCUPATION_NUMBER_FUNCTION(
+            self.get_spin_symbol(),
+            self.get_index_symbol(),
+        )  # type: ignore
+
 
 class UnOccupied(OccupationNumber):
     def __init__(
@@ -48,6 +72,12 @@ class UnOccupied(OccupationNumber):
 
     def text_representation(self) -> str:
         return f"[1-n({self.spin},{self.index})]"
+
+    def get_sympy_repr(self) -> Any:
+        return sympify(1) - OCCUPATION_NUMBER_FUNCTION(
+            self.get_spin_symbol(),
+            self.get_index_symbol(),
+        )  # type: ignore
 
 
 def operators() -> Dict[str, List[OccupationNumber]]:
@@ -106,12 +136,13 @@ def replace_index_where_spin(
     return mutable_copy
 
 
-def join_op(op: List[OccupationNumber]) -> str:
-    return "*".join([f"{asd.text_representation()}" for asd in op])
+def join_op(op: List[OccupationNumber]) -> Any:
+    return reduce(lambda a, b: Mul(a, b, evaluate=False), map(lambda c: c.get_sympy_repr(), op))  # type: ignore
 
 
 def print_difference(
     op: List[OccupationNumber],
+    simplify_output: bool,
 ):
     arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]
     for swap_spin_a in arr:
@@ -138,8 +169,6 @@ def print_difference(
                 chain = replace_index_where_spin(chain, "l", replace_l_with, DOWN, DOWN)
                 chain = replace_index_where_spin(chain, "m", replace_m_with, DOWN, DOWN)
 
-                left_side = join_op(chain)
-
                 ij_swapped_chain = chain
                 ij_swapped_chain = replace_index_where_spin(
                     ij_swapped_chain, "i", "TEMP", swap_spin_a, swap_spin_b
@@ -154,10 +183,17 @@ def print_difference(
                     ij_swapped_chain, "TEMP", "j", DOWN, DOWN
                 )
 
+                left_side = join_op(chain)
                 right_side = join_op(ij_swapped_chain)
 
+                with evaluate(False):
+                    full_term = left_side - right_side
+
+                if simplify_output:
+                    full_term = simplify(full_term)  # type: ignore
+
                 if left_side != right_side:
-                    out_arr.append(f"    {sum} {lam} {{{left_side} - {right_side}}}")
+                    out_arr.append(f"    {sum} {lam} {{{full_term}}}")
 
             if len(out_arr):
                 print(f"  Swap: n({swap_spin_a},i) <-> n({swap_spin_b},j)")
@@ -171,6 +207,6 @@ if __name__ == "__main__":
 
     for key in ops.keys():
         print(f"Part Operator: {key}")
-        print_difference(ops[key])
+        print_difference(ops[key], True)
         print(f"")
         print(f"")

@@ -8,6 +8,8 @@
         "ndarray",
         "randomgenerator",
         "suptitle",
+        "sympify",
+        "sympy",
         "systemgeometry",
         "thermalization",
         "thermalize",
