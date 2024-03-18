@@ -1,0 +1,225 @@
+Part Operator: ClCHm
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {n(↑, i)-n(↑, j)}
+                Λ(i,j) {n(↑, j)-n(↑, i)}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↑, j)-n(↑, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↑, i)-n(↑, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, i)-n(↑, j))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, j)-n(↑, i))*n(↑, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, j)-n(↑, i))}
+                Λ(i,j) {(n(↓, j)-n(↑, i))*n(↑, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, j)-n(↑, i))}
+    sum_nb(i,m) Λ(i,m) {(n(↓, j)-n(↑, i))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, i)-n(↑, j))*n(↑, i)}
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, i)-n(↑, j))*n(↑, m)}
+
+
+
+Part Operator: DlDHm
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, i)-n(↓, j))*n(↓, i)}
+                Λ(i,j) {(n(↓, i)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↓, l)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, i)-n(↓, j))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, j)-1)*(n(↑, j)-n(↓, i))}
+                Λ(i,j) {(n(↑, j)-n(↓, i))*n(↓, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↓, l)-1)*(n(↑, j)-n(↓, i))}
+    sum_nb(i,m) Λ(i,m) {(n(↑, j)-n(↓, i))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {n(↓, i)-n(↓, j)}
+                Λ(i,j) {n(↓, j)-n(↓, i)}
+    sum_nb(i,l) Λ(l,i) {(n(↓, l)-1)*(n(↓, j)-n(↓, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↓, l)-1)*(n(↓, i)-n(↓, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, i)-n(↓, j))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, j)-n(↓, i))*n(↓, m)}
+
+
+
+Part Operator: ClCmCHlCHmDlDHm
+  Swap: n(↑,i) <-> n(↑,j)
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↑, i))*n(↓, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, i)-n(↑, j))*n(↓, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↑, m)-1)*(n(↓, j)-1)*(n(↑, i)-n(↑, j))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, m)-1)*(n(↓, i)-1)*(n(↑, j)-n(↑, i))*n(↓, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(i,j) {(n(↑, j)-1)*(n(↓, i)-1)*(((n(↓, j)-1)*n(↑, i))+-((n(↑, i)-1)*n(↓, j)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, j)-n(↑, i))*n(↓, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, j)-1)*(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↑, m)-1)*(n(↑, i)-n(↓, j))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, m)-1)*(n(↓, i)-1)*(n(↓, j)-n(↑, i))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↑, i)-1)*(n(↓, j)-1)*(((n(↓, i)-1)*n(↑, j))+-((n(↑, j)-1)*n(↓, i)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, i)-1)*(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↓, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, i)-n(↑, j))*n(↓, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↑, m)-1)*(n(↓, j)-1)*(n(↓, i)-n(↑, j))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↑, m)-1)*(n(↑, j)-n(↓, i))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, i)-1)*(n(↑, j)-1)*(((n(↓, i)-1)*n(↓, j))+-((n(↓, j)-1)*n(↓, i)))}
+                Λ(i,j) {(n(↑, i)-1)*(n(↑, j)-1)*(((n(↓, j)-1)*n(↓, i))+-((n(↓, i)-1)*n(↓, j)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, i)-1)*(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, j)-n(↓, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, j)-1)*(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, i)-n(↓, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↑, m)-1)*(n(↓, i)-n(↓, j))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↑, m)-1)*(n(↓, j)-n(↓, i))*n(↓, m)}
+
+
+
+Part Operator: ClCHmDlDmDHlDHm
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, i)-1)*(n(↓, j)-1)*(((n(↑, i)-1)*n(↑, j))+-((n(↑, j)-1)*n(↑, i)))}
+                Λ(i,j) {(n(↓, i)-1)*(n(↓, j)-1)*(((n(↑, j)-1)*n(↑, i))+-((n(↑, i)-1)*n(↑, j)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-1)*(n(↓, l)-1)*(n(↑, j)-n(↑, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-1)*(n(↓, l)-1)*(n(↑, i)-n(↑, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↓, m)-1)*(n(↑, i)-n(↑, j))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↓, m)-1)*(n(↑, j)-n(↑, i))*n(↑, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, i)-1)*(((n(↑, i)-1)*n(↓, j))+-((n(↓, j)-1)*n(↑, i)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-1)*(n(↓, l)-1)*(n(↓, j)-n(↑, i))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, i)-n(↓, j))*n(↑, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, m)-1)*(n(↑, i)-n(↓, j))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↓, m)-1)*(n(↓, j)-n(↑, i))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, j)-1)*(((n(↑, j)-1)*n(↓, i))+-((n(↓, i)-1)*n(↑, j)))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↓, i))*n(↑, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-1)*(n(↓, l)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↓, m)-1)*(n(↓, i)-n(↑, j))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, m)-1)*(n(↑, j)-n(↓, i))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, j)-n(↓, i))*n(↑, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, i)-n(↓, j))*n(↑, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, m)-1)*(n(↓, i)-n(↓, j))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, m)-1)*(n(↓, j)-n(↓, i))*n(↑, m)}
+
+
+
+Part Operator: ClCHlDlDHm
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, j)-1)*(n(↑, j)-n(↑, i))*n(↓, i)}
+                Λ(i,j) {(n(↓, i)-1)*(n(↑, i)-n(↑, j))*n(↓, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↑, j)-n(↑, i))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↑, i)-n(↑, j))*n(↓, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, j)-n(↑, i))*n(↓, i)}
+                Λ(i,j) {(n(↑, i)*n(↓, i))+n(↓, j)-n(↑, i)-(n(↓, i)*n(↓, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, j)-n(↑, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, j)-n(↑, i))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↑, i)-n(↓, j))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↑, j)*n(↓, j))+n(↓, i)-n(↑, j)-(n(↓, i)*n(↓, j))}
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, i)-n(↑, j))*n(↓, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↑, j)-n(↓, i))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, i)-n(↑, j))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)*n(↓, j))+n(↓, i)-n(↓, j)-(n(↑, j)*n(↓, i))}
+                Λ(i,j) {(n(↑, i)*n(↓, i))+n(↓, j)-n(↓, i)-(n(↑, i)*n(↓, j))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, i)-n(↓, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↓, j)-n(↓, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, j)-n(↓, i))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, i)-n(↓, j))*n(↓, m)}
+
+
+
+Part Operator: CmCHmDlDHm
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, j)-1)*(n(↑, i)-n(↑, j))*n(↓, i)}
+                Λ(i,j) {(n(↓, i)-1)*(n(↑, j)-n(↑, i))*n(↓, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↓, l)-1)*(n(↑, i)-n(↑, j))*n(↓, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↓, l)-1)*(n(↑, j)-n(↑, i))*n(↓, j)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(i,j) {(n(↑, j)-1)*(n(↓, i)-1)*(n(↓, j)-n(↑, i))}
+    sum_nb(i,l) Λ(l,i) {(n(↓, l)-1)*(n(↑, i)-n(↓, j))*n(↓, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, j)-1)*(n(↓, l)-1)*(n(↓, j)-n(↑, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, m)-1)*(n(↓, j)-n(↑, i))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↑, i)-1)*(n(↓, j)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, i)-1)*(n(↓, l)-1)*(n(↓, i)-n(↑, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↓, l)-1)*(n(↑, j)-n(↓, i))*n(↓, j)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, m)-1)*(n(↓, i)-n(↑, j))*n(↓, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, i)*n(↓, j))+n(↓, i)-n(↓, j)-(n(↑, i)*n(↓, i))}
+                Λ(i,j) {(n(↑, j)*n(↓, i))+n(↓, j)-n(↓, i)-(n(↑, j)*n(↓, j))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, i)-1)*(n(↓, l)-1)*(n(↓, i)-n(↓, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, j)-1)*(n(↓, l)-1)*(n(↓, j)-n(↓, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, m)-1)*(n(↓, j)-n(↓, i))*n(↓, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, m)-1)*(n(↓, i)-n(↓, j))*n(↓, m)}
+
+
+
+Part Operator: ClCHmDlDHl
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {(n(↑, j)*n(↓, j))+n(↑, i)-n(↑, j)-(n(↑, i)*n(↓, j))}
+                Λ(i,j) {(n(↑, i)*n(↓, i))+n(↑, j)-n(↑, i)-(n(↑, j)*n(↓, i))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, i)-n(↑, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↑, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↑, j)-n(↑, i))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↑, i)-n(↑, j))*n(↑, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)*n(↓, j))+n(↑, i)-n(↓, j)-(n(↑, i)*n(↑, j))}
+                Λ(i,j) {(n(↓, i)-1)*(n(↑, i)-n(↓, j))*n(↑, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, j)-n(↑, i))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, i)-1)*(n(↑, i)-n(↓, j))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(j,i) {(n(↓, j)-1)*(n(↑, j)-n(↓, i))*n(↑, i)}
+                Λ(i,j) {(n(↑, i)*n(↓, i))+n(↑, j)-n(↓, i)-(n(↑, i)*n(↑, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↓, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, j)-1)*(n(↑, j)-n(↓, i))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, i)-n(↑, j))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, j)-n(↓, i))*n(↑, i)}
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, i)-n(↓, j))*n(↑, j)}
+    sum_nb(j,m) Λ(j,m) {(n(↑, j)-1)*(n(↓, j)-n(↓, i))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↑, i)-1)*(n(↓, i)-n(↓, j))*n(↑, m)}
+
+
+
+Part Operator: ClCHmDmDHm
+  Swap: n(↑,i) <-> n(↑,j)
+                Λ(j,i) {(n(↑, j)*n(↓, i))+n(↑, i)-n(↑, j)-(n(↑, i)*n(↓, i))}
+                Λ(i,j) {(n(↑, i)*n(↓, j))+n(↑, j)-n(↑, i)-(n(↑, j)*n(↓, j))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-1)*(n(↑, i)-n(↑, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-1)*(n(↑, j)-n(↑, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, m)-1)*(n(↑, j)-n(↑, i))*n(↑, m)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, m)-1)*(n(↑, i)-n(↑, j))*n(↑, m)}
+
+  Swap: n(↑,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, i)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-1)*(n(↑, i)-n(↓, j))}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-n(↑, i))*n(↑, j)}
+    sum_nb(i,m) Λ(i,m) {(n(↓, m)-1)*(n(↑, i)-n(↓, j))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↑,j)
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, j)-1)*(n(↑, j)-n(↓, i))}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-n(↑, j))*n(↑, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-1)*(n(↑, j)-n(↓, i))}
+    sum_nb(j,m) Λ(j,m) {(n(↓, m)-1)*(n(↑, j)-n(↓, i))*n(↑, m)}
+
+  Swap: n(↓,i) <-> n(↓,j)
+                Λ(j,i) {(n(↑, j)-1)*(n(↓, i)-n(↓, j))*n(↑, i)}
+                Λ(i,j) {(n(↑, i)-1)*(n(↓, j)-n(↓, i))*n(↑, j)}
+    sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, i)-n(↓, j))*n(↑, i)}
+    sum_nb(j,l) Λ(l,j) {(n(↑, l)-1)*(n(↓, j)-n(↓, i))*n(↑, j)}
