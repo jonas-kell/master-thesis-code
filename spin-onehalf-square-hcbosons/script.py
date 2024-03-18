@@ -1,3 +1,6 @@
+# pip3 install matplotlib
+# pip3 install numpy
+
 import numpy as np
 from randomgenerator import RandomGenerator
 import state

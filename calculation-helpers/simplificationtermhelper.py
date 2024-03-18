@@ -52,14 +52,40 @@ class UnOccupied(OccupationNumber):
 
 def operators() -> Dict[str, List[OccupationNumber]]:
     return {
-        "ClCHm": [UnOccupied("l", UP), Occupied("m", UP)],
-        "DlDHm": [UnOccupied("l", DOWN), Occupied("m", DOWN)],
-        "ClCmCHlCHmDlDHm": [],
-        "ClCHmDlDmDHlDHm": [],
-        "ClCHlDlDHm": [],
-        "ClCHmDlDHl": [],
-        "CmCHmDlDHm": [],
-        "ClCHmDmDHm": [],
+        "ClCHm": [UnOccupied("l", UP), Occupied("m", UP)],  # O1
+        "DlDHm": [UnOccupied("l", DOWN), Occupied("m", DOWN)],  # O2
+        "ClCmCHlCHmDlDHm": [  # O3
+            UnOccupied("l", UP),
+            UnOccupied("m", UP),
+            UnOccupied("l", DOWN),
+            Occupied("m", DOWN),
+        ],
+        "ClCHmDlDmDHlDHm": [  # O4
+            UnOccupied("l", DOWN),
+            UnOccupied("m", DOWN),
+            UnOccupied("l", UP),
+            Occupied("m", UP),
+        ],
+        "ClCHlDlDHm": [  # O7
+            UnOccupied("l", UP),
+            UnOccupied("l", DOWN),
+            Occupied("m", DOWN),
+        ],
+        "CmCHmDlDHm": [
+            UnOccupied("m", UP),
+            UnOccupied("l", DOWN),
+            Occupied("m", DOWN),
+        ],  # O8
+        "ClCHmDlDHl": [
+            UnOccupied("l", UP),
+            Occupied("m", UP),
+            UnOccupied("l", DOWN),
+        ],  # O5
+        "ClCHmDmDHm": [
+            UnOccupied("l", UP),
+            Occupied("m", UP),
+            UnOccupied("m", DOWN),
+        ],  # O6
     }
 
 

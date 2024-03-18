@@ -32,5 +32,6 @@
         "**/*-blx.bib": true,
         "**/_minted*": true,
         "**/__pycache__": true
-    }
+    },
+    "python.analysis.typeCheckingMode": "strict"
 }
