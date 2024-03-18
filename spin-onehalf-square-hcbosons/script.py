@@ -10,7 +10,7 @@ import systemgeometry
 from typing import List
 
 if __name__ == "__main__":
-    randomness_seed = "ok"
+    randomness_seed = "ok"  # TODO make own randomizers for each thread, to get back consistency for real
 
     # ! General Hamiltonian properties
     U = 0.4
