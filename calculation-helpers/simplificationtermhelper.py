@@ -199,14 +199,22 @@ def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> st
     elif expr.is_Function:
         if print_to_file:
             # name = expr.name  # always the same, only occupation n
-            # spin = str(expr.args[0].name) # should be automatically encoded in index, convenient
+            spin = str(expr.args[0].name)
             index = str(expr.args[1].name)
+            print(spin)
 
             if index == "i":
-                return "sw1_occupation"
+                if spin == UP:
+                    return "sw1_occupation"
+                return "sw1_occupation_os"
             if index == "j":
-                return "sw2_occupation"
-            return "nb_occupation"
+                if spin == UP:
+                    return "sw2_occupation"
+                return "sw2_occupation_os"
+
+            if spin == UP:
+                return "nb_occupation"
+            return "nb_occupation_os"
         else:
             return str(expr)
     else:
@@ -221,7 +229,7 @@ def print_difference(
 ):
     if print_to_file:
         write_file(
-            f"def {name}(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, lam: Callable[[int, int], float], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int]]) -> float:\n    res:float = 0\n"
+            f"def {name}(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw1_occupation_os: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, sw2_occupation_os: int, lam: Callable[[int, int], float], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> float:\n    res:float = 0\n"
         )
 
     arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]
@@ -331,7 +339,7 @@ def print_difference(
                             # sum-iterator
                             write_file(
                                 f"        # sum({sum_arg_1},{sum_arg_2})\n"
-                                + f"        for ({sum_arg_2}, nb_occupation) in {'sw1_neighbors_index_occupation_tuples' if sum_arg_1 == 'i' else 'sw2_neighbors_index_occupation_tuples'}:\n"
+                                + f"        for ({sum_arg_2}, nb_occupation, nb_occupation_os) in {'sw1_neighbors_index_occupation_tuples' if sum_arg_1 == 'i' else 'sw2_neighbors_index_occupation_tuples'}:\n"
                             )
                             write_file(
                                 f"            res += {lam} * ({custom_printer(full_term, True)})\n"
@@ -360,5 +368,3 @@ if __name__ == "__main__":
         print_difference(key, ops[key], True, print_to_file)
         print(f"")
         print(f"")
-
-# TODO     sum_nb(i,l) Λ(l,i) {(n(↑, l)-1)*(n(↓, l)-1)*(n(↑, j)-n(↑, i))*n(↓, i)} properly treat spins, NOT encoded like I thought

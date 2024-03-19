@@ -9,12 +9,14 @@ def ClCHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
@@ -23,22 +25,22 @@ def ClCHm(
         res += lam(sw2_index, sw1_index) * (sw1_occupation - sw2_occupation)
         res += lam(sw1_index, sw2_index) * (sw2_occupation - sw1_occupation)
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1) * (sw2_occupation - sw1_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1) * (sw1_occupation - sw2_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (sw1_occupation - sw2_occupation) * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (sw2_occupation - sw1_occupation) * nb_occupation
             )
@@ -46,39 +48,39 @@ def ClCHm(
         # UP<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation)
+            (sw2_occupation - 1) * (sw2_occupation_os - sw1_occupation)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw2_occupation - sw1_occupation) * sw2_occupation
+            (sw2_occupation_os - sw1_occupation) * sw2_occupation
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation)
+                (nb_occupation - 1) * (sw2_occupation_os - sw1_occupation)
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - sw1_occupation) * nb_occupation
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw1_occupation - sw2_occupation) * sw1_occupation
+            (sw1_occupation_os - sw2_occupation) * sw1_occupation
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation)
+            (sw1_occupation - 1) * (sw1_occupation_os - sw2_occupation)
         )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation)
+                (nb_occupation - 1) * (sw1_occupation_os - sw2_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - sw2_occupation) * nb_occupation
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
@@ -90,12 +92,14 @@ def DlDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
@@ -105,64 +109,64 @@ def DlDHm(
         # UP<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw1_occupation - sw2_occupation) * sw1_occupation
+            (sw1_occupation - sw2_occupation_os) * sw1_occupation_os
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation)
+            (sw1_occupation_os - 1) * (sw1_occupation - sw2_occupation_os)
         )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation)
+                (nb_occupation_os - 1) * (sw1_occupation - sw2_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation - sw2_occupation_os) * nb_occupation_os
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation)
+            (sw2_occupation_os - 1) * (sw2_occupation - sw1_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw2_occupation - sw1_occupation) * sw2_occupation
+            (sw2_occupation - sw1_occupation_os) * sw2_occupation_os
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation)
+                (nb_occupation_os - 1) * (sw2_occupation - sw1_occupation_os)
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation - sw1_occupation_os) * nb_occupation_os
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
-        res += lam(sw2_index, sw1_index) * (sw1_occupation - sw2_occupation)
-        res += lam(sw1_index, sw2_index) * (sw2_occupation - sw1_occupation)
+        res += lam(sw2_index, sw1_index) * (sw1_occupation_os - sw2_occupation_os)
+        res += lam(sw1_index, sw2_index) * (sw2_occupation_os - sw1_occupation_os)
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation)
+                (nb_occupation_os - 1) * (sw2_occupation_os - sw1_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation)
+                (nb_occupation_os - 1) * (sw1_occupation_os - sw2_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - sw2_occupation_os) * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - sw1_occupation_os) * nb_occupation_os
             )
     return res
 
@@ -171,134 +175,136 @@ def ClCmCHlCHmDlDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
-                * sw1_occupation
+                * sw1_occupation_os
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
-                * sw2_occupation
+                * sw2_occupation_os
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
+                * (sw2_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
-                * nb_occupation
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
+                * (sw1_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
-                * nb_occupation
+                * nb_occupation_os
             )
     if sw1_up and not sw2_up:
         # UP<->DOWN
         pass
         res += lam(sw1_index, sw2_index) * (
             (sw2_occupation - 1)
-            * (sw1_occupation - 1)
+            * (sw1_occupation_os - 1)
             * (
-                ((sw2_occupation - 1) * sw1_occupation)
-                + -((sw1_occupation - 1) * sw2_occupation)
+                ((sw2_occupation_os - 1) * sw1_occupation)
+                + -((sw1_occupation - 1) * sw2_occupation_os)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
-                * sw1_occupation
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * sw1_occupation_os
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (sw2_occupation - 1)
                 * (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (sw2_occupation - 1)
                 * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
-                * nb_occupation
+                * (sw1_occupation - sw2_occupation_os)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
-                * nb_occupation
+                * (sw1_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * nb_occupation_os
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
             (sw1_occupation - 1)
-            * (sw2_occupation - 1)
+            * (sw2_occupation_os - 1)
             * (
-                ((sw1_occupation - 1) * sw2_occupation)
-                + -((sw2_occupation - 1) * sw1_occupation)
+                ((sw1_occupation_os - 1) * sw2_occupation)
+                + -((sw2_occupation - 1) * sw1_occupation_os)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (sw1_occupation - 1)
                 * (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
-                * sw2_occupation
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * sw2_occupation_os
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
-                * nb_occupation
+                * (sw2_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (sw1_occupation - 1)
                 * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
-                * nb_occupation
+                * (sw2_occupation - sw1_occupation_os)
+                * nb_occupation_os
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
@@ -307,49 +313,49 @@ def ClCmCHlCHmDlDHm(
             (sw1_occupation - 1)
             * (sw2_occupation - 1)
             * (
-                ((sw1_occupation - 1) * sw2_occupation)
-                + -((sw2_occupation - 1) * sw1_occupation)
+                ((sw1_occupation_os - 1) * sw2_occupation_os)
+                + -((sw2_occupation_os - 1) * sw1_occupation_os)
             )
         )
         res += lam(sw1_index, sw2_index) * (
             (sw1_occupation - 1)
             * (sw2_occupation - 1)
             * (
-                ((sw2_occupation - 1) * sw1_occupation)
-                + -((sw1_occupation - 1) * sw2_occupation)
+                ((sw2_occupation_os - 1) * sw1_occupation_os)
+                + -((sw1_occupation_os - 1) * sw2_occupation_os)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (sw1_occupation - 1)
                 * (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (sw2_occupation - 1)
                 * (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (sw2_occupation - 1)
                 * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
-                * nb_occupation
+                * (sw1_occupation_os - sw2_occupation_os)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (sw1_occupation - 1)
                 * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
-                * nb_occupation
+                * (sw2_occupation_os - sw1_occupation_os)
+                * nb_occupation_os
             )
     return res
 
@@ -358,62 +364,64 @@ def ClCHmDlDmDHlDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw1_occupation - 1)
-            * (sw2_occupation - 1)
+            (sw1_occupation_os - 1)
+            * (sw2_occupation_os - 1)
             * (
                 ((sw1_occupation - 1) * sw2_occupation)
                 + -((sw2_occupation - 1) * sw1_occupation)
             )
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1)
-            * (sw2_occupation - 1)
+            (sw1_occupation_os - 1)
+            * (sw2_occupation_os - 1)
             * (
                 ((sw2_occupation - 1) * sw1_occupation)
                 + -((sw1_occupation - 1) * sw2_occupation)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
-                * (nb_occupation - 1)
+                * (sw1_occupation_os - 1)
+                * (nb_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
-                * (nb_occupation - 1)
+                * (sw2_occupation_os - 1)
+                * (nb_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1)
-                * (nb_occupation - 1)
+                (sw2_occupation_os - 1)
+                * (nb_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
                 * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1)
-                * (nb_occupation - 1)
+                (sw1_occupation_os - 1)
+                * (nb_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
                 * nb_occupation
             )
@@ -422,42 +430,42 @@ def ClCHmDlDmDHlDHm(
         pass
         res += lam(sw2_index, sw1_index) * (
             (sw2_occupation - 1)
-            * (sw1_occupation - 1)
+            * (sw1_occupation_os - 1)
             * (
-                ((sw1_occupation - 1) * sw2_occupation)
-                + -((sw2_occupation - 1) * sw1_occupation)
+                ((sw1_occupation - 1) * sw2_occupation_os)
+                + -((sw2_occupation_os - 1) * sw1_occupation)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (sw1_occupation_os - 1)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
                 * sw2_occupation
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
                 * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                (sw1_occupation_os - 1)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
                 * nb_occupation
             )
     if not sw1_up and sw2_up:
@@ -465,77 +473,77 @@ def ClCHmDlDmDHlDHm(
         pass
         res += lam(sw1_index, sw2_index) * (
             (sw1_occupation - 1)
-            * (sw2_occupation - 1)
+            * (sw2_occupation_os - 1)
             * (
-                ((sw2_occupation - 1) * sw1_occupation)
-                + -((sw1_occupation - 1) * sw2_occupation)
+                ((sw2_occupation - 1) * sw1_occupation_os)
+                + -((sw1_occupation_os - 1) * sw2_occupation)
             )
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
                 * sw1_occupation
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (sw2_occupation_os - 1)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                (sw2_occupation_os - 1)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
                 * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
                 * nb_occupation
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
                 * sw1_occupation
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
                 * sw2_occupation
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
                 (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
                 * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
                 (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
                 * nb_occupation
             )
     return res
@@ -545,129 +553,155 @@ def ClCHlDlDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * sw1_occupation
+            (sw2_occupation_os - 1)
+            * (sw2_occupation - sw1_occupation)
+            * sw1_occupation_os
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * sw2_occupation
+            (sw1_occupation_os - 1)
+            * (sw1_occupation - sw2_occupation)
+            * sw2_occupation_os
         )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation)
+                * nb_occupation_os
             )
     if sw1_up and not sw2_up:
         # UP<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * sw1_occupation
+            (sw2_occupation - 1)
+            * (sw2_occupation_os - sw1_occupation)
+            * sw1_occupation_os
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation * sw1_occupation)
-            + sw2_occupation
+            (sw1_occupation * sw1_occupation_os)
+            + sw2_occupation_os
             - sw1_occupation
-            - (sw1_occupation * sw2_occupation)
+            - (sw1_occupation_os * sw2_occupation_os)
         )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
+                * nb_occupation_os
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation * sw2_occupation)
-            + sw1_occupation
+            (sw2_occupation * sw2_occupation_os)
+            + sw1_occupation_os
             - sw2_occupation
-            - (sw1_occupation * sw2_occupation)
+            - (sw1_occupation_os * sw2_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * sw2_occupation
+            (sw1_occupation - 1)
+            * (sw1_occupation_os - sw2_occupation)
+            * sw2_occupation_os
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * nb_occupation_os
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation * sw2_occupation)
-            + sw1_occupation
-            - sw2_occupation
-            - (sw2_occupation * sw1_occupation)
+            (sw2_occupation * sw2_occupation_os)
+            + sw1_occupation_os
+            - sw2_occupation_os
+            - (sw2_occupation * sw1_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation * sw1_occupation)
-            + sw2_occupation
-            - sw1_occupation
-            - (sw1_occupation * sw2_occupation)
+            (sw1_occupation * sw1_occupation_os)
+            + sw2_occupation_os
+            - sw1_occupation_os
+            - (sw1_occupation * sw2_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
+                * nb_occupation_os
             )
     return res
 
@@ -676,121 +710,143 @@ def CmCHmDlDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+            (sw2_occupation_os - 1)
+            * (sw1_occupation - sw2_occupation)
+            * sw1_occupation_os
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+            (sw1_occupation_os - 1)
+            * (sw2_occupation - sw1_occupation)
+            * sw2_occupation_os
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+                (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation)
+                * sw1_occupation_os
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+                (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation)
+                * sw2_occupation_os
             )
     if sw1_up and not sw2_up:
         # UP<->DOWN
         pass
         res += lam(sw1_index, sw2_index) * (
             (sw2_occupation - 1)
-            * (sw1_occupation - 1)
-            * (sw2_occupation - sw1_occupation)
+            * (sw1_occupation_os - 1)
+            * (sw2_occupation_os - sw1_occupation)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+                (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
+                * sw1_occupation_os
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (nb_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * nb_occupation_os
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
             (sw1_occupation - 1)
-            * (sw2_occupation - 1)
-            * (sw1_occupation - sw2_occupation)
+            * (sw2_occupation_os - 1)
+            * (sw1_occupation_os - sw2_occupation)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+                (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
+                * sw2_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (nb_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * nb_occupation_os
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw1_occupation * sw2_occupation)
-            + sw1_occupation
-            - sw2_occupation
-            - (sw1_occupation * sw1_occupation)
+            (sw1_occupation * sw2_occupation_os)
+            + sw1_occupation_os
+            - sw2_occupation_os
+            - (sw1_occupation * sw1_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw2_occupation * sw1_occupation)
-            + sw2_occupation
-            - sw1_occupation
-            - (sw2_occupation * sw2_occupation)
+            (sw2_occupation * sw1_occupation_os)
+            + sw2_occupation_os
+            - sw1_occupation_os
+            - (sw2_occupation * sw2_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (sw1_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (sw2_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (nb_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
+                * nb_occupation_os
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (nb_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
+                * nb_occupation_os
             )
     return res
 
@@ -799,129 +855,155 @@ def ClCHmDlDHl(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation * sw2_occupation)
+            (sw2_occupation * sw2_occupation_os)
             + sw1_occupation
             - sw2_occupation
-            - (sw1_occupation * sw2_occupation)
+            - (sw1_occupation * sw2_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation * sw1_occupation)
+            (sw1_occupation * sw1_occupation_os)
             + sw2_occupation
             - sw1_occupation
-            - (sw2_occupation * sw1_occupation)
+            - (sw2_occupation * sw1_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation)
+                * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation)
+                * nb_occupation
             )
     if sw1_up and not sw2_up:
         # UP<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation * sw2_occupation)
+            (sw2_occupation * sw2_occupation_os)
             + sw1_occupation
-            - sw2_occupation
+            - sw2_occupation_os
             - (sw1_occupation * sw2_occupation)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * sw2_occupation
+            (sw1_occupation_os - 1)
+            * (sw1_occupation - sw2_occupation_os)
+            * sw2_occupation
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
+                * nb_occupation
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * sw1_occupation
+            (sw2_occupation_os - 1)
+            * (sw2_occupation - sw1_occupation_os)
+            * sw1_occupation
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation * sw1_occupation)
+            (sw1_occupation * sw1_occupation_os)
             + sw2_occupation
-            - sw1_occupation
+            - sw1_occupation_os
             - (sw1_occupation * sw2_occupation)
         )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (nb_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
+                * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * nb_occupation
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * sw1_occupation
+            (sw2_occupation - 1)
+            * (sw2_occupation_os - sw1_occupation_os)
+            * sw1_occupation
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * sw2_occupation
+            (sw1_occupation - 1)
+            * (sw1_occupation_os - sw2_occupation_os)
+            * sw2_occupation
         )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (sw2_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (sw2_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
+                * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (sw1_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (sw1_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
+                * nb_occupation
             )
     return res
 
@@ -930,120 +1012,142 @@ def ClCHmDmDHm(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
+    sw1_occupation_os: int,
     sw2_up: bool,
     sw2_index: int,
     sw2_occupation: int,
+    sw2_occupation_os: int,
     lam: Callable[[int, int], float],
-    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int]],
-    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int]],
+    sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+    sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
 ) -> float:
     res: float = 0
     if sw1_up and sw2_up:
         # UP<->UP
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation * sw1_occupation)
+            (sw2_occupation * sw1_occupation_os)
             + sw1_occupation
             - sw2_occupation
-            - (sw1_occupation * sw1_occupation)
+            - (sw1_occupation * sw1_occupation_os)
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation * sw2_occupation)
+            (sw1_occupation * sw2_occupation_os)
             + sw2_occupation
             - sw1_occupation
-            - (sw2_occupation * sw2_occupation)
+            - (sw2_occupation * sw2_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
+                * (sw1_occupation_os - 1)
                 * (sw1_occupation - sw2_occupation)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
+                * (sw2_occupation_os - 1)
                 * (sw2_occupation - sw1_occupation)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation)
+                * nb_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation)
+                * nb_occupation
             )
     if sw1_up and not sw2_up:
         # UP<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
             (sw2_occupation - 1)
-            * (sw1_occupation - 1)
-            * (sw1_occupation - sw2_occupation)
+            * (sw1_occupation_os - 1)
+            * (sw1_occupation - sw2_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
                 (nb_occupation - 1)
-                * (sw1_occupation - 1)
-                * (sw1_occupation - sw2_occupation)
+                * (sw1_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+                (nb_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation)
+                * sw2_occupation
             )
         # sum(i,m)
-        for m, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(sw1_index, m) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * nb_occupation
+                (nb_occupation_os - 1)
+                * (sw1_occupation - sw2_occupation_os)
+                * nb_occupation
             )
     if not sw1_up and sw2_up:
         # DOWN<->UP
         pass
         res += lam(sw1_index, sw2_index) * (
             (sw1_occupation - 1)
-            * (sw2_occupation - 1)
-            * (sw2_occupation - sw1_occupation)
+            * (sw2_occupation_os - 1)
+            * (sw2_occupation - sw1_occupation_os)
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+                (nb_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation)
+                * sw1_occupation
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
                 (nb_occupation - 1)
-                * (sw2_occupation - 1)
-                * (sw2_occupation - sw1_occupation)
+                * (sw2_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
             )
         # sum(j,m)
-        for m, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for m, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(sw2_index, m) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * nb_occupation
+                (nb_occupation_os - 1)
+                * (sw2_occupation - sw1_occupation_os)
+                * nb_occupation
             )
     if not sw1_up and not sw2_up:
         # DOWN<->DOWN
         pass
         res += lam(sw2_index, sw1_index) * (
-            (sw2_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+            (sw2_occupation - 1)
+            * (sw1_occupation_os - sw2_occupation_os)
+            * sw1_occupation
         )
         res += lam(sw1_index, sw2_index) * (
-            (sw1_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+            (sw1_occupation - 1)
+            * (sw2_occupation_os - sw1_occupation_os)
+            * sw2_occupation
         )
         # sum(i,l)
-        for l, nb_occupation in sw1_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw1_neighbors_index_occupation_tuples:
             res += lam(l, sw1_index) * (
-                (nb_occupation - 1) * (sw1_occupation - sw2_occupation) * sw1_occupation
+                (nb_occupation - 1)
+                * (sw1_occupation_os - sw2_occupation_os)
+                * sw1_occupation
             )
         # sum(j,l)
-        for l, nb_occupation in sw2_neighbors_index_occupation_tuples:
+        for l, nb_occupation, nb_occupation_os in sw2_neighbors_index_occupation_tuples:
             res += lam(l, sw2_index) * (
-                (nb_occupation - 1) * (sw2_occupation - sw1_occupation) * sw2_occupation
+                (nb_occupation - 1)
+                * (sw2_occupation_os - sw1_occupation_os)
+                * sw2_occupation
             )
     return res
