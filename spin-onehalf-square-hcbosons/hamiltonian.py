@@ -67,8 +67,6 @@ class Hamiltonian(ABC):
         sw2_index: int,
         sw2_occupation: int,
         sw2_occupation_os: int,
-        sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-        sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
         before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to generate the lambda functions
     ) -> np.complex128:
         after_swap_system_state = before_swap_system_state.get_editable_copy()
@@ -280,7 +278,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
         total_sum = np.complex128(0)
         for i, sum_map in enumerate(sum_map_controller):
-            for map_key, number in sum_map:
+            for map_key, factor in sum_map:
                 for (
                     one_over_epsm_minus_epsl,
                     one_over_epsm_minus_epsl_plus_U,
@@ -291,7 +289,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     psi_K_over_psi_N,
                 ) in cache[map_key]:
                     product = np.complex128(1)
-                    product *= number * psi_K_over_psi_N
+                    product *= factor * psi_K_over_psi_N
 
                     if i == 0:
                         # A part of the first order
@@ -535,15 +533,95 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         sw2_index: int,
         sw2_occupation: int,
         sw2_occupation_os: int,
-        sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-        sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
         before_swap_system_state: state.SystemState,
     ) -> np.complex128:
-        H_n_difference = np.complex128(0)
 
-        # TODO use analytical_calculation_mapper
+        def eps_m_minus_eps_l(l: int, m: int) -> float:
+            return self.E * (
+                before_swap_system_state.get_eps_multiplier(
+                    index=m,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                )
+                - before_swap_system_state.get_eps_multiplier(
+                    index=l,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                )
+            )
 
-        return H_n_difference - (
+        def part_A_lambda_callback(l: int, m: int) -> float:
+            eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
+            return (1 / eps_m_minus_eps_l_cache) * (
+                np.exp(1j * time * eps_m_minus_eps_l_cache) - 1
+            )
+
+        def part_B_lambda_callback(l: int, m: int) -> float:
+            eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
+            return (1 / eps_m_minus_eps_l_plus_U_cache) * (
+                np.exp(1j * time * eps_m_minus_eps_l_plus_U_cache) - 1
+            )
+
+        def part_C_lambda_callback(l: int, m: int) -> float:
+            eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
+            return (1 / eps_m_minus_eps_l_minus_U_cache) * (
+                np.exp(1j * time * eps_m_minus_eps_l_minus_U_cache) - 1
+            )
+
+        sw1_neighbors_index_occupation_tuples = [
+            (
+                nb,
+                before_swap_system_state.get_state_array()[nb],
+                before_swap_system_state.get_state_array()[
+                    before_swap_system_state.get_opposite_spin_index(nb)
+                ],
+            )
+            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
+        ]
+        sw2_neighbors_index_occupation_tuples = [
+            (
+                nb,
+                before_swap_system_state.get_state_array()[nb],
+                before_swap_system_state.get_state_array()[
+                    before_swap_system_state.get_opposite_spin_index(nb)
+                ],
+            )
+            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw2_index)
+        ]
+
+        unscaled_H_n_difference = np.complex128(0)
+        for i, sum_map in enumerate(sum_map_controller):
+            for map_key, factor in sum_map:
+                callback: Callable[[int, int], float] = lambda a, b: a + b
+                if i == 0:
+                    # A part of the first order
+                    callback = part_A_lambda_callback
+                elif i == 1:
+                    # B part of the first order
+                    callback = part_B_lambda_callback
+                elif i == 2:
+                    # C part of the first order
+                    callback = part_C_lambda_callback
+
+                unscaled_H_n_difference += factor * analytical_calculation_mapper[
+                    map_key
+                ](
+                    sw1_up,
+                    sw1_index,
+                    sw1_occupation,
+                    sw1_occupation_os,
+                    sw2_up,
+                    sw2_index,
+                    sw2_occupation,
+                    sw2_occupation_os,
+                    callback,
+                    sw1_neighbors_index_occupation_tuples,
+                    sw2_neighbors_index_occupation_tuples,
+                )
+
+        return self.J * unscaled_H_n_difference - (
             1j
             * self.get_base_energy_difference_swapping(
                 sw1_up=sw1_up,
