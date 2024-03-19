@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
 from enum import Enum
+import analyticalcalcfunctions
 
 
 class Hamiltonian(ABC):
@@ -25,10 +26,6 @@ class Hamiltonian(ABC):
         self,
         system_state: state.SystemState,
     ) -> float:
-        """
-        system_geometry is ONLY for index/eps calculations
-        all state data will be taken from the system_state_array
-        """
         pass
 
     @abstractmethod
@@ -39,13 +36,73 @@ class Hamiltonian(ABC):
     ) -> np.complex128:
         pass
 
-    @abstractmethod
-    def get_exp_H_effective_of_n_and_t(
+    def get_H_eff(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        H_n = self.get_H_n(time=time, system_state=system_state)
+        E_zero_n = self.get_base_energy(system_state=system_state)
+
+        return H_n - (1j * E_zero_n * time)
+
+    def get_H_eff_difference(
+        self,
+        time: float,
+        system_state_a: state.SystemState,
+        system_state_b: state.SystemState,
+    ) -> np.complex128:
+        return self.get_H_eff(time=time, system_state=system_state_a) - self.get_H_eff(
+            time=time, system_state=system_state_b
+        )
+
+    def get_H_eff_difference_swapping(
+        self,
+        time: float,
+        sw1_up: bool,
+        sw1_index: int,
+        sw1_occupation: int,
+        sw1_occupation_os: int,
+        sw2_up: bool,
+        sw2_index: int,
+        sw2_occupation: int,
+        sw2_occupation_os: int,
+        sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+        sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+        before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to generate the lambda functions
+    ) -> np.complex128:
+        after_swap_system_state = before_swap_system_state.get_editable_copy()
+
+        # compute indices with occupation to swap
+        if_spin_offset = after_swap_system_state.get_number_sites_wo_spin_degree()
+        swap_index_1 = sw1_index
+        if not sw1_up:
+            swap_index_1 += if_spin_offset
+        swap_index_2 = sw2_index
+        if not sw2_up:
+            swap_index_2 += if_spin_offset
+
+        # swap
+        after_swap_system_state.get_state_array()[
+            swap_index_1
+        ] = before_swap_system_state.get_state_array()[swap_index_2]
+        after_swap_system_state.get_state_array()[
+            swap_index_2
+        ] = before_swap_system_state.get_state_array()[swap_index_1]
+
+        # return un-optimized default
+        return self.get_H_eff_difference(
+            time=time,
+            system_state_a=before_swap_system_state,
+            system_state_b=after_swap_system_state,
+        )
+
+    def get_exp_H_eff(
         self,
         time: float,
         system_state: state.SystemState,
     ) -> float:
-        pass
+        return np.exp(self.get_H_eff(system_state=system_state, time=time))
 
     def get_log_info(
         self,
@@ -67,6 +124,40 @@ class VPartsMapping(Enum):
     ClCHmDlDHl = "f"  # violet
     CmCHmDlDHm = "g"  # yellow
     ClCHmDmDHm = "h"  # yellow
+
+
+sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
+    [
+        (VPartsMapping.ClCHm, 5),
+        (VPartsMapping.DlDHm, 5),
+        (VPartsMapping.ClCmCHlCHmDlDHm, 2),
+        (VPartsMapping.ClCHmDlDmDHlDHm, 2),
+        (VPartsMapping.ClCHlDlDHm, -3),
+        (VPartsMapping.ClCHmDlDHl, -3),
+        (VPartsMapping.CmCHmDlDHm, -3),
+        (VPartsMapping.ClCHmDmDHm, -3),
+    ],
+    [
+        (VPartsMapping.ClCHm, -2),
+        (VPartsMapping.DlDHm, -2),
+        (VPartsMapping.ClCmCHlCHmDlDHm, -1),
+        (VPartsMapping.ClCHmDlDmDHlDHm, -1),
+        (VPartsMapping.ClCHlDlDHm, 1),
+        (VPartsMapping.ClCHmDlDHl, 1),
+        (VPartsMapping.CmCHmDlDHm, 2),
+        (VPartsMapping.ClCHmDmDHm, 2),
+    ],
+    [
+        (VPartsMapping.ClCHm, -2),
+        (VPartsMapping.DlDHm, -2),
+        (VPartsMapping.ClCmCHlCHmDlDHm, -1),
+        (VPartsMapping.ClCHmDlDmDHlDHm, -1),
+        (VPartsMapping.ClCHlDlDHm, 2),
+        (VPartsMapping.ClCHmDlDHl, 2),
+        (VPartsMapping.CmCHmDlDHm, 1),
+        (VPartsMapping.ClCHmDmDHm, 1),
+    ],
+]
 
 
 class HardcoreBosonicHamiltonian(Hamiltonian):
@@ -188,38 +279,6 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                 )
 
         total_sum = np.complex128(0)
-        sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
-            [
-                (VPartsMapping.ClCHm, 5),
-                (VPartsMapping.DlDHm, 5),
-                (VPartsMapping.ClCmCHlCHmDlDHm, 2),
-                (VPartsMapping.ClCHmDlDmDHlDHm, 2),
-                (VPartsMapping.ClCHlDlDHm, -3),
-                (VPartsMapping.ClCHmDlDHl, -3),
-                (VPartsMapping.CmCHmDlDHm, -3),
-                (VPartsMapping.ClCHmDmDHm, -3),
-            ],
-            [
-                (VPartsMapping.ClCHm, -2),
-                (VPartsMapping.DlDHm, -2),
-                (VPartsMapping.ClCmCHlCHmDlDHm, -1),
-                (VPartsMapping.ClCHmDlDmDHlDHm, -1),
-                (VPartsMapping.ClCHlDlDHm, 1),
-                (VPartsMapping.ClCHmDlDHl, 1),
-                (VPartsMapping.CmCHmDlDHm, 2),
-                (VPartsMapping.ClCHmDmDHm, 2),
-            ],
-            [
-                (VPartsMapping.ClCHm, -2),
-                (VPartsMapping.DlDHm, -2),
-                (VPartsMapping.ClCmCHlCHmDlDHm, -1),
-                (VPartsMapping.ClCHmDlDmDHlDHm, -1),
-                (VPartsMapping.ClCHlDlDHm, 2),
-                (VPartsMapping.ClCHmDlDHl, 2),
-                (VPartsMapping.CmCHmDlDHm, 1),
-                (VPartsMapping.ClCHmDmDHm, 1),
-            ],
-        ]
         for i, sum_map in enumerate(sum_map_controller):
             for map_key, number in sum_map:
                 for (
@@ -377,12 +436,125 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
         return result
 
-    def get_exp_H_effective_of_n_and_t(
+
+analytical_calculation_mapper: Dict[
+    VPartsMapping,
+    Callable[
+        [
+            bool,  # sw1_up
+            int,  # sw1_index
+            int,  # sw1_occupation
+            int,  # sw1_occupation_os
+            bool,  # sw2_up
+            int,  # sw2_index
+            int,  # sw2_occupation
+            int,  # sw2_occupation_os
+            Callable[[int, int], float],  # lam
+            List[Tuple[int, int, int]],  # sw1_neighbors_index_occupation_tuples
+            List[Tuple[int, int, int]],  # sw2_neighbors_index_occupation_tuples
+        ],
+        float,
+    ],
+] = {
+    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm,
+    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm,
+    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm,
+    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm,
+    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl,
+    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm,
+    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm,
+    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm,
+}
+
+
+class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+    ):
+        super().__init__(U=U, E=E, J=J, phi=phi)
+
+    def get_base_energy_difference_swapping(
+        self,
+        sw1_up: bool,
+        sw1_index: int,
+        sw1_occupation: int,
+        sw1_occupation_os: int,
+        sw2_up: bool,
+        sw2_index: int,
+        sw2_occupation: int,
+        sw2_occupation_os: int,
+        before_swap_system_state: state.SystemState,
+    ) -> float:
+        res = 0
+
+        # double occupations
+
+        if sw1_up == sw2_up:
+            res += (
+                self.U
+                * (sw1_occupation - sw2_occupation)
+                * (sw1_occupation_os - sw2_occupation_os)
+            )
+        if sw1_up != sw2_up:
+            res += (
+                self.U
+                * (sw1_occupation - sw2_occupation_os)
+                * (sw1_occupation_os - sw2_occupation)
+            )
+
+        # electrical field
+        eps_i = before_swap_system_state.get_eps_multiplier(
+            index=sw1_index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+        )
+        eps_j = before_swap_system_state.get_eps_multiplier(
+            index=sw2_index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+        )
+        i_occupation = sw1_occupation
+        if not sw1_up:
+            i_occupation = sw1_occupation_os
+        j_occupation = sw2_occupation
+        if not sw2_up:
+            j_occupation = sw2_occupation_os
+
+        res += self.E * (eps_i - eps_j) * (i_occupation - j_occupation)
+
+        return res
+
+    def get_H_eff_difference_swapping(
         self,
         time: float,
-        system_state: state.SystemState,
-    ) -> float:
-        H_n = self.get_H_n(time=time, system_state=system_state)
-        E_zero_n = self.get_base_energy(system_state=system_state)
+        sw1_up: bool,
+        sw1_index: int,
+        sw1_occupation: int,
+        sw1_occupation_os: int,
+        sw2_up: bool,
+        sw2_index: int,
+        sw2_occupation: int,
+        sw2_occupation_os: int,
+        sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+        sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+        before_swap_system_state: state.SystemState,
+    ) -> np.complex128:
+        H_n_difference = np.complex128(0)
 
-        return np.exp(H_n - (1j * E_zero_n * time))
+        # TODO use analytical_calculation_mapper
+
+        return H_n_difference - (
+            1j
+            * self.get_base_energy_difference_swapping(
+                sw1_up=sw1_up,
+                sw1_index=sw1_index,
+                sw1_occupation=sw1_occupation,
+                sw1_occupation_os=sw1_occupation_os,
+                sw2_up=sw2_up,
+                sw2_index=sw2_index,
+                sw2_occupation=sw2_occupation,
+                sw2_occupation_os=sw2_occupation_os,
+                before_swap_system_state=before_swap_system_state,
+            )
+            * time
+        )

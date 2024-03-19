@@ -192,9 +192,7 @@ def run_worker_chain(
             ## generate measurements using sampled state
             worker_sample_count += 1
 
-            h_eff = hamiltonian.get_exp_H_effective_of_n_and_t(
-                time=time, system_state=sampled_state_n
-            )
+            h_eff = hamiltonian.get_exp_H_eff(time=time, system_state=sampled_state_n)
             psi_n = sampled_state_n.get_Psi_of_N()
 
             energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure

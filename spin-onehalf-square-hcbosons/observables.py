@@ -81,3 +81,6 @@ class DoubleOccupationAtSite(Observable):
             "label": self.get_label(),
             "site": self.site,
         }
+
+
+# TODO implement spin current (use difference H_eff implementation)

@@ -88,20 +88,16 @@ class MonteCarloSampler(GeneralSampler):
 
             # Calculate the energies and probabilities
             original_state_psi = original_state.get_Psi_of_N()
-            original_state_energy_exp = (
-                self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
-                    system_state=original_state,
-                    time=time,
-                )
+            original_state_energy_exp = self.system_hamiltonian.get_exp_H_eff(
+                system_state=original_state,
+                time=time,
             )
             proposed_state_psi = proposed_state.get_Psi_of_N()
-            proposed_state_energy_exp = (
-                self.system_hamiltonian.get_exp_H_effective_of_n_and_t(
-                    system_state=proposed_state,
-                    time=time,
-                )
+            proposed_state_energy_exp = self.system_hamiltonian.get_exp_H_eff(
+                system_state=proposed_state,
+                time=time,
             )
-
+            # TODO use difference H_eff implementation
             # TODO fix: square, real part, adapted derivation
 
             # Calculate the acceptance ratio
