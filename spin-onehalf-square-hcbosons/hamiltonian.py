@@ -612,9 +612,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     # C part of the first order
                     callback = part_C_lambda_callback
 
-                unscaled_H_n_difference += factor * analytical_calculation_mapper[
-                    map_key
-                ](
+                analytical_calculation = analytical_calculation_mapper[map_key](
                     sw1_up,
                     sw1_index,
                     sw1_occupation,
@@ -627,6 +625,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     sw1_neighbors_index_occupation_tuples,
                     sw2_neighbors_index_occupation_tuples,
                 )
+                unscaled_H_n_difference += factor * analytical_calculation
 
         return (
             self.J * unscaled_H_n_difference
