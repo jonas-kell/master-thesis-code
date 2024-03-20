@@ -22,6 +22,12 @@ class RandomGenerator:
         """
         return self.random.random()
 
+    def randbool(self) -> bool:
+        """
+        Return a random boolean
+        """
+        return self.randint(0, 1) == 1
+
     def derive(self) -> "RandomGenerator":
         """
         Returns an independent Generator, derived from the current generators seed

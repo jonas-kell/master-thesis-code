@@ -61,38 +61,34 @@ class Hamiltonian(ABC):
         time: float,
         sw1_up: bool,
         sw1_index: int,
-        sw1_occupation: int,
-        sw1_occupation_os: int,
         sw2_up: bool,
         sw2_index: int,
-        sw2_occupation: int,
-        sw2_occupation_os: int,
-        before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to generate the lambda functions
-    ) -> np.complex128:
+        before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
+    ) -> Tuple[np.complex128, float]:
+        # allocate swapped state
         after_swap_system_state = before_swap_system_state.get_editable_copy()
+        after_swap_system_state.swap_in_place(
+            sw1_up=sw1_up,
+            sw1_index=sw1_index,
+            sw2_up=sw2_up,
+            sw2_index=sw2_index,
+        )
 
-        # compute indices with occupation to swap
-        if_spin_offset = after_swap_system_state.get_number_sites_wo_spin_degree()
-        swap_index_1 = sw1_index
-        if not sw1_up:
-            swap_index_1 += if_spin_offset
-        swap_index_2 = sw2_index
-        if not sw2_up:
-            swap_index_2 += if_spin_offset
-
-        # swap
-        after_swap_system_state.get_state_array()[
-            swap_index_1
-        ] = before_swap_system_state.get_state_array()[swap_index_2]
-        after_swap_system_state.get_state_array()[
-            swap_index_2
-        ] = before_swap_system_state.get_state_array()[swap_index_1]
+        original_state_psi = before_swap_system_state.get_Psi_of_N()
+        proposed_state_psi = after_swap_system_state.get_Psi_of_N()
+        psi_factor = float(
+            np.real(proposed_state_psi * np.conjugate(proposed_state_psi))
+            / np.real(original_state_psi * np.conjugate(original_state_psi))
+        )
 
         # return un-optimized default
-        return self.get_H_eff_difference(
-            time=time,
-            system_state_a=before_swap_system_state,
-            system_state_b=after_swap_system_state,
+        return (
+            self.get_H_eff_difference(
+                time=time,
+                system_state_a=before_swap_system_state,
+                system_state_b=after_swap_system_state,
+            ),
+            psi_factor,
         )
 
     def get_exp_H_eff(
@@ -250,6 +246,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
                 )
 
+                # TODO can use expm1 for making this more efficient here
                 one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l
                 one_over_epsm_minus_epsl_plus_U = 1 / (eps_m_minus_eps_l + self.U)
                 one_over_epsm_minus_epsl_minus_U = 1 / (eps_m_minus_eps_l - self.U)
@@ -472,8 +469,14 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         E: float,
         J: float,
         phi: float,
+        initial_system_state: state.InitialSystemState,
     ):
         super().__init__(U=U, E=E, J=J, phi=phi)
+
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The simplified Hamiltonian has having a HomogenousInitialSystemState as a pre-requirement"
+            )
 
     def get_base_energy_difference_swapping(
         self,
@@ -527,14 +530,10 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         time: float,
         sw1_up: bool,
         sw1_index: int,
-        sw1_occupation: int,
-        sw1_occupation_os: int,
         sw2_up: bool,
         sw2_index: int,
-        sw2_occupation: int,
-        sw2_occupation_os: int,
         before_swap_system_state: state.SystemState,
-    ) -> np.complex128:
+    ) -> Tuple[np.complex128, float]:
 
         def eps_m_minus_eps_l(l: int, m: int) -> float:
             return self.E * (
@@ -555,21 +554,29 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         def part_A_lambda_callback(l: int, m: int) -> float:
             eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
             return (1 / eps_m_minus_eps_l_cache) * (
-                np.exp(1j * time * eps_m_minus_eps_l_cache) - 1
+                np.expm1(1j * time * eps_m_minus_eps_l_cache)
             )
 
         def part_B_lambda_callback(l: int, m: int) -> float:
             eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
             return (1 / eps_m_minus_eps_l_plus_U_cache) * (
-                np.exp(1j * time * eps_m_minus_eps_l_plus_U_cache) - 1
+                np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
             )
 
         def part_C_lambda_callback(l: int, m: int) -> float:
             eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
             return (1 / eps_m_minus_eps_l_minus_U_cache) * (
-                np.exp(1j * time * eps_m_minus_eps_l_minus_U_cache) - 1
+                np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
             )
 
+        sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
+        sw1_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw1_index)
+        ]
+        sw2_occupation = before_swap_system_state.get_state_array()[sw2_index]
+        sw2_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw2_index)
+        ]
         sw1_neighbors_index_occupation_tuples = [
             (
                 nb,
@@ -621,18 +628,22 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     sw2_neighbors_index_occupation_tuples,
                 )
 
-        return self.J * unscaled_H_n_difference - (
-            1j
-            * self.get_base_energy_difference_swapping(
-                sw1_up=sw1_up,
-                sw1_index=sw1_index,
-                sw1_occupation=sw1_occupation,
-                sw1_occupation_os=sw1_occupation_os,
-                sw2_up=sw2_up,
-                sw2_index=sw2_index,
-                sw2_occupation=sw2_occupation,
-                sw2_occupation_os=sw2_occupation_os,
-                before_swap_system_state=before_swap_system_state,
-            )
-            * time
+        return (
+            self.J * unscaled_H_n_difference
+            - (
+                1j
+                * self.get_base_energy_difference_swapping(
+                    sw1_up=sw1_up,
+                    sw1_index=sw1_index,
+                    sw1_occupation=sw1_occupation,
+                    sw1_occupation_os=sw1_occupation_os,
+                    sw2_up=sw2_up,
+                    sw2_index=sw2_index,
+                    sw2_occupation=sw2_occupation,
+                    sw2_occupation_os=sw2_occupation_os,
+                    before_swap_system_state=before_swap_system_state,
+                )
+                * time
+            ),
+            1.0,  # this being 1.0 is a required assumption for this simplification
         )

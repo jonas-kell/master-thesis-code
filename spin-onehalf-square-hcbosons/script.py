@@ -47,6 +47,14 @@ if __name__ == "__main__":
     ]
 
     # ! Sampling Strategy
+    # Step-State-Modification
+    num_random_flips: int = 1
+    state_modification = state.RandomFlipping(num_random_flips=num_random_flips)
+    allow_hopping_across_spin_direction = True
+    state_modification = state.LatticeNeighborHopping(
+        allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
+        system_geometry=system_geometry,
+    )
     # Monte Carlo Sampler
     num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     num_intermediate_mc_steps: int = 2 * (
@@ -54,18 +62,17 @@ if __name__ == "__main__":
     )
     num_thermalization_steps: int = 10 * num_intermediate_mc_steps
     num_samples_per_chain: int = int(300)  # arbitrary at the moment
-    num_random_flips: int = 1
     starting_fill_level: float = 0.5
     state_sampler = sampler.MonteCarloSampler(
         system_geometry=system_geometry,
         initial_system_state=initial_system_state,
         system_hamiltonian=ham,
         num_intermediate_mc_steps=num_intermediate_mc_steps,
-        num_random_flips=num_random_flips,
         num_samples=num_monte_carlo_samples,
         num_thermalization_steps=num_thermalization_steps,
         initial_fill_level=starting_fill_level,
         num_samples_per_chain=num_samples_per_chain,
+        state_modification=state_modification,
     )
     # Exact Sampler
     sample_exactly = False

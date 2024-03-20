@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from systemgeometry import SystemGeometry
 from randomgenerator import RandomGenerator
-from typing import Dict, Union, Any, List
+from typing import Dict, Union, Any, List, Tuple
 import numpy.typing as npt
 
 
@@ -111,23 +111,6 @@ class SystemState:
     def set_state_array(self, new_state: npt.NDArray[np.uint8]) -> None:
         self.state_array = new_state
 
-    def get_random_flipped_copy(
-        self, num_flips: int, random_generator: RandomGenerator
-    ) -> "SystemState":
-        all_sites = self.get_number_sites()
-        new_state = self.state_array.copy()
-
-        for _ in range(num_flips):
-            flip_index = random_generator.randint(0, all_sites - 1)
-
-            new_state[flip_index] = (self.state_array[flip_index] + 1) % 2
-
-        return SystemState(
-            system_geometry=self.system_geometry,
-            initial_system_state=self.initial_system_state,
-            state_array=new_state,
-        )
-
     def get_editable_copy(self) -> "SystemState":
         new_state = self.state_array.copy()
 
@@ -195,3 +178,119 @@ class SystemState:
 
     def get_number_sites_wo_spin_degree(self) -> int:
         return self.system_geometry.get_number_sites_wo_spin_degree()
+
+    def swap_in_place(
+        self,
+        sw1_up: bool,
+        sw1_index: int,
+        sw2_up: bool,
+        sw2_index: int,
+    ) -> "SystemState":
+        if_spin_offset = self.get_number_sites_wo_spin_degree()
+        swap_index_1 = sw1_index
+        if not sw1_up:
+            swap_index_1 += if_spin_offset
+        swap_index_2 = sw2_index
+        if not sw2_up:
+            swap_index_2 += if_spin_offset
+
+        self.get_state_array()[[swap_index_1, swap_index_2]] = self.get_state_array()[
+            [swap_index_2, swap_index_1]
+        ]
+
+        return self
+
+
+class StateModification(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        pass
+
+
+class RandomFlipping(StateModification):
+    def __init__(
+        self,
+        num_random_flips: int,
+    ):
+        super().__init__()
+        self.num_random_flips = num_random_flips
+
+    def get_random_flipped_copy(
+        self, before_flip_system_state: SystemState, random_generator: RandomGenerator
+    ) -> "SystemState":
+        all_sites = before_flip_system_state.get_number_sites()
+        new_state = before_flip_system_state.get_editable_copy()
+
+        for _ in range(self.num_random_flips):
+            flip_index = random_generator.randint(0, all_sites - 1)
+
+            new_state.get_state_array()[flip_index] = (
+                new_state.get_state_array()[flip_index] + 1
+            ) % 2
+
+        return new_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {"type": "RandomFlipping", "num_random_flips": self.num_random_flips}
+
+
+class LatticeNeighborHopping(StateModification):
+    def __init__(
+        self,
+        allow_hopping_across_spin_direction: bool,
+        system_geometry: SystemGeometry,
+    ):
+        super().__init__()
+        self.allow_hopping_across_spin_direction = allow_hopping_across_spin_direction
+
+        num_sites_wo_spin_degree = system_geometry.get_number_sites_wo_spin_degree()
+        self.swap_cache: List[Tuple[int, int]] = []
+
+        for i in range(num_sites_wo_spin_degree):
+            for j in system_geometry.get_nearest_neighbor_indices(i):
+                self.swap_cache.append((i, j))
+                self.swap_cache.append((j, i))
+
+        self.upper_bound_to_give_in_randomizer = len(self.swap_cache) - 1
+
+    # DO NOT CHECK, THAT THIS CHANGES SOMETHING (This would force state changes and mess with the fluctuations/average)
+    def get_lattice_hopping_parameters(
+        self, random_generator: RandomGenerator
+    ) -> Tuple[
+        bool,  # sw1_up
+        int,  # sw1_index
+        bool,  # sw2_up
+        int,  # sw2_index
+    ]:
+
+        sw1_up = random_generator.randbool()
+
+        if self.allow_hopping_across_spin_direction:
+            sw2_up = random_generator.randbool()
+        else:
+            sw2_up = sw1_up
+
+        # !! CAUTION: It is not trivial, to generate a truly random swap
+        # to make every SWAP evenly likely, you need to select one swappable edge from the list of swappable edges evenly likely.
+        # This is NOT the same, as selecting an index randomly and then one of the adjacent indices
+        # because if the first choice falls on a corner/edge site, it is more likely to hop inward, because edge sites have less neighbors
+
+        sw1_index, sw2_index = self.swap_cache[
+            random_generator.randint(0, self.upper_bound_to_give_in_randomizer)
+        ]  # index is NOT increased depending on spin direction. Analytical calculation takes care of that/requires this this way
+
+        return (
+            sw1_up,
+            sw1_index,
+            sw2_up,
+            sw2_index,
+        )
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return {
+            "type": "RandomFlipping",
+            "allow_hopping_across_spin_direction": self.allow_hopping_across_spin_direction,
+        }

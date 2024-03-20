@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Generator
 import math
 from typing import Dict, Union, Any
+import numpy as np
 
 
 class GeneralSampler(ABC):
@@ -55,7 +56,7 @@ class MonteCarloSampler(GeneralSampler):
         system_hamiltonian: hamiltonian.Hamiltonian,
         num_samples: int,
         num_intermediate_mc_steps: int,
-        num_random_flips: int,
+        state_modification: state.StateModification,
         num_thermalization_steps: int,
         num_samples_per_chain: int,
         initial_fill_level: float,
@@ -66,7 +67,7 @@ class MonteCarloSampler(GeneralSampler):
         self.system_hamiltonian = system_hamiltonian
         self.num_samples = num_samples
         self.num_intermediate_mc_steps = num_intermediate_mc_steps
-        self.num_random_flips = num_random_flips
+        self.state_modification = state_modification
         self.num_thermalization_steps = num_thermalization_steps
         self.initial_fill_level = initial_fill_level
         self.num_samples_per_chain = num_samples_per_chain
@@ -74,6 +75,19 @@ class MonteCarloSampler(GeneralSampler):
         print(
             f"Monte Carlo Sampling used. Approximately {self.num_samples} samples and {self.num_samples_per_chain} which means ca. {self.num_samples/self.num_samples_per_chain:.1f} chains will be run across all workers"
         )
+
+    def accepts_modification(
+        self,
+        energy_difference: np.complex128,
+        psi_factor: float,
+        random_generator: RandomGenerator,
+    ) -> bool:
+        acceptance_ratio: float = float(
+            np.real(psi_factor * np.exp(2 * np.real(energy_difference)))
+        )
+
+        # Accept or reject the proposed state
+        return random_generator.probability() >= acceptance_ratio
 
     def do_metropolis_steps(
         self,
@@ -86,44 +100,72 @@ class MonteCarloSampler(GeneralSampler):
         Advances the system_state in-place by num_steps metropolis steps
         """
         for _ in range(num_steps):
-            # Propose a new state by random swap
-            original_state = state_to_modify
-            proposed_state = state_to_modify.get_random_flipped_copy(
-                num_flips=self.num_random_flips, random_generator=random_generator
-            )
+            if isinstance(self.state_modification, state.RandomFlipping):
+                # Propose a new state by random modification
+                original_state = state_to_modify
+                proposed_state = self.state_modification.get_random_flipped_copy(
+                    before_flip_system_state=state_to_modify,
+                    random_generator=random_generator,
+                )
 
-            # Calculate the energies and probabilities
-            original_state_psi = original_state.get_Psi_of_N()
-            original_state_energy_exp = self.system_hamiltonian.get_exp_H_eff(
-                system_state=original_state,
-                time=time,
-            )
-            proposed_state_psi = proposed_state.get_Psi_of_N()
-            proposed_state_energy_exp = self.system_hamiltonian.get_exp_H_eff(
-                system_state=proposed_state,
-                time=time,
-            )
-            # TODO use difference H_eff implementation
-            # TODO fix: square, real part, adapted derivation
+                # Calculate the energies and probabilities
+                original_state_psi = original_state.get_Psi_of_N()
+                proposed_state_psi = proposed_state.get_Psi_of_N()
 
-            # Calculate the acceptance ratio
-            #
-            # if proposed_state_energy (final) > original_state_energy (initial), then
-            # exp (-positive) < 1 -> exp is taken
-            #
-            # if proposed_state_energy (final) <= original_state_energy (initial), then
-            # exp (-negative) > 1 -> 1 is taken
-            acceptance_ratio = min(
-                1,
-                (
-                    (proposed_state_psi * proposed_state_energy_exp)
-                    / (original_state_psi * original_state_energy_exp)
-                ),
-            )
+                psi_factor = float(
+                    np.real(proposed_state_psi * np.conjugate(proposed_state_psi))
+                    / np.real(original_state_psi * np.conjugate(original_state_psi))
+                )
 
-            # Accept or reject the proposed state
-            if random_generator.probability() < acceptance_ratio:
-                state_to_modify.set_state_array(proposed_state.get_state_array())
+                energy_difference = self.system_hamiltonian.get_H_eff_difference(
+                    system_state_a=proposed_state,  # make sure this does proposed-original !!
+                    system_state_b=original_state,
+                    time=time,
+                )
+
+                if self.accepts_modification(
+                    energy_difference=energy_difference,
+                    random_generator=random_generator,
+                    psi_factor=psi_factor,
+                ):
+                    state_to_modify.set_state_array(
+                        new_state=proposed_state.get_state_array()
+                    )
+
+            elif isinstance(self.state_modification, state.LatticeNeighborHopping):
+
+                sw1_up, sw1_index, sw2_up, sw2_index = (
+                    self.state_modification.get_lattice_hopping_parameters(
+                        random_generator=random_generator,
+                    )
+                )
+
+                energy_difference, psi_factor = (
+                    self.system_hamiltonian.get_H_eff_difference_swapping(
+                        time=time,
+                        sw1_up=sw1_up,
+                        sw1_index=sw1_index,
+                        sw2_up=sw2_up,
+                        sw2_index=sw2_index,
+                        before_swap_system_state=state_to_modify,
+                    )
+                )
+
+                if self.accepts_modification(
+                    energy_difference=energy_difference,
+                    random_generator=random_generator,
+                    psi_factor=psi_factor,
+                ):
+                    state_to_modify.swap_in_place(
+                        sw1_up=sw1_up,
+                        sw1_index=sw1_index,
+                        sw2_up=sw2_up,
+                        sw2_index=sw2_index,
+                    )
+            else:
+                raise Exception(
+                    f"Handling case for state-modification {self.state_modification.__class__.__name__} not implemented"
+                )
 
     def initialize_fill_level(
         self,
@@ -206,10 +248,10 @@ class MonteCarloSampler(GeneralSampler):
                 "type": "MonteCarloSampler",
                 "num_samples": self.num_samples,
                 "num_intermediate_mc_steps": self.num_intermediate_mc_steps,
-                "num_random_flips": self.num_random_flips,
                 "num_thermalization_steps": self.num_thermalization_steps,
                 "num_samples_per_chain": self.num_samples_per_chain,
                 "initial_fill_level": self.initial_fill_level,
+                "state_modification": self.state_modification.get_log_info(),
                 **additional_info,
             }
         )
