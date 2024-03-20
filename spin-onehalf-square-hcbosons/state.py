@@ -11,7 +11,7 @@ class InitialSystemState(ABC):
         self.domain_size = system_geometry.get_number_sites_wo_spin_degree()
 
     @abstractmethod
-    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.int8]) -> float:
         pass
 
     @abstractmethod
@@ -27,7 +27,7 @@ class HomogenousInitialSystemState(InitialSystemState):
             2 ** system_geometry.get_number_sites_wo_spin_degree()
         )
 
-    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.int8]) -> float:
         _ = system_state_array  # get rid of unused error
 
         return self.cached_answer
@@ -67,7 +67,7 @@ class SingularDoubleOccupationInitialSystemState(InitialSystemState):
             pre_factor_important_case - pre_factor_not_important_case
         )
 
-    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.uint8]) -> float:
+    def get_Psi_of_N(self, system_state_array: npt.NDArray[np.int8]) -> float:
         # pre-mature optimization to save on case, but this is a
         # answer=0 -> pre_factor_not_important_case
         # answer=1 -> pre_factor_important_case
@@ -93,22 +93,22 @@ class SystemState:
         self,
         system_geometry: SystemGeometry,
         initial_system_state: InitialSystemState,
-        state_array: Union[npt.NDArray[np.uint8], None] = None,
+        state_array: Union[npt.NDArray[np.int8], None] = None,
     ):
         self.system_geometry = system_geometry
         self.initial_system_state = initial_system_state
 
         if state_array is None:
-            self.state_array: npt.NDArray[np.uint8] = np.zeros(
-                (self.system_geometry.get_number_sites(),), dtype=np.uint8
+            self.state_array: npt.NDArray[np.int8] = np.zeros(
+                (self.system_geometry.get_number_sites(),), dtype=np.int8
             )
         else:
             self.state_array = state_array
 
-    def get_state_array(self) -> npt.NDArray[np.uint8]:
+    def get_state_array(self) -> npt.NDArray[np.int8]:
         return self.state_array
 
-    def set_state_array(self, new_state: npt.NDArray[np.uint8]) -> None:
+    def set_state_array(self, new_state: npt.NDArray[np.int8]) -> None:
         self.state_array = new_state
 
     def get_editable_copy(self) -> "SystemState":
