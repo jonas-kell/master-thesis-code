@@ -18,7 +18,11 @@ class GeneralSampler(ABC):
 
     @abstractmethod
     def sample_generator(
-        self, time: float, worker_index: int, num_workers: int
+        self,
+        time: float,
+        worker_index: int,
+        num_workers: int,
+        random_generator: Union[RandomGenerator, None],
     ) -> Generator[state.SystemState, None, None]:
         """
         Generator of system states. Call next(gen) to get more SystemStates
@@ -49,7 +53,6 @@ class MonteCarloSampler(GeneralSampler):
         system_geometry: state.SystemGeometry,
         initial_system_state: state.InitialSystemState,
         system_hamiltonian: hamiltonian.Hamiltonian,
-        random_generator: RandomGenerator,
         num_samples: int,
         num_intermediate_mc_steps: int,
         num_random_flips: int,
@@ -61,7 +64,6 @@ class MonteCarloSampler(GeneralSampler):
             system_geometry=system_geometry, initial_system_state=initial_system_state
         )
         self.system_hamiltonian = system_hamiltonian
-        self.random_generator = random_generator
         self.num_samples = num_samples
         self.num_intermediate_mc_steps = num_intermediate_mc_steps
         self.num_random_flips = num_random_flips
@@ -74,7 +76,11 @@ class MonteCarloSampler(GeneralSampler):
         )
 
     def do_metropolis_steps(
-        self, state_to_modify: state.SystemState, num_steps: int, time: float
+        self,
+        state_to_modify: state.SystemState,
+        num_steps: int,
+        time: float,
+        random_generator: RandomGenerator,
     ) -> None:
         """
         Advances the system_state in-place by num_steps metropolis steps
@@ -83,7 +89,7 @@ class MonteCarloSampler(GeneralSampler):
             # Propose a new state by random swap
             original_state = state_to_modify
             proposed_state = state_to_modify.get_random_flipped_copy(
-                num_flips=self.num_random_flips, random_generator=self.random_generator
+                num_flips=self.num_random_flips, random_generator=random_generator
             )
 
             # Calculate the energies and probabilities
@@ -116,53 +122,77 @@ class MonteCarloSampler(GeneralSampler):
             )
 
             # Accept or reject the proposed state
-            if self.random_generator.probability() < acceptance_ratio:
+            if random_generator.probability() < acceptance_ratio:
                 state_to_modify.set_state_array(proposed_state.get_state_array())
 
-    def initialize_fill_level(self, state_to_modify: state.SystemState):
+    def initialize_fill_level(
+        self,
+        state_to_modify: state.SystemState,
+        random_generator: RandomGenerator,
+    ):
         state_to_modify.init_random_filling(
             fill_ratio=self.initial_fill_level,
-            random_generator=self.random_generator,
+            random_generator=random_generator,
         )
         self.thermalized = False
 
-    def thermalize(self, state_to_modify: state.SystemState, time: float):
+    def thermalize(
+        self,
+        state_to_modify: state.SystemState,
+        time: float,
+        random_generator: RandomGenerator,
+    ):
         self.do_metropolis_steps(
-            state_to_modify, num_steps=self.num_thermalization_steps, time=time
+            state_to_modify,
+            num_steps=self.num_thermalization_steps,
+            time=time,
+            random_generator=random_generator,
         )
 
     def sample_generator(
-        self, time: float, worker_index: int, num_workers: int
+        self,
+        time: float,
+        worker_index: int,
+        num_workers: int,
+        random_generator: Union[RandomGenerator, None],
     ) -> Generator[state.SystemState, None, None]:
-        _ = worker_index  # this generator is independent of worker_index
+        if random_generator is None:
+            raise Exception("Monte Carlo Sampler needs a random generator")
+        else:
+            _ = worker_index  # this generator is independent of worker_index
 
-        number_of_chains = math.ceil(
-            (self.num_samples / self.num_samples_per_chain) / num_workers
-        )
-
-        for chain_index in range(number_of_chains):
-            if chain_index == number_of_chains - 1:
-                # truncate last chain to not overdo on samples
-                chain_target_count = math.ceil(
-                    (self.num_samples / num_workers)
-                    - ((number_of_chains - 1) * self.num_samples_per_chain)
-                )
-            else:
-                chain_target_count = self.num_samples_per_chain
-
-            working_state = state.SystemState(
-                system_geometry=self.system_geometry,
-                initial_system_state=self.initial_system_state,
+            number_of_chains = math.ceil(
+                (self.num_samples / self.num_samples_per_chain) / num_workers
             )
 
-            self.initialize_fill_level(working_state)
-            self.thermalize(working_state, time)
+            for chain_index in range(number_of_chains):
+                if chain_index == number_of_chains - 1:
+                    # truncate last chain to not overdo on samples
+                    chain_target_count = math.ceil(
+                        (self.num_samples / num_workers)
+                        - ((number_of_chains - 1) * self.num_samples_per_chain)
+                    )
+                else:
+                    chain_target_count = self.num_samples_per_chain
 
-            for _ in range(chain_target_count):
-                yield working_state
-                self.do_metropolis_steps(
-                    working_state, num_steps=self.num_intermediate_mc_steps, time=time
+                working_state = state.SystemState(
+                    system_geometry=self.system_geometry,
+                    initial_system_state=self.initial_system_state,
                 )
+
+                self.initialize_fill_level(
+                    working_state, random_generator=random_generator
+                )
+                self.thermalize(working_state, time, random_generator=random_generator)
+
+                for _ in range(chain_target_count):
+                    yield working_state
+                    self.do_metropolis_steps(
+                        working_state,
+                        num_steps=self.num_intermediate_mc_steps,
+                        time=time,
+                        random_generator=random_generator,
+                    )
 
     def produces_samples_count(self) -> int:
         return self.num_samples
@@ -174,7 +204,6 @@ class MonteCarloSampler(GeneralSampler):
         return super().get_log_info(
             {
                 "type": "MonteCarloSampler",
-                "random_generator": self.random_generator.get_log_info(),
                 "num_samples": self.num_samples,
                 "num_intermediate_mc_steps": self.num_intermediate_mc_steps,
                 "num_random_flips": self.num_random_flips,
@@ -197,9 +226,14 @@ class ExactSampler(GeneralSampler):
         )
 
     def sample_generator(
-        self, time: float, worker_index: int, num_workers: int
+        self,
+        time: float,
+        worker_index: int,
+        num_workers: int,
+        random_generator: Union[RandomGenerator, None],
     ) -> Generator[state.SystemState, None, None]:
         _ = time  # this generator is independent of time
+        _ = random_generator  # this generator doesn't need a random generator
 
         working_state = state.SystemState(
             system_geometry=self.system_geometry,

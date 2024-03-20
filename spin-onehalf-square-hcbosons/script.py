@@ -13,7 +13,7 @@ import systemgeometry
 from typing import List
 
 if __name__ == "__main__":
-    randomness_seed = "ok"  # TODO make own randomizers for each thread, to get back consistency for real
+    randomness_seed = "aok"
 
     # ! General Hamiltonian properties
     U = 0.4
@@ -60,7 +60,6 @@ if __name__ == "__main__":
         system_geometry=system_geometry,
         initial_system_state=initial_system_state,
         system_hamiltonian=ham,
-        random_generator=random_generator,
         num_intermediate_mc_steps=num_intermediate_mc_steps,
         num_random_flips=num_random_flips,
         num_samples=num_monte_carlo_samples,
@@ -90,6 +89,7 @@ if __name__ == "__main__":
         number_of_time_steps=number_of_time_steps,
         hamiltonian=ham,
         observables=obs,
+        random_generator=random_generator,
         state_sampler=state_sampler,
         number_workers=number_workers,
         plot=True,

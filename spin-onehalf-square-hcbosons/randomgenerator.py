@@ -8,19 +8,28 @@ class RandomGenerator:
         seed: str,
     ):
         self.seed = seed
-        random.seed(a=seed)
+        self.random = random.Random(self.seed)
 
     def randint(self, a: int, b: int):
         """
         Return a random integer N such that a <= N <= b.
         """
-        return random.randint(a, b)
+        return self.random.randint(a, b)
 
     def probability(self) -> float:
         """
         Return a random float probability
         """
-        return random.random()
+        return self.random.random()
+
+    def derive(self) -> "RandomGenerator":
+        """
+        Returns an independent Generator, derived from the current generators seed
+        """
+        new_seed = (
+            f"{self.randint(0, 1000)}{self.randint(0, 1000)}{self.randint(0, 1000)}"
+        )
+        return RandomGenerator(new_seed)
 
     def get_log_info(
         self,

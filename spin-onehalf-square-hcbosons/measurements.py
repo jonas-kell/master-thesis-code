@@ -9,10 +9,12 @@ from datetime import datetime
 import os
 import json
 from typing import Dict, Union, Any, Tuple, List, cast
+from randomgenerator import RandomGenerator
 
 
 def main_measurement_function(
     state_sampler: samplerImport.GeneralSampler,
+    random_generator: RandomGenerator,
     hamiltonian: hamiltonianImport.Hamiltonian,
     observables: List[observablesImport.Observable],
     start_time: float,
@@ -56,6 +58,7 @@ def main_measurement_function(
                     "plot_title": plot_title,
                     "plot_x_label": plot_x_label,
                     "measurements": [],
+                    "random_generator": random_generator.get_log_info(),
                 },
                 file,
             )
@@ -82,6 +85,7 @@ def main_measurement_function(
                 observables,
                 state_sampler,
                 hamiltonian,
+                random_generator.derive(),
                 number_workers,
                 total_sample_count,
                 total_needed_sample_count,
@@ -165,6 +169,7 @@ def run_worker_chain(
     observables: List[observablesImport.Observable],
     state_sampler: samplerImport.GeneralSampler,
     hamiltonian: hamiltonianImport.Hamiltonian,
+    random_generator: RandomGenerator,
     number_workers: int,
     total_sample_count: int,
     total_needed_sample_count: int,
@@ -180,7 +185,10 @@ def run_worker_chain(
     worker_sample_count = 0
 
     sample_generator_object = state_sampler.sample_generator(
-        time=time, num_workers=number_workers, worker_index=job_number
+        time=time,
+        num_workers=number_workers,
+        worker_index=job_number,
+        random_generator=random_generator,
     )
 
     last_worker_report_time = computerTime.time()
@@ -257,9 +265,9 @@ def plot_measurements(
         col = i % num_cols
 
         # Plot the results
-        axes[row, col].plot(times, data[i], color="red")
-        axes[row, col].set_xlabel(x_label)
-        axes[row, col].set_ylabel(obs)
+        axes[row, col].plot(times, data[i], color="red")  # type: ignore -> matplotlib typing is non-existent
+        axes[row, col].set_xlabel(x_label)  # type: ignore -> matplotlib typing is non-existent
+        axes[row, col].set_ylabel(obs)  # type: ignore -> matplotlib typing is non-existent
 
     # Remove any unused subplots
     for i in range(num_observables, num_rows * num_cols):
