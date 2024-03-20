@@ -10,34 +10,44 @@ import observables
 import measurements
 import multiprocessing
 import systemgeometry
-from typing import List
+from typing import List, Literal
 
 if __name__ == "__main__":
-    randomness_seed = "aok"
-
     # ! General Hamiltonian properties
     U = 0.4
     E = -0.4
     J = 0.001
-    # must not be integer-multiples of np.pi/2 or you get division by zero
+    # must NOT be integer-multiples of np.pi/2 or you get division by zero
     phi = np.pi / 100
 
+    # ! Simulation Scope Settings
+    start_time: float = 0
+    time_step: float = 0.5
+    number_of_time_steps: int = int(15)
+
+    # ! Control behavioral settings here ----------------------------------------------------
+    system_geometry_type: Literal["square_np", "chain"] = "square_np"
+    initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
+    hamiltonian_type: Literal["canonical", "swap_optimized"] = "swap_optimized"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
+
+    # ! Monte Carlo settings
+    mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
+    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
+    num_samples_per_chain: int = 300  # arbitrary at the moment
+    starting_fill_level: float = 0.5
+
+    # ! Randomizer
+    randomness_seed = "aok"
     random_generator = RandomGenerator(randomness_seed)
-    ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
     # ! Geometry of system
-    # system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
-    system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
-
-    # ! Initial System State
-    # initial_system_state = state.SingularDoubleOccupationInitialSystemState(
-    #     0, 1000.0, system_geometry # ! This can NOT be monte carlo sampled as it seems.
-    # # ! The answers are way over-inflated, as we seem to have a not smooth-enough energy landscape and can "drop" into the one high energy state for way too long once found
-    # )
-    initial_system_state = state.HomogenousInitialSystemState(system_geometry)
+    if system_geometry_type == "square_np":  # type: ignore - switch is hard-coded.
+        system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
+    if system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
+        system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
 
     # ! Observables that are tested for
-    # obs: List[observables.Observable] = [observables.DoubleOccupationFraction()]
     obs: List[observables.Observable] = [
         observables.DoubleOccupationAtSite(0, system_geometry),
         observables.DoubleOccupationAtSite(1, system_geometry),
@@ -46,50 +56,68 @@ if __name__ == "__main__":
         observables.DoubleOccupationFraction(),
     ]
 
+    # ! Initial System State
+    if initial_system_state_type == "homogenous":  # type: ignore - switch is hard-coded.
+        initial_system_state = state.HomogenousInitialSystemState(system_geometry)
+    if initial_system_state_type == "singular":  # type: ignore - switch is hard-coded.
+        initial_system_state = state.SingularDoubleOccupationInitialSystemState(
+            0,
+            1000.0,  # larger values would cause overflow/underflow
+            system_geometry,
+        )
+
+    # Hamiltonian
+    if hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+    if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+
     # ! Sampling Strategy
-    # Step-State-Modification
-    num_random_flips: int = 1
-    state_modification = state.RandomFlipping(num_random_flips=num_random_flips)
-    allow_hopping_across_spin_direction = True
-    state_modification = state.LatticeNeighborHopping(
-        allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
-        system_geometry=system_geometry,
-    )
-    # Monte Carlo Sampler
-    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
-    num_intermediate_mc_steps: int = 2 * (
-        2 * system_geometry.get_number_sites_wo_spin_degree()
-    )
-    num_thermalization_steps: int = 10 * num_intermediate_mc_steps
-    num_samples_per_chain: int = int(300)  # arbitrary at the moment
-    starting_fill_level: float = 0.5
-    state_sampler = sampler.MonteCarloSampler(
-        system_geometry=system_geometry,
-        initial_system_state=initial_system_state,
-        system_hamiltonian=ham,
-        num_intermediate_mc_steps=num_intermediate_mc_steps,
-        num_samples=num_monte_carlo_samples,
-        num_thermalization_steps=num_thermalization_steps,
-        initial_fill_level=starting_fill_level,
-        num_samples_per_chain=num_samples_per_chain,
-        state_modification=state_modification,
-    )
-    # Exact Sampler
-    sample_exactly = False
-    sample_exactly = True
-    if sample_exactly:
+    if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
+        if initial_system_state_type != "homogenous":  # type: ignore - switch is hard-coded.
+            # ! These can NOT be monte carlo sampled as it seems.
+            # The answers are way over-inflated, as we seem to have a not smooth-enough energy landscape and can "drop" into the one high energy state for way too long once found
+            print(
+                "Warning: Non-Homogenous system probably cannot be mc-sampled, because not smooth enough"
+            )
+        # Step-State-Modification
+
+        if mc_modification_mode == "hopping":  # type: ignore - switch is hard-coded.
+            allow_hopping_across_spin_direction = True
+            state_modification = state.LatticeNeighborHopping(
+                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
+                system_geometry=system_geometry,
+            )
+        if mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
+            num_random_flips: int = 1
+            state_modification = state.RandomFlipping(num_random_flips=num_random_flips)
+        # Monte Carlo Sampler
+        num_intermediate_mc_steps: int = 2 * (
+            2 * system_geometry.get_number_sites_wo_spin_degree()
+        )
+        # arbitrary increase for thermalization at the moment
+        num_thermalization_steps: int = 10 * num_intermediate_mc_steps
+        state_sampler = sampler.MonteCarloSampler(
+            system_geometry=system_geometry,
+            initial_system_state=initial_system_state,
+            system_hamiltonian=ham,
+            num_intermediate_mc_steps=num_intermediate_mc_steps,
+            num_samples=num_monte_carlo_samples,
+            num_thermalization_steps=num_thermalization_steps,
+            initial_fill_level=starting_fill_level,
+            num_samples_per_chain=num_samples_per_chain,
+            state_modification=state_modification,
+        )
+    if sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
         state_sampler = sampler.ExactSampler(
             system_geometry=system_geometry,
             initial_system_state=initial_system_state,
         )
 
-    # ! Simulation Scope settings
+    # ! Simulation
     number_workers = multiprocessing.cpu_count()
-
-    start_time: float = 0
-    time_step: float = 0.5
-    number_of_time_steps: int = int(15)
-
     measurements.main_measurement_function(
         start_time=start_time,
         time_step=time_step,
