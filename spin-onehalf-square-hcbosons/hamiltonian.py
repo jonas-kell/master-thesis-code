@@ -577,6 +577,12 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         sw2_occupation_os = before_swap_system_state.get_state_array()[
             before_swap_system_state.get_opposite_spin_index(sw2_index)
         ]
+
+        sw1_neighbor_indices_without_sw2 = (
+            before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
+        )
+        # this errors if sw2 is not contained in the list, however the function derivation requires this as a prerequisite
+        sw1_neighbor_indices_without_sw2.remove(sw2_index)
         sw1_neighbors_index_occupation_tuples = [
             (
                 nb,
@@ -585,8 +591,13 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     before_swap_system_state.get_opposite_spin_index(nb)
                 ],
             )
-            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
+            for nb in sw1_neighbor_indices_without_sw2
         ]
+        sw2_neighbor_indices_without_sw1 = (
+            before_swap_system_state.get_nearest_neighbor_indices(sw2_index)
+        )
+        # this errors if sw1 is not contained in the list, however the function derivation requires this as a prerequisite
+        sw2_neighbor_indices_without_sw1.remove(sw1_index)
         sw2_neighbors_index_occupation_tuples = [
             (
                 nb,
@@ -595,7 +606,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     before_swap_system_state.get_opposite_spin_index(nb)
                 ],
             )
-            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw2_index)
+            for nb in sw2_neighbor_indices_without_sw1
         ]
 
         unscaled_H_n_difference = np.complex128(0)
