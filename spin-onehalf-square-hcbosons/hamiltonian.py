@@ -362,7 +362,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
 
                 # DlDHm: d_l * d#_m
-                if system_state_array[l_os] == 0 and system_state_array[l_os] == 1:
+                if system_state_array[l_os] == 0 and system_state_array[m_os] == 1:
                     result[VPartsMapping.DlDHm].append(
                         (l, m, get_os_m_to_l_hopped_state_array())
                     )
