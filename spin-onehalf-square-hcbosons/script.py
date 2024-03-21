@@ -22,13 +22,13 @@ if __name__ == "__main__":
 
     # ! Simulation Scope Settings
     start_time: float = 0
-    time_step: float = 0.5
-    number_of_time_steps: int = int(15)
+    time_step: float = 7
+    number_of_time_steps: int = int(30)
 
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
-    hamiltonian_type: Literal["canonical", "swap_optimized"] = "swap_optimized"
+    hamiltonian_type: Literal["canonical", "swap_optimized"] = "canonical"
     sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
 
     # ! Monte Carlo settings
