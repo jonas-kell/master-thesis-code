@@ -191,7 +191,8 @@ def run_worker_chain(
         random_generator=random_generator,
     )
 
-    last_worker_report_time = computerTime.time()
+    # report at the start of an iteration definitely
+    last_worker_report_time = computerTime.time() - 10.1
 
     while True:
         try:
@@ -215,7 +216,7 @@ def run_worker_chain(
 
             ## end generate measurements using sampled state
 
-            if worker_sample_count % (number_workers * 10) == 0:
+            if worker_sample_count % 10 == 0:
                 current_time = computerTime.time()
                 if current_time - last_worker_report_time > 10:
                     last_worker_report_time = current_time
