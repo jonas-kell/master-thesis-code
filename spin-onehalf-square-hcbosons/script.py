@@ -28,8 +28,8 @@ if __name__ == "__main__":
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
-    hamiltonian_type: Literal["canonical", "swap_optimized"] = "canonical"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
+    hamiltonian_type: Literal["canonical", "swap_optimized"] = "swap_optimized"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
@@ -46,15 +46,6 @@ if __name__ == "__main__":
         system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
     if system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
         system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
-
-    # ! Observables that are tested for
-    obs: List[observables.Observable] = [
-        observables.DoubleOccupationAtSite(0, system_geometry),
-        observables.DoubleOccupationAtSite(1, system_geometry),
-        observables.DoubleOccupationAtSite(2, system_geometry),
-        observables.DoubleOccupationAtSite(3, system_geometry),
-        observables.DoubleOccupationFraction(),
-    ]
 
     # ! Initial System State
     if initial_system_state_type == "homogenous":  # type: ignore - switch is hard-coded.
@@ -73,6 +64,34 @@ if __name__ == "__main__":
         )
     if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+
+    # ! Observables that are tested for
+    current_from = 0
+    current_to = 2
+    direction_dependent = True
+    obs: List[observables.Observable] = [
+        observables.DoubleOccupationAtSite(0, system_geometry),
+        observables.DoubleOccupationAtSite(1, system_geometry),
+        observables.DoubleOccupationAtSite(2, system_geometry),
+        observables.DoubleOccupationAtSite(3, system_geometry),
+        # observables.DoubleOccupationFraction(),
+        observables.SpinCurrent(
+            direction_dependent=direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=True,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+        observables.SpinCurrent(
+            direction_dependent=direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=False,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+    ]
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.

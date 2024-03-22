@@ -208,7 +208,9 @@ def run_worker_chain(
             )
 
             for i, observable in enumerate(observables):
-                observed_quantity = observable.get_expectation_value(sampled_state_n)
+                observed_quantity = observable.get_expectation_value(
+                    time=time, system_state=sampled_state_n
+                )
                 worker_sums[i] += energy_factor * observed_quantity
 
             ## end generate measurements using sampled state
