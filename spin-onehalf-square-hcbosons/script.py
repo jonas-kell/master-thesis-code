@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
         if mc_modification_mode == "hopping":  # type: ignore - switch is hard-coded.
             allow_hopping_across_spin_direction = (
-                False  # start with not spin hopping. % TODO test
+                False  # start with not spin hopping. % TODO test, should work however
             )
             state_modification = state.LatticeNeighborHopping(
                 allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
