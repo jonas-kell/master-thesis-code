@@ -121,9 +121,9 @@ def main_measurement_function(
             imag_part_of_observable = float(
                 np.imag(total_sums_complex[i]) * inverse_normalization_factor
             )
-            if np.abs(imag_part_of_observable) < 1e-6:
+            if np.abs(imag_part_of_observable) > 1e-2:
                 print(
-                    f"Warning observable had imaginary part of {imag_part_of_observable:.5f} that was omitted"
+                    f"Warning observable had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )
             total_sums[i] = float(
                 np.real(total_sums_complex[i]) * inverse_normalization_factor

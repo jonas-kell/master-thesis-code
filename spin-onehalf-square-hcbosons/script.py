@@ -29,10 +29,10 @@ if __name__ == "__main__":
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
     hamiltonian_type: Literal["canonical", "swap_optimized"] = "swap_optimized"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
 
     # ! Monte Carlo settings
-    mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
+    mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
     num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
     num_samples_per_chain: int = 300  # arbitrary at the moment
 
