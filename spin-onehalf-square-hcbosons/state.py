@@ -4,7 +4,6 @@ from systemgeometry import SystemGeometry
 from randomgenerator import RandomGenerator
 from typing import Dict, Union, Any, List, Tuple
 import numpy.typing as npt
-from math import ceil
 
 
 class InitialSystemState(ABC):
@@ -132,7 +131,7 @@ class SystemState:
 
         all_sites = self.get_number_sites()
         # all vacuum and fully packed state's blocks are too small, therefor should not really be sampled as likely as a "round" would do
-        target_num_filling = ceil(all_sites * fill_ratio)
+        target_num_filling = round(all_sites * fill_ratio)
 
         # TODO this is not really efficient, also causes a random number of calls to the rng, which is kind of not pretty
 
