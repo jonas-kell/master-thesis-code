@@ -32,7 +32,7 @@ if __name__ == "__main__":
     sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
 
     # ! Monte Carlo settings
-    mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
+    mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
     num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
     num_samples_per_chain: int = 300  # arbitrary at the moment
 
