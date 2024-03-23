@@ -87,7 +87,7 @@ class MonteCarloSampler(GeneralSampler):
         )
 
         # Accept or reject the proposed state
-        return random_generator.probability() >= acceptance_ratio
+        return random_generator.probability() <= acceptance_ratio
 
     def do_metropolis_steps(
         self,
