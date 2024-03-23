@@ -162,7 +162,7 @@ class SpinCurrent(Observable):
                     res += np.exp(H_eff_difference) * psi_factor
 
             if self.direction_dependent:
-                # required that the direction dependent operation is hermetian
+                # required that the direction dependent operation is hermitian
                 res *= 1j
 
         # Upstream functions check that the imaginary part of this cancels
