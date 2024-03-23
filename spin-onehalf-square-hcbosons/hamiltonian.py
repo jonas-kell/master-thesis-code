@@ -65,6 +65,21 @@ class Hamiltonian(ABC):
         sw2_index: int,
         before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
     ) -> Tuple[np.complex128, float]:
+        sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
+        sw1_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw1_index)
+        ]
+        sw2_occupation = before_swap_system_state.get_state_array()[sw2_index]
+        sw2_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw2_index)
+        ]
+
+        if sw1_occupation * sw1_up + sw1_occupation_os * (
+            not sw1_up
+        ) == sw2_occupation * sw2_up + sw2_occupation_os * (not sw2_up):
+            # The swapped indices are equal. We know the result
+            return (np.complex128(0), 1.0)
+
         # allocate swapped state
         after_swap_system_state = before_swap_system_state.get_editable_copy()
         after_swap_system_state.swap_in_place(
@@ -534,6 +549,20 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         sw2_index: int,
         before_swap_system_state: state.SystemState,
     ) -> Tuple[np.complex128, float]:
+        sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
+        sw1_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw1_index)
+        ]
+        sw2_occupation = before_swap_system_state.get_state_array()[sw2_index]
+        sw2_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw2_index)
+        ]
+
+        if sw1_occupation * sw1_up + sw1_occupation_os * (
+            not sw1_up
+        ) == sw2_occupation * sw2_up + sw2_occupation_os * (not sw2_up):
+            # The swapped indices are equal. We know the result
+            return (np.complex128(0), 1.0)
 
         def eps_m_minus_eps_l(l: int, m: int) -> float:
             return self.E * (
@@ -568,15 +597,6 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             return (1 / eps_m_minus_eps_l_minus_U_cache) * (
                 np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
             )
-
-        sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
-        sw1_occupation_os = before_swap_system_state.get_state_array()[
-            before_swap_system_state.get_opposite_spin_index(sw1_index)
-        ]
-        sw2_occupation = before_swap_system_state.get_state_array()[sw2_index]
-        sw2_occupation_os = before_swap_system_state.get_state_array()[
-            before_swap_system_state.get_opposite_spin_index(sw2_index)
-        ]
 
         sw1_neighbor_indices_without_sw2 = (
             before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
