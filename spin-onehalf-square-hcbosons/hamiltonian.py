@@ -459,11 +459,11 @@ analytical_calculation_mapper: Dict[
             int,  # sw2_index
             int,  # sw2_occupation
             int,  # sw2_occupation_os
-            Callable[[int, int], float],  # lam
+            Callable[[int, int], np.complex128],  # lam
             List[Tuple[int, int, int]],  # sw1_neighbors_index_occupation_tuples
             List[Tuple[int, int, int]],  # sw2_neighbors_index_occupation_tuples
         ],
-        float,
+        np.complex128,
     ],
 ] = {
     VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm,
@@ -580,19 +580,19 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                 )
             )
 
-        def part_A_lambda_callback(l: int, m: int) -> float:
+        def part_A_lambda_callback(l: int, m: int) -> np.complex128:
             eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
             return (1 / eps_m_minus_eps_l_cache) * (
                 np.expm1(1j * time * eps_m_minus_eps_l_cache)
             )
 
-        def part_B_lambda_callback(l: int, m: int) -> float:
+        def part_B_lambda_callback(l: int, m: int) -> np.complex128:
             eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
             return (1 / eps_m_minus_eps_l_plus_U_cache) * (
                 np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
             )
 
-        def part_C_lambda_callback(l: int, m: int) -> float:
+        def part_C_lambda_callback(l: int, m: int) -> np.complex128:
             eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
             return (1 / eps_m_minus_eps_l_minus_U_cache) * (
                 np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
@@ -632,7 +632,9 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         unscaled_H_n_difference = np.complex128(0)
         for i, sum_map in enumerate(sum_map_controller):
             for map_key, factor in sum_map:
-                callback: Callable[[int, int], float] = lambda a, b: a + b
+                callback: Callable[[int, int], np.complex128] = (
+                    lambda a, b: np.complex128(a + b)
+                )
                 if i == 0:
                     # A part of the first order
                     callback = part_A_lambda_callback

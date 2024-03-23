@@ -12,10 +12,12 @@ class Observable(ABC):
     ):
         pass
 
+    # This should only require returning float. As observables only return real values.
+    # but we give back the imaginary part, to check that it really cancels
     @abstractmethod
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
-    ) -> float:
+    ) -> np.complex128:
         pass
 
     @abstractmethod
@@ -35,7 +37,7 @@ class DoubleOccupationFraction(Observable):
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
-    ) -> float:
+    ) -> np.complex128:
         _ = time  # time is not used
         nr_sites = system_state.get_number_sites_wo_spin_degree()
         system_state_array = system_state.get_state_array()
@@ -48,7 +50,7 @@ class DoubleOccupationFraction(Observable):
             # only because occupation is either 1 or 0
             running_sum += system_state_array[i] * system_state_array[i_os]
 
-        return running_sum / domain_size
+        return np.complex128(running_sum / domain_size)
 
     def get_label(self) -> str:
         return "Average amount of double Occupation"
@@ -73,11 +75,11 @@ class DoubleOccupationAtSite(Observable):
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
-    ) -> float:
+    ) -> np.complex128:
         _ = time  # time is not used
         system_state_array = system_state.get_state_array()
 
-        return (
+        return np.complex128(
             system_state_array[self.site]
             * system_state_array[system_state.get_opposite_spin_index(self.site)]
         )
@@ -127,7 +129,7 @@ class SpinCurrent(Observable):
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
-    ) -> float:
+    ) -> np.complex128:
         system_state_array = system_state.get_state_array()
 
         site_occ_l = system_state_array[self.site_index_from]
@@ -135,7 +137,7 @@ class SpinCurrent(Observable):
         forward_swap_condition = site_occ_l == 1 and site_occ_m == 0
         backward_swap_condition = site_occ_l == 0 and site_occ_m == 1
 
-        res: float = 0
+        res: np.complex128 = np.complex128(0)
         if forward_swap_condition or backward_swap_condition:
             H_eff_difference, psi_factor = (
                 self.system_hamiltonian.get_H_eff_difference_swapping(
@@ -159,9 +161,12 @@ class SpinCurrent(Observable):
                     # both directions contribute with same sign
                     res += np.exp(H_eff_difference) * psi_factor
 
-        # TODO this should not be a complex number... Why is this observable a complex number...
-        # print(np.real(res), np.imag(res))
-        return -self.system_hamiltonian.J * float(np.real(res))
+            if self.direction_dependent:
+                # required that the direction dependent operation is hermetian
+                res *= 1j
+
+        # Upstream functions check that the imaginary part of this cancels
+        return -self.system_hamiltonian.J * res
 
     def get_label(self) -> str:
         return f"Spin Current {'(signed)' if self.direction_dependent else ''} from {self.site_index_from} to {self.site_index_to} ({'up' if self.spin_up else 'down'})"

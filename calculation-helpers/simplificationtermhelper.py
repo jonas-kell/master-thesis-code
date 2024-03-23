@@ -21,6 +21,7 @@ def init_file():
 # SEE simplificationtermhelper.py
 
 from typing import Callable, List, Tuple
+import numpy as np
 
 """
 
@@ -230,7 +231,7 @@ def print_difference(
 ):
     if print_to_file:
         write_file(
-            f"def {name}(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw1_occupation_os: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, sw2_occupation_os: int, lam: Callable[[int, int], float], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> float:\n    res:float = 0\n"
+            f"def {name}(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw1_occupation_os: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, sw2_occupation_os: int, lam: Callable[[int, int], np.complex128], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> np.complex128:\n    res:np.complex128 = np.complex128(0)\n"
         )
 
     arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]

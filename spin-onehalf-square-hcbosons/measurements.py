@@ -72,7 +72,7 @@ def main_measurement_function(
         step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
 
-        total_sums: List[float] = [0.0] * num_observables
+        total_sums_complex: List[np.complex128] = [np.complex128(0.0)] * num_observables
 
         # ! Branch out jobs into worker-functions
 
@@ -106,16 +106,23 @@ def main_measurement_function(
             step_sample_count += worker_sample_count
             total_sample_count += worker_sample_count
             for i in range(num_observables):
-                total_sums[i] += worker_sums[i]
+                total_sums_complex[i] += worker_sums[i]
 
         # ! Collected branched out jobs from worker-functions
 
-        # scale observables
+        # scale and convert observables
+        # TODO fix correct factor
         correction_fraction = (
             float(exact_sample_count) / step_sample_count
         )  # take exact amount of samples, could mismatch intended because of multi-worker-splitup
+        total_sums: List[float] = [0.0] * num_observables
         for i in range(num_observables):
-            total_sums[i] *= correction_fraction
+            imag_part_of_observable = np.imag(total_sums_complex[i])
+            if np.abs(imag_part_of_observable) < 1e-6:
+                print(
+                    f"Warning observable had imaginary part of {imag_part_of_observable:.5f} that was omitted"
+                )
+            total_sums[i] = float(np.real(total_sums_complex[i]) * correction_fraction)
 
         if default_prints:
             print(
@@ -175,12 +182,12 @@ def run_worker_chain(
     total_needed_sample_count: int,
     function_start_time: float,
     default_prints: bool,
-) -> Tuple[int, List[float]]:
+) -> Tuple[int, List[np.complex128]]:
     """
     returns: (worker_sample_count, worker_sums)
     """
     num_observables = len(observables)
-    worker_sums: List[float] = [0.0] * num_observables
+    worker_sums: List[np.complex128] = [np.complex128(0.0)] * num_observables
 
     worker_sample_count = 0
 
@@ -201,6 +208,7 @@ def run_worker_chain(
             ## generate measurements using sampled state
             worker_sample_count += 1
 
+            # TODO fix correct factor
             h_eff = hamiltonian.get_exp_H_eff(time=time, system_state=sampled_state_n)
             psi_n = sampled_state_n.get_Psi_of_N()
 

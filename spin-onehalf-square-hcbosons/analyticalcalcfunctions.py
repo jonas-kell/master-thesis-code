@@ -3,6 +3,7 @@
 # SEE simplificationtermhelper.py
 
 from typing import Callable, List, Tuple
+import numpy as np
 
 
 def ClCHm(
@@ -14,11 +15,11 @@ def ClCHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -97,11 +98,11 @@ def DlDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -180,11 +181,11 @@ def ClCmCHlCHmDlDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -369,11 +370,11 @@ def ClCHmDlDmDHlDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -558,11 +559,11 @@ def ClCHlDlDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -715,11 +716,11 @@ def CmCHmDlDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -860,11 +861,11 @@ def ClCHmDlDHl(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
@@ -1017,11 +1018,11 @@ def ClCHmDmDHm(
     sw2_index: int,
     sw2_occupation: int,
     sw2_occupation_os: int,
-    lam: Callable[[int, int], float],
+    lam: Callable[[int, int], np.complex128],
     sw1_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
     sw2_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
-) -> float:
-    res: float = 0
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
     if sw1_up and sw2_up:
         # UP<->UP
         pass
