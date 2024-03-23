@@ -100,29 +100,34 @@ def main_measurement_function(
         pool.close()
         pool.join()
 
+        normalization_factor: float = 0
+
+        # ! collect results from threads
         for result in results:
-            worker_sample_count, worker_sums = result
+            worker_sample_count, worker_normalization_factor, worker_sums = result
 
             step_sample_count += worker_sample_count
             total_sample_count += worker_sample_count
+            normalization_factor += worker_normalization_factor
             for i in range(num_observables):
                 total_sums_complex[i] += worker_sums[i]
-
         # ! Collected branched out jobs from worker-functions
 
+        inverse_normalization_factor = 1 / normalization_factor
+
         # scale and convert observables
-        # TODO fix correct factor
-        correction_fraction = (
-            float(exact_sample_count) / step_sample_count
-        )  # take exact amount of samples, could mismatch intended because of multi-worker-splitup
         total_sums: List[float] = [0.0] * num_observables
         for i in range(num_observables):
-            imag_part_of_observable = np.imag(total_sums_complex[i])
+            imag_part_of_observable = float(
+                np.imag(total_sums_complex[i]) * inverse_normalization_factor
+            )
             if np.abs(imag_part_of_observable) < 1e-6:
                 print(
                     f"Warning observable had imaginary part of {imag_part_of_observable:.5f} that was omitted"
                 )
-            total_sums[i] = float(np.real(total_sums_complex[i]) * correction_fraction)
+            total_sums[i] = float(
+                np.real(total_sums_complex[i]) * inverse_normalization_factor
+            )
 
         if default_prints:
             print(
@@ -182,7 +187,7 @@ def run_worker_chain(
     total_needed_sample_count: int,
     function_start_time: float,
     default_prints: bool,
-) -> Tuple[int, List[np.complex128]]:
+) -> Tuple[int, float, List[np.complex128]]:
     """
     returns: (worker_sample_count, worker_sums)
     """
@@ -190,6 +195,7 @@ def run_worker_chain(
     worker_sums: List[np.complex128] = [np.complex128(0.0)] * num_observables
 
     worker_sample_count = 0
+    normalization_factor = 0.0
 
     sample_generator_object = state_sampler.sample_generator(
         time=time,
@@ -201,6 +207,8 @@ def run_worker_chain(
     # report at the start of an iteration definitely
     last_worker_report_time = computerTime.time() - 10.1
 
+    requires_probability_adjustment = state_sampler.requires_probability_adjustment()
+
     while True:
         try:
             sampled_state_n = next(sample_generator_object)
@@ -208,19 +216,29 @@ def run_worker_chain(
             ## generate measurements using sampled state
             worker_sample_count += 1
 
-            # TODO fix correct factor
-            h_eff = hamiltonian.get_exp_H_eff(time=time, system_state=sampled_state_n)
-            psi_n = sampled_state_n.get_Psi_of_N()
+            if requires_probability_adjustment:
+                # sampled state needs to be scaled
 
-            energy_factor: float = np.real(np.conj(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
-                np.conj(psi_n) * psi_n
-            )
+                # get_exp_H_eff is the most expensive calculation. Only do if absolutely necessary
+                h_eff = hamiltonian.get_exp_H_eff(
+                    time=time, system_state=sampled_state_n
+                )
+                psi_n = sampled_state_n.get_Psi_of_N()
+
+                state_probability: float = np.real(np.conjugate(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
+                    np.conjugate(psi_n) * psi_n
+                )
+            else:
+                # e.g. Monte Carlo. Normalization is only division by number of monte carlo samples
+                state_probability = 1.0
+
+            normalization_factor += state_probability
 
             for i, observable in enumerate(observables):
                 observed_quantity = observable.get_expectation_value(
                     time=time, system_state=sampled_state_n
                 )
-                worker_sums[i] += energy_factor * observed_quantity
+                worker_sums[i] += state_probability * observed_quantity
 
             ## end generate measurements using sampled state
 
@@ -246,7 +264,7 @@ def run_worker_chain(
         except StopIteration:
             break
 
-    return worker_sample_count, worker_sums
+    return worker_sample_count, normalization_factor, worker_sums
 
 
 def plot_measurements(

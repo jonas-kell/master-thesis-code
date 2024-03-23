@@ -38,6 +38,10 @@ class GeneralSampler(ABC):
     def produces_samples_count(self) -> int:
         pass
 
+    @abstractmethod
+    def requires_probability_adjustment(self) -> bool:
+        pass
+
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[Any, Any]]] = {}
     ) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
@@ -256,6 +260,9 @@ class MonteCarloSampler(GeneralSampler):
             }
         )
 
+    def requires_probability_adjustment(self) -> bool:
+        return False
+
 
 class ExactSampler(GeneralSampler):
     def __init__(
@@ -315,3 +322,6 @@ class ExactSampler(GeneralSampler):
         self, additional_info: Dict[str, Union[float, str, Dict[Any, Any]]] = {}
     ) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return super().get_log_info({"type": "ExactSampler", **additional_info})
+
+    def requires_probability_adjustment(self) -> bool:
+        return True
