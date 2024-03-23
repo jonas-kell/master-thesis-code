@@ -35,7 +35,6 @@ if __name__ == "__main__":
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
     num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
     num_samples_per_chain: int = 300  # arbitrary at the moment
-    starting_fill_level: float = 0.5
 
     # ! Randomizer
     randomness_seed = "aok"
@@ -127,7 +126,6 @@ if __name__ == "__main__":
             num_intermediate_mc_steps=num_intermediate_mc_steps,
             num_samples=num_monte_carlo_samples,
             num_thermalization_steps=num_thermalization_steps,
-            initial_fill_level=starting_fill_level,
             num_samples_per_chain=num_samples_per_chain,
             state_modification=state_modification,
         )

@@ -63,7 +63,6 @@ class MonteCarloSampler(GeneralSampler):
         state_modification: state.StateModification,
         num_thermalization_steps: int,
         num_samples_per_chain: int,
-        initial_fill_level: float,
     ):
         super().__init__(
             system_geometry=system_geometry, initial_system_state=initial_system_state
@@ -73,7 +72,6 @@ class MonteCarloSampler(GeneralSampler):
         self.num_intermediate_mc_steps = num_intermediate_mc_steps
         self.state_modification = state_modification
         self.num_thermalization_steps = num_thermalization_steps
-        self.initial_fill_level = initial_fill_level
         self.num_samples_per_chain = num_samples_per_chain
 
         print(
@@ -176,11 +174,16 @@ class MonteCarloSampler(GeneralSampler):
         state_to_modify: state.SystemState,
         random_generator: RandomGenerator,
     ):
+        # For flipping the amount of initial filling is irrelevant, because it will change in thermalization
+        # For swapping, this dictates the overall amount of particles present, therefor maps a specific block in the hamiltonian
+        # The randomization is therefor relevant, to gauge which blocks are possibly sampled
+        initial_fill_level: float = random_generator.probability()
+        # TODO different probability distribution?      ^^^
+
         state_to_modify.init_random_filling(
-            fill_ratio=self.initial_fill_level,
+            fill_ratio=initial_fill_level,
             random_generator=random_generator,
         )
-        self.thermalized = False
 
     def thermalize(
         self,
@@ -254,7 +257,6 @@ class MonteCarloSampler(GeneralSampler):
                 "num_intermediate_mc_steps": self.num_intermediate_mc_steps,
                 "num_thermalization_steps": self.num_thermalization_steps,
                 "num_samples_per_chain": self.num_samples_per_chain,
-                "initial_fill_level": self.initial_fill_level,
                 "state_modification": self.state_modification.get_log_info(),
                 **additional_info,
             }
