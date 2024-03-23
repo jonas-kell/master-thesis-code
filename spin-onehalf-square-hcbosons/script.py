@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
     num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 30  # arbitrary at the moment
+    num_samples_per_chain: int = 5  # arbitrary at the moment
 
     # ! Randomizer
     randomness_seed = "aok"

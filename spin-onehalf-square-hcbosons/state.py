@@ -120,40 +120,19 @@ class SystemState:
             state_array=new_state,
         )
 
-    def init_random_filling(
-        self, fill_ratio: float, random_generator: RandomGenerator
-    ) -> None:
-        if fill_ratio < 0:
-            raise Exception("Fill ratio must be at least 0")
+    def init_random_filling(self, random_generator: RandomGenerator) -> None:
+        """
+        Each site occupation is chosen randomly with a 50%/50% chance for occupied/not occupied.
 
-        if fill_ratio > 1:
-            raise Exception("Fill ratio must be at most 1")
-
-        all_sites = self.get_number_sites()
-        # all vacuum and fully packed state's blocks are too small, therefor should not really be sampled as likely as a "round" would do
-        target_num_filling = round(all_sites * fill_ratio)
-
-        # TODO this is not really efficient, also causes a random number of calls to the rng, which is kind of not pretty
-
-        if fill_ratio <= 0.5:
-            # init with zeros and add
-            added = 0
-            self.state_array = np.zeros_like(self.state_array)
-            while added < target_num_filling:
-                place_index = random_generator.randint(0, all_sites - 1)
-                if self.state_array[place_index] == 0:
-                    self.state_array[place_index] = 1
-                    added += 1
-        else:
-            # init with ones and remove
-            self.state_array = np.ones_like(self.state_array)
-            removed = 0
-            target_num_removing = all_sites - target_num_filling
-            while removed < target_num_removing:
-                place_index = random_generator.randint(0, all_sites - 1)
-                if self.state_array[place_index] == 1:
-                    self.state_array[place_index] = 0
-                    removed += 1
+        This is equivalent to placing a random number (from 0 to get_number_sites()) of 1s on random locations of the vacuum-state,
+        where said random number (=fill-level)is chosen from a binomial distribution.
+        """
+        self.set_state_array(
+            np.array(
+                random_generator.rand_occupation_array(self.get_number_sites()),
+                dtype=np.int8,
+            )
+        )
 
     # !! Function access helpers to internal system_geometry and initial_system_state from here on
 

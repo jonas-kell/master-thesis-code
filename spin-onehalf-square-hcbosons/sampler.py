@@ -175,18 +175,13 @@ class MonteCarloSampler(GeneralSampler):
         random_generator: RandomGenerator,
     ):
         # For flipping the amount of initial filling is irrelevant, because it will change in thermalization
-        # For swapping, this dictates the overall amount of particles present, therefor maps a specific block in the hamiltonian
-        # The randomization is therefor relevant, to gauge which blocks are possibly sampled
+        # For swapping, this dictates the overall amount of particles present, therefore maps a specific block in the hamiltonian
+        # The randomization is therefore relevant, to gauge which blocks are possibly sampled
 
-        # The distribution of the fill level sampling therefor needs to be binomial in nature
-        number = state_to_modify.get_number_sites()
-        initial_fill_level: float = np.random.binomial(number, 0.5) / number
-        # TODO this doesn't properly use the normal random generator and is not seed-reproducible
+        # The distribution of the fill level sampling (number of 1s) therefore needs to be binomial
+        # This is equal to choosing 1/0 with equal probability for each site
 
-        state_to_modify.init_random_filling(
-            fill_ratio=initial_fill_level,
-            random_generator=random_generator,
-        )
+        state_to_modify.init_random_filling(random_generator=random_generator)
 
     def thermalize(
         self,

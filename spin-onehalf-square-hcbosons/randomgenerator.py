@@ -1,5 +1,5 @@
 import random
-from typing import Dict
+from typing import Dict, List
 
 
 class RandomGenerator:
@@ -27,6 +27,12 @@ class RandomGenerator:
         Return a random boolean
         """
         return self.randint(0, 1) == 1
+
+    def rand_occupation_array(self, length: int) -> List[int]:
+        """
+        Return an array of 0 or 1, each randomly chosen with equal probability
+        """
+        return self.random.choices([0, 1], weights=[0.5, 0.5], k=length)
 
     def derive(self) -> "RandomGenerator":
         """

@@ -40,7 +40,7 @@ ham_swap_optimized = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
 use_state = state.SystemState(system_geometry, initial_system_state)
 
 for _ in range(12):
-    use_state.init_random_filling(0.5, random)
+    use_state.init_random_filling(random)
     print(use_state.get_state_array())
 
     measurement_time = 1.5
