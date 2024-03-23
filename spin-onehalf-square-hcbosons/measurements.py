@@ -8,7 +8,7 @@ import multiprocessing
 from datetime import datetime
 import os
 import json
-from typing import Dict, Union, Any, Tuple, List, cast
+from typing import Dict, Union, Any, Tuple, List, cast, Literal
 from randomgenerator import RandomGenerator
 
 
@@ -170,6 +170,11 @@ def main_measurement_function(
             observable_labels=[obs.get_label() for obs in observables],
             title=plot_title,
             x_label=plot_x_label,
+            params=(
+                hamiltonian.U,
+                hamiltonian.E,
+                hamiltonian.J,
+            ),
         )
 
     return (time_list, values_list)
@@ -273,7 +278,31 @@ def plot_measurements(
     observable_labels: List[str],
     title: str,
     x_label: str,
+    params: Tuple[
+        float,  # U
+        float,  # E
+        float,  # J
+    ],
 ):
+    time_unit_type: Literal["unscaled", "one_over_U", "one_over_J", "one_over_E"] = (
+        "one_over_J"
+    )
+
+    if time_unit_type == "one_over_U":  # type: ignore - switch is hard-coded.
+        time_scaler = float(np.abs(params[0]))
+        label_explanation = "1/U"
+    elif time_unit_type == "one_over_E":  # type: ignore - switch is hard-coded.
+        time_scaler = float(np.abs(params[1]))
+        label_explanation = "1/E"
+    elif time_unit_type == "one_over_J":  # type: ignore - switch is hard-coded.
+        time_scaler = float(np.abs(params[2]))
+        label_explanation = "1/J"
+    else:
+        time_scaler = 1.0
+        label_explanation = "unscaled units"
+
+    times_scaled = np.array(times) * time_scaler
+
     data = np.array(values).T  # Transpose to extract form we want to plot
 
     num_observables = len(observable_labels)
@@ -294,8 +323,8 @@ def plot_measurements(
         col = i % num_cols
 
         # Plot the results
-        axes[row, col].plot(times, data[i], color="red")  # type: ignore -> matplotlib typing is non-existent
-        axes[row, col].set_xlabel(x_label)  # type: ignore -> matplotlib typing is non-existent
+        axes[row, col].plot(times_scaled, data[i], color="red")  # type: ignore -> matplotlib typing is non-existent
+        axes[row, col].set_xlabel(f"{x_label} in {label_explanation}")  # type: ignore -> matplotlib typing is non-existent
         axes[row, col].set_ylabel(obs)  # type: ignore -> matplotlib typing is non-existent
 
     # Remove any unused subplots
@@ -325,6 +354,10 @@ if __name__ == "__main__":
     title: str = data["plot_title"]  # type: ignore
     plot_x_label: str = data["plot_x_label"]  # type: ignore
 
+    U: float = float(data["hamiltonian"]["U"])  # type: ignore
+    E: float = float(data["hamiltonian"]["E"])  # type: ignore
+    J: float = float(data["hamiltonian"]["J"])  # type: ignore
+
     times: List[float] = []
     values: List[List[float]] = []
     for tmp in data["measurements"]:  # type: ignore
@@ -342,4 +375,5 @@ if __name__ == "__main__":
         values=values,
         title=title,
         x_label=plot_x_label,
+        params=(U, E, J),
     )
