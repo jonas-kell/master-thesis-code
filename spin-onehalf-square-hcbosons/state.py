@@ -182,6 +182,20 @@ class SystemState:
 
         return self
 
+    def flip_in_place(
+        self,
+        flipping_up: bool,
+        flipping_index: int,
+    ) -> "SystemState":
+        flip_index = flipping_index
+        if not flipping_up:
+            if_spin_offset = self.get_number_sites_wo_spin_degree()
+            flip_index += if_spin_offset
+
+        self.get_state_array()[flip_index] = 1 - self.get_state_array()[flip_index]
+
+        return self
+
 
 class StateModification(ABC):
     def __init__(self):

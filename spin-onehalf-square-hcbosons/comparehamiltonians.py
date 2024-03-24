@@ -36,6 +36,9 @@ ham_canonical = hamiltonian.HardcoreBosonicHamiltonian(
 ham_swap_optimized = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
 )
+ham_flip_optimized = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
+    U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+)
 
 use_state = state.SystemState(system_geometry, initial_system_state)
 
@@ -67,5 +70,23 @@ for _ in range(12):
         before_swap_system_state=use_state,
     )
     if np.abs(res_a[0] - res_b[0]) > 1e-6:
+        print("Difference for Hopping")
         print(res_a[0])
         print(res_b[0])
+
+    res_flip_a = ham_canonical.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    res_flip_b = ham_flip_optimized.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
+        print("Difference for Flipping")
+        print(res_flip_a[0])
+        print(res_flip_b[0])

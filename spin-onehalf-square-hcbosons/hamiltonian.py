@@ -106,6 +106,37 @@ class Hamiltonian(ABC):
             psi_factor,
         )
 
+    def get_H_eff_difference_flipping(
+        self,
+        time: float,
+        flipping_up: bool,
+        flipping_index: int,
+        before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
+    ) -> Tuple[np.complex128, float]:
+        # allocate swapped state
+        after_swap_system_state = before_swap_system_state.get_editable_copy()
+        after_swap_system_state.flip_in_place(
+            flipping_up=flipping_up,
+            flipping_index=flipping_index,
+        )
+
+        original_state_psi = before_swap_system_state.get_Psi_of_N()
+        proposed_state_psi = after_swap_system_state.get_Psi_of_N()
+        psi_factor = float(
+            np.real(proposed_state_psi * np.conjugate(proposed_state_psi))
+            / np.real(original_state_psi * np.conjugate(original_state_psi))
+        )
+
+        # return un-optimized default
+        return (
+            self.get_H_eff_difference(
+                time=time,
+                system_state_a=before_swap_system_state,
+                system_state_b=after_swap_system_state,
+            ),
+            psi_factor,
+        )
+
     def get_exp_H_eff(
         self,
         time: float,
@@ -447,7 +478,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         return result
 
 
-analytical_calculation_mapper: Dict[
+analytical_calculation_mapper_hopping: Dict[
     VPartsMapping,
     Callable[
         [
@@ -645,7 +676,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     # C part of the first order
                     callback = part_C_lambda_callback
 
-                analytical_calculation = analytical_calculation_mapper[map_key](
+                analytical_calculation = analytical_calculation_mapper_hopping[map_key](
                     sw1_up,
                     sw1_index,
                     sw1_occupation,
@@ -673,6 +704,194 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                     sw2_index=sw2_index,
                     sw2_occupation=sw2_occupation,
                     sw2_occupation_os=sw2_occupation_os,
+                    before_swap_system_state=before_swap_system_state,
+                )
+                * time
+            ),
+            1.0,  # this being 1.0 is a required assumption for this simplification
+        )
+
+
+analytical_calculation_mapper_flipping: Dict[
+    VPartsMapping,
+    Callable[
+        [
+            bool,  # flipping_up
+            int,  # flipping_index
+            int,  # flipping_occupation_before_flip
+            int,  # flipping_occupation_before_flip_os
+            Callable[[int, int], np.complex128],  # lam
+            List[Tuple[int, int, int]],  # flipping_neighbors_index_occupation_tuples
+        ],
+        np.complex128,
+    ],
+] = {
+    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm_flipping,
+    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm_flipping,
+    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm_flipping,
+    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm_flipping,
+    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl_flipping,
+    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm_flipping,
+    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm_flipping,
+    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm_flipping,
+}
+
+
+class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+    ):
+        super().__init__(U=U, E=E, J=J, phi=phi)
+
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The simplified Hamiltonian has having a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+    def get_base_energy_difference_flipping(
+        self,
+        flipping_up: bool,
+        flipping_index: int,
+        flipping_occupation_before_flip: int,
+        flipping_occupation_before_flip_os: int,
+        before_swap_system_state: state.SystemState,
+    ) -> float:
+        res = 0
+
+        # double occupations
+        if flipping_up:
+            res += self.U * (
+                flipping_occupation_before_flip_os
+                * (2 * flipping_occupation_before_flip - 1)
+            )
+        else:
+            res += self.U * (
+                flipping_occupation_before_flip
+                * (2 * flipping_occupation_before_flip_os - 1)
+            )
+
+        # electrical field
+        eps_i = before_swap_system_state.get_eps_multiplier(
+            index=flipping_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+        i_occupation = flipping_occupation_before_flip
+        if not flipping_up:
+            i_occupation = flipping_occupation_before_flip_os
+        res += self.E * eps_i * (2 * i_occupation - 1)
+
+        return res
+
+    def get_H_eff_difference_flipping(
+        self,
+        time: float,
+        flipping_up: bool,
+        flipping_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        flipping_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping_index
+        ]
+        flipping_occupation_before_flip_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(flipping_index)
+        ]
+
+        # TODO this duplicates code. But required because local variables are bound.
+        # could be done more cleanly, by extracting and giving before_swap_system_state into the function.
+        # But do not know if this is worth the extra work to remodel
+
+        def eps_m_minus_eps_l(l: int, m: int) -> float:
+            return self.E * (
+                before_swap_system_state.get_eps_multiplier(
+                    index=m,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                )
+                - before_swap_system_state.get_eps_multiplier(
+                    index=l,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                )
+            )
+
+        def part_A_lambda_callback(l: int, m: int) -> np.complex128:
+            eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
+            return (1 / eps_m_minus_eps_l_cache) * (
+                np.expm1(1j * time * eps_m_minus_eps_l_cache)
+            )
+
+        def part_B_lambda_callback(l: int, m: int) -> np.complex128:
+            eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
+            return (1 / eps_m_minus_eps_l_plus_U_cache) * (
+                np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
+            )
+
+        def part_C_lambda_callback(l: int, m: int) -> np.complex128:
+            eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
+            return (1 / eps_m_minus_eps_l_minus_U_cache) * (
+                np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
+            )
+
+        flipping_neighbor_indices = (
+            before_swap_system_state.get_nearest_neighbor_indices(flipping_index)
+        )
+        flipping_neighbors_index_occupation_tuples = [
+            (
+                nb,
+                before_swap_system_state.get_state_array()[nb],
+                before_swap_system_state.get_state_array()[
+                    before_swap_system_state.get_opposite_spin_index(nb)
+                ],
+            )
+            for nb in flipping_neighbor_indices
+        ]
+
+        unscaled_H_n_difference = np.complex128(0)
+        for i, sum_map in enumerate(sum_map_controller):
+            for map_key, factor in sum_map:
+                callback: Callable[[int, int], np.complex128] = (
+                    lambda a, b: np.complex128(a + b)
+                )
+                if i == 0:
+                    # A part of the first order
+                    callback = part_A_lambda_callback
+                elif i == 1:
+                    # B part of the first order
+                    callback = part_B_lambda_callback
+                elif i == 2:
+                    # C part of the first order
+                    callback = part_C_lambda_callback
+
+                analytical_calculation = analytical_calculation_mapper_flipping[
+                    map_key
+                ](
+                    flipping_up,
+                    flipping_index,
+                    flipping_occupation_before_flip,
+                    flipping_occupation_before_flip_os,
+                    callback,
+                    flipping_neighbors_index_occupation_tuples,
+                )
+                unscaled_H_n_difference += factor * analytical_calculation
+
+        return (
+            self.J * unscaled_H_n_difference
+            - (
+                1j
+                * self.get_base_energy_difference_flipping(
+                    flipping_up=flipping_up,
+                    flipping_index=flipping_index,
+                    flipping_occupation_before_flip=flipping_occupation_before_flip,
+                    flipping_occupation_before_flip_os=flipping_occupation_before_flip_os,
                     before_swap_system_state=before_swap_system_state,
                 )
                 * time
