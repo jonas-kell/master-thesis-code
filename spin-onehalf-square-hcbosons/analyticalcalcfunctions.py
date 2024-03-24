@@ -6,7 +6,7 @@ from typing import Callable, List, Tuple
 import numpy as np
 
 
-def ClCHm(
+def ClCHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -89,7 +89,7 @@ def ClCHm(
     return res
 
 
-def DlDHm(
+def DlDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -172,7 +172,7 @@ def DlDHm(
     return res
 
 
-def ClCmCHlCHmDlDHm(
+def ClCmCHlCHmDlDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -361,7 +361,7 @@ def ClCmCHlCHmDlDHm(
     return res
 
 
-def ClCHmDlDmDHlDHm(
+def ClCHmDlDmDHlDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -550,7 +550,7 @@ def ClCHmDlDmDHlDHm(
     return res
 
 
-def ClCHlDlDHm(
+def ClCHlDlDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -707,7 +707,7 @@ def ClCHlDlDHm(
     return res
 
 
-def CmCHmDlDHm(
+def CmCHmDlDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -852,7 +852,7 @@ def CmCHmDlDHm(
     return res
 
 
-def ClCHmDlDHl(
+def ClCHmDlDHl_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -1009,7 +1009,7 @@ def ClCHmDlDHl(
     return res
 
 
-def ClCHmDmDHm(
+def ClCHmDmDHm_hopping(
     sw1_up: bool,
     sw1_index: int,
     sw1_occupation: int,
@@ -1150,5 +1150,413 @@ def ClCHmDmDHm(
                 (nb_occupation - 1)
                 * (sw2_occupation_os - sw1_occupation_os)
                 * sw2_occupation
+            )
+    return res
+
+
+def ClCHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip)) * nb_occupation
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip)) * (nb_occupation - 1)
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+    return res
+
+
+def DlDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip_os)) * nb_occupation_os
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip_os)) * (nb_occupation_os - 1)
+            )
+    return res
+
+
+def ClCmCHlCHmDlDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip))
+                * (nb_occupation - 1)
+                * (flipping_occupation_before_flip_os - 1)
+                * nb_occupation_os
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip))
+                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
+                * flipping_occupation_before_flip_os
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip_os))
+                * (flipping_occupation_before_flip - 1)
+                * (nb_occupation - 1)
+                * nb_occupation_os
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip_os))
+                * (flipping_occupation_before_flip - 1)
+                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
+            )
+    return res
+
+
+def ClCHmDlDmDHlDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip))
+                * (flipping_occupation_before_flip_os - 1)
+                * (nb_occupation_os - 1)
+                * nb_occupation
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip))
+                * (nb_occupation - 1)
+                * (flipping_occupation_before_flip_os - 1)
+                * (nb_occupation_os - 1)
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                (1 - (2 * flipping_occupation_before_flip_os))
+                * (flipping_occupation_before_flip - 1)
+                * (nb_occupation_os - 1)
+                * nb_occupation
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                (1 - (2 * flipping_occupation_before_flip_os))
+                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
+                * flipping_occupation_before_flip
+            )
+    return res
+
+
+def ClCHlDlDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (flipping_occupation_before_flip_os - 1)
+                * nb_occupation_os
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (flipping_occupation_before_flip - 1)
+                * nb_occupation_os
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
+            )
+    return res
+
+
+def CmCHmDlDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (nb_occupation_os - 1)
+                * flipping_occupation_before_flip_os
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (nb_occupation - 1)
+                * nb_occupation_os
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (flipping_occupation_before_flip - 1)
+                * (nb_occupation_os - 1)
+            )
+    return res
+
+
+def ClCHmDlDHl_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (flipping_occupation_before_flip_os - 1)
+                * nb_occupation
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (nb_occupation - 1)
+                * (nb_occupation_os - 1)
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (flipping_occupation_before_flip - 1)
+                * nb_occupation
+            )
+    return res
+
+
+def ClCHmDmDHm_flipping(
+    flipping_up: bool,
+    flipping_index: int,
+    flipping_occupation_before_flip: int,
+    flipping_occupation_before_flip_os: int,
+    lam: Callable[[int, int], np.complex128],
+    flipping_neighbors_index_occupation_tuples: List[Tuple[int, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    if flipping_up:
+        # flipping UP 0<->1
+        pass
+        # sum(i,m)
+        for (
+            m,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(flipping_index, m) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (nb_occupation_os - 1)
+                * nb_occupation
+            )
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip) - 1)
+                * (nb_occupation - 1)
+                * (flipping_occupation_before_flip_os - 1)
+            )
+    if not flipping_up:
+        # flipping DOWN 0<->1
+        pass
+        # sum(i,l)
+        for (
+            l,
+            nb_occupation,
+            nb_occupation_os,
+        ) in flipping_neighbors_index_occupation_tuples:
+            res += lam(l, flipping_index) * (
+                ((2 * flipping_occupation_before_flip_os) - 1)
+                * (nb_occupation - 1)
+                * flipping_occupation_before_flip
             )
     return res

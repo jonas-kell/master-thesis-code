@@ -41,7 +41,7 @@ class OccupationNumber(ABC):
         spin: Union[Literal["↑"], Literal["↓"]],
     ):
         self.index = index
-        self.spin = spin
+        self.spin: Union[Literal["↑"], Literal["↓"]] = spin
 
     @abstractmethod
     def text_representation(self) -> str:
@@ -65,6 +65,12 @@ class OccupationNumber(ABC):
     def get_sympy_repr(self) -> Any:
         pass
 
+    @abstractmethod
+    def flip_if_index_and_spin(
+        self, index: str, spin: Union[Literal["↑"], Literal["↓"]]
+    ) -> "OccupationNumber":
+        pass
+
 
 class Occupied(OccupationNumber):
     def __init__(
@@ -83,6 +89,13 @@ class Occupied(OccupationNumber):
             self.get_index_symbol(),
         )  # type: ignore
 
+    def flip_if_index_and_spin(
+        self, index: str, spin: Union[Literal["↑"], Literal["↓"]]
+    ) -> OccupationNumber:
+        if index == self.index and spin == self.spin:
+            return UnOccupied(index=self.index, spin=self.spin)
+        return self
+
 
 class UnOccupied(OccupationNumber):
     def __init__(
@@ -100,6 +113,13 @@ class UnOccupied(OccupationNumber):
             self.get_spin_symbol(),
             self.get_index_symbol(),
         )  # type: ignore
+
+    def flip_if_index_and_spin(
+        self, index: str, spin: Union[Literal["↑"], Literal["↓"]]
+    ) -> OccupationNumber:
+        if index == self.index and spin == self.spin:
+            return Occupied(index=self.index, spin=self.spin)
+        return self
 
 
 def operators() -> Dict[str, List[OccupationNumber]]:
@@ -158,19 +178,43 @@ def replace_index_where_spin(
     return mutable_copy
 
 
+def flip_where_index_and_spin(
+    op: List[OccupationNumber],
+    index: str,
+    spin: Union[Literal["↑"], Literal["↓"]],
+) -> List[OccupationNumber]:
+    mutable_copy = deepcopy(op)
+    res: List[OccupationNumber] = []
+
+    for elem in mutable_copy:
+        res.append(
+            elem.flip_if_index_and_spin(
+                index=index,
+                spin=spin,
+            )
+        )
+
+    return res
+
+
 def join_op(op: List[OccupationNumber]) -> Any:
     return reduce(lambda a, b: Mul(a, b, evaluate=False), map(lambda c: c.get_sympy_repr(), op))  # type: ignore
 
 
-def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> str:
+def custom_printer(
+    expr: Any,
+    print_to_file: bool,
+    top_level: bool = True,
+    mode: Literal["hopping", "flipping"] = "hopping",
+) -> str:
     if expr.is_Add:
         positive_terms: List[str] = []
         negative_terms: List[str] = []
         for term in expr.args:
             if term.is_negative:
-                negative_terms.append(custom_printer(term, print_to_file, False))
+                negative_terms.append(custom_printer(term, print_to_file, False, mode))
             else:
-                positive_terms.append(custom_printer(term, print_to_file, False))
+                positive_terms.append(custom_printer(term, print_to_file, False, mode))
         out = ""
         if not top_level:
             out += "("
@@ -185,9 +229,13 @@ def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> st
             if factor.is_negative:
                 negative = True
                 if factor != -1:
-                    factor_strings.append(custom_printer(-factor, print_to_file, False))
+                    factor_strings.append(
+                        custom_printer(-factor, print_to_file, False, mode)
+                    )
             else:
-                factor_strings.append(custom_printer(factor, print_to_file, False))
+                factor_strings.append(
+                    custom_printer(factor, print_to_file, False, mode)
+                )
 
         out = ""
         if negative:
@@ -203,13 +251,18 @@ def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> st
             # name = expr.name  # always the same, only occupation n
             spin = str(expr.args[0].name)
             index = str(expr.args[1].name)
-            print(spin)
 
             if index == "i":
+                if mode == "hopping":
+                    if spin == UP:
+                        return "sw1_occupation"
+                    return "sw1_occupation_os"
+                # mode is flipping
                 if spin == UP:
-                    return "sw1_occupation"
-                return "sw1_occupation_os"
+                    return "flipping_occupation_before_flip"
+                return "flipping_occupation_before_flip_os"
             if index == "j":
+                # j only in case of swapping
                 if spin == UP:
                     return "sw2_occupation"
                 return "sw2_occupation_os"
@@ -223,7 +276,7 @@ def custom_printer(expr: Any, print_to_file: bool, top_level: bool = True) -> st
         return str(expr)
 
 
-def print_difference(
+def print_differences_hopping(
     name: str,
     op: List[OccupationNumber],
     simplify_output: bool,
@@ -231,7 +284,7 @@ def print_difference(
 ):
     if print_to_file:
         write_file(
-            f"def {name}(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw1_occupation_os: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, sw2_occupation_os: int, lam: Callable[[int, int], np.complex128], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> np.complex128:\n    res:np.complex128 = np.complex128(0)\n"
+            f"def {name}_hopping(sw1_up: bool, sw1_index: int, sw1_occupation: int, sw1_occupation_os: int, sw2_up: bool, sw2_index: int, sw2_occupation: int, sw2_occupation_os: int, lam: Callable[[int, int], np.complex128], sw1_neighbors_index_occupation_tuples: List[Tuple[int,int,int]], sw2_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> np.complex128:\n    res:np.complex128 = np.complex128(0)\n"
         )
 
     arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]
@@ -357,6 +410,97 @@ def print_difference(
         write_file(f"    return res\n\n\n")
 
 
+def print_differences_flipping(
+    name: str,
+    op: List[OccupationNumber],
+    simplify_output: bool,
+    print_to_file: bool,
+):
+    if print_to_file:
+        write_file(
+            f"def {name}_flipping(flipping_up: bool, flipping_index: int, flipping_occupation_before_flip: int, flipping_occupation_before_flip_os: int, lam: Callable[[int, int], np.complex128],  flipping_neighbors_index_occupation_tuples: List[Tuple[int,int,int]]) -> np.complex128:\n    res:np.complex128 = np.complex128(0)\n"
+        )
+
+    arr: List[Union[Literal["↑"], Literal["↓"]]] = [UP, DOWN]
+    for flipping_spin in arr:
+        if print_to_file:
+            if flipping_spin == UP:
+                write_file(
+                    f"    if flipping_up:\n        # flipping UP 0<->1\n        pass\n"
+                )
+
+            if flipping_spin == DOWN:
+                write_file(
+                    f"    if not flipping_up:\n        # flipping DOWN 0<->1\n        pass\n"
+                )
+
+        if print_to_file:
+            write_file(f"")
+
+        out_arr: List[str] = []
+        for replace_l_with, replace_m_with in [
+            ("i", "m"),  # i = l
+            ("l", "i"),  # i = m
+        ]:
+            lam = "Λ(l,m)".replace("l", replace_l_with).replace("m", replace_m_with)
+
+            if replace_l_with == "l":
+                # swap so that sums are nicer
+                sum_arg_1 = replace_m_with
+                sum_arg_2 = replace_l_with
+            else:
+                sum_arg_1 = replace_l_with
+                sum_arg_2 = replace_m_with
+            sum = f"sum_nb({sum_arg_1},{sum_arg_2})"
+
+            chain = op
+            chain = replace_index_where_spin(chain, "l", replace_l_with, UP, UP)
+            chain = replace_index_where_spin(chain, "m", replace_m_with, UP, UP)
+            chain = replace_index_where_spin(chain, "l", replace_l_with, DOWN, DOWN)
+            chain = replace_index_where_spin(chain, "m", replace_m_with, DOWN, DOWN)
+
+            i_flipped_chain = flip_where_index_and_spin(
+                chain, index="i", spin=flipping_spin
+            )
+
+            left_side = join_op(chain)
+            right_side = join_op(i_flipped_chain)
+
+            with evaluate(False):
+                full_term = left_side - right_side
+
+            is_zero = str(left_side) == str(right_side)
+            if simplify_output:
+                full_term = simplify(full_term)  # type: ignore
+                if full_term.is_zero == True:  # type: ignore
+                    is_zero = True
+
+            if not is_zero:
+                out_arr.append(
+                    f"    {sum} {lam} {{{custom_printer(full_term, False, mode='flipping')}}}"
+                )
+                if print_to_file:
+                    lam = lam.replace("Λ", "lam").replace("i", "flipping_index")
+
+                    # sum-iterator
+                    write_file(
+                        f"        # sum({sum_arg_1},{sum_arg_2})\n"
+                        + f"        for ({sum_arg_2}, nb_occupation, nb_occupation_os) in flipping_neighbors_index_occupation_tuples:\n"
+                    )
+                    write_file(
+                        f"            res += {lam} * ({custom_printer(full_term, True, mode='flipping')})\n"
+                    )
+
+        if len(out_arr):
+            print(f"  Flip: n({flipping_spin},i) <-> 1 - n({flipping_spin},i)")
+            for out in out_arr:
+                print(out)
+            print()
+
+    if print_to_file:
+        write_file(f"    return res\n\n\n")
+
+
 if __name__ == "__main__":
     ops = operators()
 
@@ -365,8 +509,16 @@ if __name__ == "__main__":
     if print_to_file:
         init_file()
 
+    # hopping
     for key in ops.keys():
-        print(f"Part Operator: {key}")
-        print_difference(key, ops[key], True, print_to_file)
+        print(f"Hopping, Part Operator: {key}")
+        print_differences_hopping(key, ops[key], True, print_to_file)
+        print(f"")
+        print(f"")
+
+    # flipping
+    for key in ops.keys():
+        print(f"Hopping, Part Operator: {key}")
+        print_differences_flipping(key, ops[key], True, print_to_file)
         print(f"")
         print(f"")

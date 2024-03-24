@@ -466,14 +466,14 @@ analytical_calculation_mapper: Dict[
         np.complex128,
     ],
 ] = {
-    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm,
-    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm,
-    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm,
-    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm,
-    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl,
-    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm,
-    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm,
-    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm,
+    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm_hopping,
+    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm_hopping,
+    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm_hopping,
+    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm_hopping,
+    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl_hopping,
+    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm_hopping,
+    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm_hopping,
+    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm_hopping,
 }
 
 
