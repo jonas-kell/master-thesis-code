@@ -154,7 +154,7 @@ class MonteCarloSampler(GeneralSampler):
                 )
 
                 if self.accepts_modification(
-                    energy_difference=energy_difference,
+                    energy_difference=-energy_difference,  # difference is wrong way round from function. need proposed-original
                     random_generator=random_generator,
                     psi_factor=psi_factor,
                 ):
