@@ -119,6 +119,9 @@ class MonteCarloSampler(GeneralSampler):
                     / np.real(original_state_psi * np.conjugate(original_state_psi))
                 )
 
+                # TODO use new specialized flipping function
+                # also check for correct direction...
+
                 energy_difference = self.system_hamiltonian.get_H_eff_difference(
                     system_state_a=proposed_state,  # make sure this does proposed-original !!
                     system_state_b=original_state,
@@ -143,6 +146,7 @@ class MonteCarloSampler(GeneralSampler):
                 )
 
                 energy_difference, psi_factor = (
+                    # TODO is this the right orientation of the difference ???
                     self.system_hamiltonian.get_H_eff_difference_swapping(
                         time=time,
                         sw1_up=sw1_up,
@@ -182,6 +186,8 @@ class MonteCarloSampler(GeneralSampler):
         # This is equal to choosing 1/0 with equal probability for each site
 
         state_to_modify.init_random_filling(random_generator=random_generator)
+
+        # TODO make the initialization fill level configurable from outside
 
     def thermalize(
         self,

@@ -187,6 +187,7 @@ class SystemState:
         flipping_up: bool,
         flipping_index: int,
     ) -> "SystemState":
+        # TODO support multiple flips (burst)
         flip_index = flipping_index
         if not flipping_up:
             if_spin_offset = self.get_number_sites_wo_spin_degree()
@@ -217,6 +218,7 @@ class RandomFlipping(StateModification):
     def get_random_flipped_copy(
         self, before_flip_system_state: SystemState, random_generator: RandomGenerator
     ) -> "SystemState":
+        # TODO rewrite so that this uses flip in place and only the parameters are generated here
         all_sites = before_flip_system_state.get_number_sites()
         new_state = before_flip_system_state.get_editable_copy()
 

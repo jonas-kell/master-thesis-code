@@ -898,3 +898,6 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             ),
             1.0,  # this being 1.0 is a required assumption for this simplification
         )
+
+
+# TODO flipping AND swapping specialization
