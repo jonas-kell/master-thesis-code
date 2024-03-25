@@ -493,6 +493,52 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         )
 
 
+def get_lambda_functions(
+    ham: Hamiltonian,
+    time: float,
+    before_swap_system_state: state.SystemState,
+) -> Tuple[
+    Callable[[int, int], np.complex128],
+    Callable[[int, int], np.complex128],
+    Callable[[int, int], np.complex128],
+]:
+    def eps_m_minus_eps_l(l: int, m: int) -> float:
+        return ham.E * (
+            before_swap_system_state.get_eps_multiplier(
+                index=m,
+                phi=ham.phi,
+                sin_phi=ham.sin_phi,
+                cos_phi=ham.cos_phi,
+            )
+            - before_swap_system_state.get_eps_multiplier(
+                index=l,
+                phi=ham.phi,
+                sin_phi=ham.sin_phi,
+                cos_phi=ham.cos_phi,
+            )
+        )
+
+    def part_A_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
+        return (1 / eps_m_minus_eps_l_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_cache)
+        )
+
+    def part_B_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + ham.U
+        return (1 / eps_m_minus_eps_l_plus_U_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
+        )
+
+    def part_C_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - ham.U
+        return (1 / eps_m_minus_eps_l_minus_U_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
+        )
+
+    return part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback
+
+
 analytical_calculation_mapper_hopping: Dict[
     VPartsMapping,
     Callable[
@@ -610,40 +656,6 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             # The swapped indices are equal. We know the result
             return (np.complex128(0), 1.0)
 
-        def eps_m_minus_eps_l(l: int, m: int) -> float:
-            return self.E * (
-                before_swap_system_state.get_eps_multiplier(
-                    index=m,
-                    phi=self.phi,
-                    sin_phi=self.sin_phi,
-                    cos_phi=self.cos_phi,
-                )
-                - before_swap_system_state.get_eps_multiplier(
-                    index=l,
-                    phi=self.phi,
-                    sin_phi=self.sin_phi,
-                    cos_phi=self.cos_phi,
-                )
-            )
-
-        def part_A_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
-            return (1 / eps_m_minus_eps_l_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_cache)
-            )
-
-        def part_B_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
-            return (1 / eps_m_minus_eps_l_plus_U_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
-            )
-
-        def part_C_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
-            return (1 / eps_m_minus_eps_l_minus_U_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
-            )
-
         sw1_neighbor_indices_without_sw2 = (
             before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
         )
@@ -674,6 +686,14 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             )
             for nb in sw2_neighbor_indices_without_sw1
         ]
+
+        part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
+            get_lambda_functions(
+                ham=self,
+                before_swap_system_state=before_swap_system_state,
+                time=time,
+            )
+        )
 
         unscaled_H_n_difference = np.complex128(0)
         for i, sum_map in enumerate(sum_map_controller):
@@ -828,43 +848,13 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             before_swap_system_state.get_opposite_spin_index(flipping_index)
         ]
 
-        # TODO this duplicates code. But required because local variables are bound.
-        # could be done more cleanly, by extracting and giving before_swap_system_state into the function.
-        # But do not know if this is worth the extra work to remodel
-
-        def eps_m_minus_eps_l(l: int, m: int) -> float:
-            return self.E * (
-                before_swap_system_state.get_eps_multiplier(
-                    index=m,
-                    phi=self.phi,
-                    sin_phi=self.sin_phi,
-                    cos_phi=self.cos_phi,
-                )
-                - before_swap_system_state.get_eps_multiplier(
-                    index=l,
-                    phi=self.phi,
-                    sin_phi=self.sin_phi,
-                    cos_phi=self.cos_phi,
-                )
+        part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
+            get_lambda_functions(
+                ham=self,
+                before_swap_system_state=before_swap_system_state,
+                time=time,
             )
-
-        def part_A_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
-            return (1 / eps_m_minus_eps_l_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_cache)
-            )
-
-        def part_B_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + self.U
-            return (1 / eps_m_minus_eps_l_plus_U_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
-            )
-
-        def part_C_lambda_callback(l: int, m: int) -> np.complex128:
-            eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - self.U
-            return (1 / eps_m_minus_eps_l_minus_U_cache) * (
-                np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
-            )
+        )
 
         flipping_neighbor_indices = (
             before_swap_system_state.get_nearest_neighbor_indices(flipping_index)
