@@ -149,6 +149,9 @@ def main_measurement_function(
                 )
 
                 data["measurements"] = measurements
+                data["realworld_total_calculation_time"] = float(
+                    f"{computerTime.time()-function_start_time:.3f}"
+                )
 
                 json.dump(
                     data,

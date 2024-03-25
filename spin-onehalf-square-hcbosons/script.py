@@ -28,7 +28,9 @@ if __name__ == "__main__":
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
-    hamiltonian_type: Literal["canonical", "swap_optimized"] = "swap_optimized"
+    hamiltonian_type: Literal[
+        "canonical", "swap_optimized", "flip_optimized", "both_optimizations"
+    ] = "both_optimizations"
     sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
 
     # ! Monte Carlo settings
@@ -59,6 +61,14 @@ if __name__ == "__main__":
     # Hamiltonian
     if hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+    if hamiltonian_type == "flip_optimized":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+    if hamiltonian_type == "both_optimizations":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.

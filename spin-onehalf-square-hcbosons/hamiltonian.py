@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-from typing import Dict, List, Tuple, Callable
+from typing import Dict, List, Tuple, Callable, Union, Any
 from enum import Enum
 import analyticalcalcfunctions
 
@@ -145,13 +145,14 @@ class Hamiltonian(ABC):
         return np.exp(self.get_H_eff(system_state=system_state, time=time))
 
     def get_log_info(
-        self,
-    ) -> Dict[str, float]:
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return {
             "U": self.U,
             "E": self.E,
             "J": self.J,
             "phi": self.phi,
+            **additional_info,
         }
 
 
@@ -477,6 +478,16 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
         return result
 
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonian",
+                **additional_info,
+            }
+        )
+
 
 analytical_calculation_mapper_hopping: Dict[
     VPartsMapping,
@@ -521,7 +532,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
 
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
-                "The simplified Hamiltonian has having a HomogenousInitialSystemState as a pre-requirement"
+                "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
             )
 
     def get_base_energy_difference_swapping(
@@ -711,6 +722,16 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             1.0,  # this being 1.0 is a required assumption for this simplification
         )
 
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianSwappingOptimization",
+                **additional_info,
+            }
+        )
+
 
 analytical_calculation_mapper_flipping: Dict[
     VPartsMapping,
@@ -750,7 +771,7 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
 
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
-                "The simplified Hamiltonian has having a HomogenousInitialSystemState as a pre-requirement"
+                "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
             )
 
     def get_base_energy_difference_flipping(
@@ -868,7 +889,7 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
                     # B part of the first order
                     callback = part_B_lambda_callback
                 elif i == 2:
-                    # C part of the first order
+                    # C part of the first orderFlippingOptimization
                     callback = part_C_lambda_callback
 
                 analytical_calculation = analytical_calculation_mapper_flipping[
@@ -899,5 +920,66 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             1.0,  # this being 1.0 is a required assumption for this simplification
         )
 
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianFlippingOptimization",
+                **additional_info,
+            }
+        )
 
-# TODO flipping AND swapping specialization
+
+class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+    HardcoreBosonicHamiltonianFlippingOptimization
+):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+    ):
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+        self.swapping_hamiltonian = HardcoreBosonicHamiltonianSwappingOptimization(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+    # delegate this call, as we cannot extend multiple classes
+    def get_H_eff_difference_swapping(
+        self,
+        time: float,
+        sw1_up: bool,
+        sw1_index: int,
+        sw2_up: bool,
+        sw2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        return self.swapping_hamiltonian.get_H_eff_difference_swapping(
+            time=time,
+            sw1_up=sw1_up,
+            sw1_index=sw1_index,
+            sw2_up=sw2_up,
+            sw2_index=sw2_index,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimization",
+                **additional_info,
+            }
+        )
