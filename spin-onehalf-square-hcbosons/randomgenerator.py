@@ -49,3 +49,10 @@ class RandomGenerator:
         return {
             "seed": self.seed,
         }
+
+    def binomial_random(self, n: int):
+        successes = 0
+        for _ in range(n):
+            if self.probability() < 0.5:
+                successes += 1
+        return successes

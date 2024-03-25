@@ -134,6 +134,35 @@ class SystemState:
             )
         )
 
+    def fill_randomly_to_fill_level(
+        self, fill_ratio: float, random_generator: RandomGenerator
+    ) -> None:
+
+        all_sites = self.get_number_sites()
+        target_num_filling = round(all_sites * fill_ratio)
+
+        # TODO this is not fully efficient, also causes a random number of calls to the rng, which is kind of not pretty
+
+        if fill_ratio <= 0.5:
+            # init with zeros and add
+            added = 0
+            self.state_array.fill(0)
+            while added < target_num_filling:
+                place_index = random_generator.randint(0, all_sites - 1)
+                if self.state_array[place_index] == 0:
+                    self.state_array[place_index] = 1
+                    added += 1
+        else:
+            # init with ones and remove
+            self.state_array.fill(1)
+            removed = 0
+            target_num_removing = all_sites - target_num_filling
+            while removed < target_num_removing:
+                place_index = random_generator.randint(0, all_sites - 1)
+                if self.state_array[place_index] == 1:
+                    self.state_array[place_index] = 0
+                    removed += 1
+
     # !! Function access helpers to internal system_geometry and initial_system_state from here on
 
     def get_Psi_of_N(self) -> float:

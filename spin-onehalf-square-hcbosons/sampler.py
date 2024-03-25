@@ -52,6 +52,150 @@ class GeneralSampler(ABC):
         }
 
 
+class BeforeThermalizationRandomization(ABC):
+    def __init__(
+        self,
+    ):
+        pass
+
+    @abstractmethod
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        pass
+
+    @abstractmethod
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        pass
+
+
+class VacuumStateBeforeThermalization(BeforeThermalizationRandomization):
+    def __init__(
+        self,
+    ):
+        pass
+
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        system_state.get_state_array().fill(0)
+        return system_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        return {"type": "VacuumStateBeforeThermalization"}
+
+
+class EachSiteRandomBeforeThermalization(BeforeThermalizationRandomization):
+    def __init__(
+        self,
+    ):
+        pass
+
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        system_state.init_random_filling(random_generator=random_generator)
+        return system_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        return {"type": "EachSiteRandomBeforeThermalization"}
+
+
+class FillRandomlyToSpecifiedFillLevelBeforeThermalization(
+    BeforeThermalizationRandomization
+):
+    def __init__(
+        self,
+        fill_ratio: float,
+    ):
+        if fill_ratio < 0:
+            raise Exception("Fill ratio must be at least 0")
+
+        if fill_ratio > 1:
+            raise Exception("Fill ratio must be at most 1")
+
+        self.fill_ratio = fill_ratio
+
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        system_state.fill_randomly_to_fill_level(
+            fill_ratio=self.fill_ratio, random_generator=random_generator
+        )
+        return system_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        return {
+            "type": "FillRandomlyToSpecifiedFillLevelBeforeThermalization",
+            "fill_ratio": self.fill_ratio,
+        }
+
+
+class FillRandomlyToFillLevelPulledFromUniformDistributionBeforeThermalization(
+    BeforeThermalizationRandomization
+):
+    def __init__(
+        self,
+    ):
+        pass
+
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        system_state.fill_randomly_to_fill_level(
+            fill_ratio=random_generator.probability(), random_generator=random_generator
+        )
+        return system_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        return {
+            "type": "FillRandomlyToFillLevelPulledFromUniformDistributionBeforeThermalization",
+        }
+
+
+class FillRandomlyToFillLevelPulledFromBinomialDistributionBeforeThermalization(
+    BeforeThermalizationRandomization
+):
+    """
+    This should have the same outcome as EachSiteRandomBeforeThermalization
+
+    Only that this one is less efficient in generating the state.
+    So probably use the other one in long runs.
+    """
+
+    def __init__(
+        self,
+    ):
+        pass
+
+    def prepare_state_for_thermalization(
+        self,
+        system_state: state.SystemState,
+        random_generator: RandomGenerator,
+    ) -> state.SystemState:
+        number_sites = system_state.get_number_sites()
+        system_state.fill_randomly_to_fill_level(
+            fill_ratio=random_generator.binomial_random(number_sites) / number_sites,
+            random_generator=random_generator,
+        )
+        return system_state
+
+    def get_log_info(self) -> Dict[str, Union[float, str]]:
+        return {
+            "type": "FillRandomlyToFillLevelPulledFromBinomialDistributionBeforeThermalization",
+        }
+
+
 class MonteCarloSampler(GeneralSampler):
     def __init__(
         self,
@@ -63,6 +207,7 @@ class MonteCarloSampler(GeneralSampler):
         state_modification: state.StateModification,
         num_thermalization_steps: int,
         num_samples_per_chain: int,
+        before_thermalization_initialization: BeforeThermalizationRandomization,
     ):
         super().__init__(
             system_geometry=system_geometry, initial_system_state=initial_system_state
@@ -73,6 +218,7 @@ class MonteCarloSampler(GeneralSampler):
         self.state_modification = state_modification
         self.num_thermalization_steps = num_thermalization_steps
         self.num_samples_per_chain = num_samples_per_chain
+        self.before_thermalization_initialization = before_thermalization_initialization
 
         print(
             f"Monte Carlo Sampling used. Approximately {self.num_samples} samples and {self.num_samples_per_chain} which means ca. {self.num_samples/self.num_samples_per_chain:.1f} chains will be run across all workers"
@@ -163,7 +309,7 @@ class MonteCarloSampler(GeneralSampler):
                     f"Handling case for state-modification {self.state_modification.__class__.__name__} not implemented"
                 )
 
-    def initialize_fill_level(
+    def prepare_for_thermalization(
         self,
         state_to_modify: state.SystemState,
         random_generator: RandomGenerator,
@@ -172,12 +318,14 @@ class MonteCarloSampler(GeneralSampler):
         # For swapping, this dictates the overall amount of particles present, therefore maps a specific block in the hamiltonian
         # The randomization is therefore relevant, to gauge which blocks are possibly sampled
 
+        # Assumption:
         # The distribution of the fill level sampling (number of 1s) therefore needs to be binomial
         # This is equal to choosing 1/0 with equal probability for each site
 
-        state_to_modify.init_random_filling(random_generator=random_generator)
-
-        # TODO make the initialization fill level configurable from outside
+        self.before_thermalization_initialization.prepare_state_for_thermalization(
+            system_state=state_to_modify,
+            random_generator=random_generator,
+        )
 
     def thermalize(
         self,
@@ -223,7 +371,7 @@ class MonteCarloSampler(GeneralSampler):
                     initial_system_state=self.initial_system_state,
                 )
 
-                self.initialize_fill_level(
+                self.prepare_for_thermalization(
                     working_state, random_generator=random_generator
                 )
                 self.thermalize(working_state, time, random_generator=random_generator)
@@ -252,6 +400,7 @@ class MonteCarloSampler(GeneralSampler):
                 "num_thermalization_steps": self.num_thermalization_steps,
                 "num_samples_per_chain": self.num_samples_per_chain,
                 "state_modification": self.state_modification.get_log_info(),
+                "pre_thermalization_initialization_strategy": self.before_thermalization_initialization.get_log_info(),
                 **additional_info,
             }
         )

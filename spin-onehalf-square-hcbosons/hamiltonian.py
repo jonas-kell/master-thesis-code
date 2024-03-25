@@ -250,26 +250,18 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
         psi_N = system_state.get_Psi_of_N()
 
-        # one_over_epsm_minus_epsl
-        # one_over_epsm_minus_epsl_plus_U
-        # one_over_epsm_minus_epsl_minus_U
-        # e_to_the_t_epsm_minus_epsl
-        # e_to_the_t_epsm_minus_epsl_plus_U
-        # e_to_the_t_epsm_minus_epsl_minus_U
-        # psi_K_over_psi_N
-
         # see above comments, what these Tuple elements are
         cache: Dict[
             VPartsMapping,
             List[
                 Tuple[
-                    float,
-                    float,
-                    float,
-                    np.complex128,
-                    np.complex128,
-                    np.complex128,
-                    float,
+                    float,  # one_over_epsm_minus_epsl
+                    float,  # one_over_epsm_minus_epsl_plus_U
+                    float,  # one_over_epsm_minus_epsl_minus_U
+                    np.complex128,  # e_to_the_t_epsm_minus_epsl
+                    np.complex128,  # e_to_the_t_epsm_minus_epsl_plus_U
+                    np.complex128,  # e_to_the_t_epsm_minus_epsl_minus_U
+                    float,  # psi_K_over_psi_N
                 ]
             ],
         ] = {}
@@ -307,6 +299,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                 )
 
                 # probably inefficient and is always 1 but wanted to do it properly
+                # properly configured mc sampling doesn't touch this function and assumes homogenous psi_N, so this is not major efficiency problem
                 psi_K_over_psi_N = psi_K / psi_N
 
                 cache[val].append(

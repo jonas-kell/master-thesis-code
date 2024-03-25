@@ -1,14 +1,3 @@
-# import warnings
-# import numpy as np
-# import debugpy
-# warnings.filterwarnings("error")
-# try:
-#     test = np.complex128(1)
-#     for i in range(1000):
-#         test *= 10
-# except RuntimeWarning:
-#     debugpy.breakpoint()
-
 import state
 import systemgeometry
 import numpy as np

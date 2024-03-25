@@ -21,9 +21,9 @@ if __name__ == "__main__":
     phi = np.pi / 100
 
     # ! Simulation Scope Settings
-    start_time: float = 0
+    start_time: float = 70
     time_step: float = 7
-    number_of_time_steps: int = int(30)
+    number_of_time_steps: int = int(1)
 
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
@@ -35,8 +35,16 @@ if __name__ == "__main__":
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
-    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 5  # arbitrary at the moment
+    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
+    num_samples_per_chain: int = 10  # arbitrary at the moment
+    mc_pre_therm_strategy: Literal[
+        "vacuum",
+        "each_random",
+        "specified_level",
+        "random_level_uniform",
+        "random_level_binomial",
+    ] = "random_level_binomial"
+    mc_pre_therm_fill_level = 0.5
 
     # ! Randomizer
     randomness_seed = "aok"
@@ -111,7 +119,6 @@ if __name__ == "__main__":
                 "Warning: Non-Homogenous system probably cannot be mc-sampled, because not smooth enough"
             )
         # Step-State-Modification
-
         if mc_modification_mode == "hopping":  # type: ignore - switch is hard-coded.
             allow_hopping_across_spin_direction = True
             state_modification = state.LatticeNeighborHopping(
@@ -122,6 +129,25 @@ if __name__ == "__main__":
             state_modification = state.RandomFlipping(
                 system_geometry=system_geometry,
             )
+        if mc_pre_therm_strategy == "vacuum":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = sampler.VacuumStateBeforeThermalization()
+        elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToSpecifiedFillLevelBeforeThermalization(
+                    mc_pre_therm_fill_level
+                )
+            )
+        elif mc_pre_therm_strategy == "random_level_uniform":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToFillLevelPulledFromUniformDistributionBeforeThermalization()
+            )
+        elif mc_pre_therm_strategy == "random_level_binomial":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToFillLevelPulledFromBinomialDistributionBeforeThermalization()
+            )
+        elif mc_pre_therm_strategy == "each_random":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = sampler.EachSiteRandomBeforeThermalization()
+
         # Monte Carlo Sampler
         num_intermediate_mc_steps: int = 2 * (
             2 * system_geometry.get_number_sites_wo_spin_degree()
@@ -137,6 +163,7 @@ if __name__ == "__main__":
             num_thermalization_steps=num_thermalization_steps,
             num_samples_per_chain=num_samples_per_chain,
             state_modification=state_modification,
+            before_thermalization_initialization=pre_therm_strategy,
         )
     if sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
         state_sampler = sampler.ExactSampler(
