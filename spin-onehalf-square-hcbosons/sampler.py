@@ -103,38 +103,29 @@ class MonteCarloSampler(GeneralSampler):
         """
         for _ in range(num_steps):
             if isinstance(self.state_modification, state.RandomFlipping):
-                # Propose a new state by random modification
-                original_state = state_to_modify
-                proposed_state = self.state_modification.get_random_flipped_copy(
-                    before_flip_system_state=state_to_modify,
-                    random_generator=random_generator,
+                # Propose a new state modification
+                flipping_up, flipping_index = (
+                    self.state_modification.get_random_flipping_parameters(
+                        random_generator=random_generator
+                    )
                 )
 
-                # Calculate the energies and probabilities
-                original_state_psi = original_state.get_Psi_of_N()
-                proposed_state_psi = proposed_state.get_Psi_of_N()
-
-                psi_factor = float(
-                    np.real(proposed_state_psi * np.conjugate(proposed_state_psi))
-                    / np.real(original_state_psi * np.conjugate(original_state_psi))
-                )
-
-                # TODO use new specialized flipping function
-                # also check for correct direction...
-
-                energy_difference = self.system_hamiltonian.get_H_eff_difference(
-                    system_state_a=proposed_state,  # make sure this does proposed-original !!
-                    system_state_b=original_state,
-                    time=time,
+                energy_difference, psi_factor = (
+                    self.system_hamiltonian.get_H_eff_difference_flipping(
+                        time=time,
+                        flipping_up=flipping_up,
+                        flipping_index=flipping_index,
+                        before_swap_system_state=state_to_modify,
+                    )
                 )
 
                 if self.accepts_modification(
-                    energy_difference=energy_difference,
+                    energy_difference=-energy_difference,  # notice minus: difference is wrong way round from function. need (proposed - original)
                     random_generator=random_generator,
                     psi_factor=psi_factor,
                 ):
-                    state_to_modify.set_state_array(
-                        new_state=proposed_state.get_state_array()
+                    state_to_modify.flip_in_place(
+                        flipping_up=flipping_up, flipping_index=flipping_index
                     )
 
             elif isinstance(self.state_modification, state.LatticeNeighborHopping):
@@ -146,7 +137,6 @@ class MonteCarloSampler(GeneralSampler):
                 )
 
                 energy_difference, psi_factor = (
-                    # TODO is this the right orientation of the difference ???
                     self.system_hamiltonian.get_H_eff_difference_swapping(
                         time=time,
                         sw1_up=sw1_up,
@@ -158,7 +148,7 @@ class MonteCarloSampler(GeneralSampler):
                 )
 
                 if self.accepts_modification(
-                    energy_difference=-energy_difference,  # difference is wrong way round from function. need proposed-original
+                    energy_difference=-energy_difference,  # notice minus: difference is wrong way round from function. need (proposed - original)
                     random_generator=random_generator,
                     psi_factor=psi_factor,
                 ):

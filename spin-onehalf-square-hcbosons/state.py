@@ -187,7 +187,6 @@ class SystemState:
         flipping_up: bool,
         flipping_index: int,
     ) -> "SystemState":
-        # TODO support multiple flips (burst)
         flip_index = flipping_index
         if not flipping_up:
             if_spin_offset = self.get_number_sites_wo_spin_degree()
@@ -210,29 +209,26 @@ class StateModification(ABC):
 class RandomFlipping(StateModification):
     def __init__(
         self,
-        num_random_flips: int,
+        system_geometry: SystemGeometry,
     ):
         super().__init__()
-        self.num_random_flips = num_random_flips
+        self.randomizer_upper_argument = (
+            system_geometry.get_number_sites_wo_spin_degree() - 1
+        )
 
-    def get_random_flipped_copy(
-        self, before_flip_system_state: SystemState, random_generator: RandomGenerator
-    ) -> "SystemState":
-        # TODO rewrite so that this uses flip in place and only the parameters are generated here
-        all_sites = before_flip_system_state.get_number_sites()
-        new_state = before_flip_system_state.get_editable_copy()
-
-        for _ in range(self.num_random_flips):
-            flip_index = random_generator.randint(0, all_sites - 1)
-
-            new_state.get_state_array()[flip_index] = (
-                new_state.get_state_array()[flip_index] + 1
-            ) % 2
-
-        return new_state
+    def get_random_flipping_parameters(
+        self, random_generator: RandomGenerator
+    ) -> Tuple[
+        bool,  # flipping_up
+        int,  # flipping_index
+    ]:
+        return (
+            random_generator.randbool(),
+            random_generator.randint(0, self.randomizer_upper_argument),
+        )
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
-        return {"type": "RandomFlipping", "num_random_flips": self.num_random_flips}
+        return {"type": "RandomFlipping"}
 
 
 class LatticeNeighborHopping(StateModification):
@@ -289,6 +285,6 @@ class LatticeNeighborHopping(StateModification):
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return {
-            "type": "RandomFlipping",
+            "type": "LatticeNeighborHopping",
             "allow_hopping_across_spin_direction": self.allow_hopping_across_spin_direction,
         }

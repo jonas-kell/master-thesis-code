@@ -119,8 +119,9 @@ if __name__ == "__main__":
                 system_geometry=system_geometry,
             )
         if mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
-            num_random_flips: int = 1
-            state_modification = state.RandomFlipping(num_random_flips=num_random_flips)
+            state_modification = state.RandomFlipping(
+                system_geometry=system_geometry,
+            )
         # Monte Carlo Sampler
         num_intermediate_mc_steps: int = 2 * (
             2 * system_geometry.get_number_sites_wo_spin_degree()
