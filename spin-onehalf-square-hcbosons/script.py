@@ -44,7 +44,8 @@ if __name__ == "__main__":
         "random_level_uniform",
         "random_level_binomial",
     ] = "random_level_binomial"
-    mc_pre_therm_fill_level = 0.5
+    # only relevant for mc_pre_therm_strategy="specified_level"
+    mc_pre_therm_specified_fill_level = 0.5
 
     # ! Randomizer
     randomness_seed = "aok"
@@ -134,7 +135,7 @@ if __name__ == "__main__":
         elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
             pre_therm_strategy = (
                 sampler.FillRandomlyToSpecifiedFillLevelBeforeThermalization(
-                    mc_pre_therm_fill_level
+                    mc_pre_therm_specified_fill_level
                 )
             )
         elif mc_pre_therm_strategy == "random_level_uniform":  # type: ignore - switch is hard-coded.
