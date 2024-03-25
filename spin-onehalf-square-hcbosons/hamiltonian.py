@@ -293,15 +293,16 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     )
                 )
 
-                # TODO can use expm1 for making this more efficient here
                 one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l
                 one_over_epsm_minus_epsl_plus_U = 1 / (eps_m_minus_eps_l + self.U)
                 one_over_epsm_minus_epsl_minus_U = 1 / (eps_m_minus_eps_l - self.U)
-                e_to_the_t_epsm_minus_epsl = np.exp(1j * time * eps_m_minus_eps_l)
-                e_to_the_t_epsm_minus_epsl_plus_U = np.exp(
+                e_to_the_t_epsm_minus_epsl_minus_one = np.expm1(
+                    1j * time * eps_m_minus_eps_l
+                )
+                e_to_the_t_epsm_minus_epsl_plus_U_minus_one = np.expm1(
                     1j * time * (eps_m_minus_eps_l + self.U)
                 )
-                e_to_the_t_epsm_minus_epsl_minus_U = np.exp(
+                e_to_the_t_epsm_minus_epsl_minus_U_minus_one = np.expm1(
                     1j * time * (eps_m_minus_eps_l - self.U)
                 )
 
@@ -313,9 +314,9 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                         one_over_epsm_minus_epsl,
                         one_over_epsm_minus_epsl_plus_U,
                         one_over_epsm_minus_epsl_minus_U,
-                        e_to_the_t_epsm_minus_epsl,
-                        e_to_the_t_epsm_minus_epsl_plus_U,
-                        e_to_the_t_epsm_minus_epsl_minus_U,
+                        e_to_the_t_epsm_minus_epsl_minus_one,
+                        e_to_the_t_epsm_minus_epsl_plus_U_minus_one,
+                        e_to_the_t_epsm_minus_epsl_minus_U_minus_one,
                         psi_K_over_psi_N,
                     )
                 )
@@ -327,9 +328,9 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                     one_over_epsm_minus_epsl,
                     one_over_epsm_minus_epsl_plus_U,
                     one_over_epsm_minus_epsl_minus_U,
-                    e_to_the_t_epsm_minus_epsl,
-                    e_to_the_t_epsm_minus_epsl_plus_U,
-                    e_to_the_t_epsm_minus_epsl_minus_U,
+                    e_to_the_t_epsm_minus_epsl_minus_one,
+                    e_to_the_t_epsm_minus_epsl_plus_U_minus_one,
+                    e_to_the_t_epsm_minus_epsl_minus_U_minus_one,
                     psi_K_over_psi_N,
                 ) in cache[map_key]:
                     product = np.complex128(1)
@@ -337,18 +338,21 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
                     if i == 0:
                         # A part of the first order
-                        product *= one_over_epsm_minus_epsl * (
-                            e_to_the_t_epsm_minus_epsl - 1
+                        product *= (
+                            one_over_epsm_minus_epsl
+                            * e_to_the_t_epsm_minus_epsl_minus_one
                         )
                     elif i == 1:
                         # B part of the first order
-                        product *= one_over_epsm_minus_epsl_plus_U * (
-                            e_to_the_t_epsm_minus_epsl_plus_U - 1
+                        product *= (
+                            one_over_epsm_minus_epsl_plus_U
+                            * e_to_the_t_epsm_minus_epsl_plus_U_minus_one
                         )
                     elif i == 2:
                         # C part of the first order
-                        product *= one_over_epsm_minus_epsl_minus_U * (
-                            e_to_the_t_epsm_minus_epsl_minus_U - 1
+                        product *= (
+                            one_over_epsm_minus_epsl_minus_U
+                            * e_to_the_t_epsm_minus_epsl_minus_U_minus_one
                         )
 
                     total_sum += product
