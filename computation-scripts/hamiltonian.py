@@ -918,6 +918,7 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
         )
 
 
+# TODO python CAN do multiple inheritance https://www.programiz.com/python-programming/multiple-inheritance
 class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
     HardcoreBosonicHamiltonianFlippingOptimization
 ):
