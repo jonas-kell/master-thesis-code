@@ -35,6 +35,7 @@ if __name__ == "__main__":
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
+    mc_thermalization_mode: Literal["flipping", "hopping"] = "hopping"
     num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
     num_samples_per_chain: int = 10  # arbitrary at the moment
     mc_pre_therm_strategy: Literal[
@@ -130,6 +131,16 @@ if __name__ == "__main__":
             state_modification = state.RandomFlipping(
                 system_geometry=system_geometry,
             )
+        if mc_thermalization_mode == "hopping":  # type: ignore - switch is hard-coded.
+            allow_hopping_across_spin_direction = True
+            state_modification_thermalization = state.LatticeNeighborHopping(
+                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
+                system_geometry=system_geometry,
+            )
+        if mc_thermalization_mode == "flipping":  # type: ignore - switch is hard-coded.
+            state_modification_thermalization = state.RandomFlipping(
+                system_geometry=system_geometry,
+            )
         if mc_pre_therm_strategy == "vacuum":  # type: ignore - switch is hard-coded.
             pre_therm_strategy = sampler.VacuumStateBeforeThermalization()
         elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
@@ -164,6 +175,7 @@ if __name__ == "__main__":
             num_thermalization_steps=num_thermalization_steps,
             num_samples_per_chain=num_samples_per_chain,
             state_modification=state_modification,
+            state_modification_thermalization=state_modification_thermalization,
             before_thermalization_initialization=pre_therm_strategy,
         )
     if sampling_strategy == "exact":  # type: ignore - switch is hard-coded.

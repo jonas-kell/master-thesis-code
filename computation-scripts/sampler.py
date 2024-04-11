@@ -205,6 +205,7 @@ class MonteCarloSampler(GeneralSampler):
         num_samples: int,
         num_intermediate_mc_steps: int,
         state_modification: state.StateModification,
+        state_modification_thermalization: Union[state.StateModification, None],
         num_thermalization_steps: int,
         num_samples_per_chain: int,
         before_thermalization_initialization: BeforeThermalizationRandomization,
@@ -219,6 +220,11 @@ class MonteCarloSampler(GeneralSampler):
         self.num_thermalization_steps = num_thermalization_steps
         self.num_samples_per_chain = num_samples_per_chain
         self.before_thermalization_initialization = before_thermalization_initialization
+
+        if state_modification_thermalization is None:
+            self.state_modification_thermalization = self.state_modification
+        else:
+            self.state_modification_thermalization = state_modification_thermalization
 
         print(
             f"Monte Carlo Sampling used. Approximately {self.num_samples} samples and {self.num_samples_per_chain} which means ca. {self.num_samples/self.num_samples_per_chain:.1f} chains will be run across all workers"
@@ -239,6 +245,7 @@ class MonteCarloSampler(GeneralSampler):
 
     def do_metropolis_steps(
         self,
+        state_modification: state.StateModification,
         state_to_modify: state.SystemState,
         num_steps: int,
         time: float,
@@ -248,10 +255,10 @@ class MonteCarloSampler(GeneralSampler):
         Advances the system_state in-place by num_steps metropolis steps
         """
         for _ in range(num_steps):
-            if isinstance(self.state_modification, state.RandomFlipping):
+            if isinstance(state_modification, state.RandomFlipping):
                 # Propose a new state modification
                 flipping_up, flipping_index = (
-                    self.state_modification.get_random_flipping_parameters(
+                    state_modification.get_random_flipping_parameters(
                         random_generator=random_generator
                     )
                 )
@@ -274,10 +281,10 @@ class MonteCarloSampler(GeneralSampler):
                         flipping_up=flipping_up, flipping_index=flipping_index
                     )
 
-            elif isinstance(self.state_modification, state.LatticeNeighborHopping):
+            elif isinstance(state_modification, state.LatticeNeighborHopping):
 
                 sw1_up, sw1_index, sw2_up, sw2_index = (
-                    self.state_modification.get_lattice_hopping_parameters(
+                    state_modification.get_lattice_hopping_parameters(
                         random_generator=random_generator,
                     )
                 )
@@ -306,7 +313,7 @@ class MonteCarloSampler(GeneralSampler):
                     )
             else:
                 raise Exception(
-                    f"Handling case for state-modification {self.state_modification.__class__.__name__} not implemented"
+                    f"Handling case for state-modification {state_modification.__class__.__name__} not implemented"
                 )
 
     def prepare_for_thermalization(
@@ -334,7 +341,8 @@ class MonteCarloSampler(GeneralSampler):
         random_generator: RandomGenerator,
     ):
         self.do_metropolis_steps(
-            state_to_modify,
+            state_to_modify=state_to_modify,
+            state_modification=self.state_modification_thermalization,
             num_steps=self.num_thermalization_steps,
             time=time,
             random_generator=random_generator,
@@ -379,7 +387,8 @@ class MonteCarloSampler(GeneralSampler):
                 for _ in range(chain_target_count):
                     yield working_state
                     self.do_metropolis_steps(
-                        working_state,
+                        state_to_modify=working_state,
+                        state_modification=self.state_modification_thermalization,
                         num_steps=self.num_intermediate_mc_steps,
                         time=time,
                         random_generator=random_generator,
@@ -400,6 +409,7 @@ class MonteCarloSampler(GeneralSampler):
                 "num_thermalization_steps": self.num_thermalization_steps,
                 "num_samples_per_chain": self.num_samples_per_chain,
                 "state_modification": self.state_modification.get_log_info(),
+                "state_modification_thermalization": self.state_modification_thermalization.get_log_info(),
                 "pre_thermalization_initialization_strategy": self.before_thermalization_initialization.get_log_info(),
                 **additional_info,
             }
