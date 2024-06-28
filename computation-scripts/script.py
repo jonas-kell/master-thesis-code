@@ -1,8 +1,9 @@
 # pip3 install matplotlib
 # pip3 install numpy
 
-from typing import List, Literal
+from typing import List, Literal, Union, Type, Dict, cast
 import multiprocessing
+import argparse
 import numpy as np
 from randomgenerator import RandomGenerator
 import state
@@ -12,19 +13,72 @@ import observables
 import measurements
 import systemgeometry
 
+AcceptableTypes = Union[Type[int], Type[float], Type[str]]
+
+
+def get_argument(
+    arguments: Dict[str, Union[float, int, str]],
+    name: str,
+    type: AcceptableTypes,
+    default: Union[float, int, str],
+):
+    extracted_value = default
+    try:
+        extracted_value = type(arguments[name])
+        print(f"Using non-default Argument for param {name}: {extracted_value}")
+    except ValueError:
+        pass
+    except TypeError:
+        pass
+
+    return extracted_value
+
+
 if __name__ == "__main__":
+    # ? !! Possible overwrite of Parameters, read them in from the command-line call
+    parser = argparse.ArgumentParser(description="Parse command-line arguments.")
+
+    # Expected command-line arguments
+    parser.add_argument("--U", required=False)
+    parser.add_argument("--E", required=False)
+    parser.add_argument("--J", required=False)
+    parser.add_argument("--phi", required=False)
+    parser.add_argument("--n", required=False)
+    parser.add_argument("--number_workers", required=False)
+
+    args = vars(parser.parse_args())
+
+    # ? !! Default values for Parameters:
+
     # ! General Hamiltonian properties
-    U = 0.4
-    E = -0.4
-    J = 0.001
+    U = cast(float, get_argument(args, "U", float, 0.5))
+    E = cast(float, get_argument(args, "E", float, -0.5))
+    J = cast(float, get_argument(args, "J", float, 0.001))
+
+    n = cast(int, get_argument(args, "n", int, 2))
+
     # must NOT be integer-multiples of np.pi/2 or you get division by zero
-    phi = np.pi / 100
-    n = 2
+    phi = cast(float, get_argument(args, "phi", float, np.pi / 100))
 
     # ! Simulation Scope Settings
     start_time: float = 0
     time_step: float = 2
     number_of_time_steps: int = int(2)
+
+    # ! Hardware Settings
+    cpu_core_count = (
+        # ! Caution on HPC, this may NOT be the right amount that is available, because we may only use parts of a CPU
+        multiprocessing.cpu_count()
+    )
+    number_workers = cast(
+        int,
+        get_argument(
+            args,
+            "number_workers",
+            int,
+            cpu_core_count,  # assume we want to utilize all cores
+        ),
+    )
 
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
@@ -192,7 +246,6 @@ if __name__ == "__main__":
         )
 
     # ! Simulation
-    number_workers = multiprocessing.cpu_count()
     measurements.main_measurement_function(
         start_time=start_time,
         time_step=time_step,

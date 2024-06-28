@@ -36,6 +36,10 @@ conda deactivate
 
 # RUN (in experiments folder)
 sbatch job.slurm
+
+# Cleanup outputs
+rm *.err
+rm *.out
 ```
 
 ## Check the Job Status
