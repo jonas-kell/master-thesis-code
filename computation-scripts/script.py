@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--phi", required=False)
     parser.add_argument("--n", required=False)
     parser.add_argument("--number_workers", required=False)
+    parser.add_argument("--job_array_index", required=False)
 
     args = vars(parser.parse_args())
 
@@ -77,6 +78,15 @@ if __name__ == "__main__":
             "number_workers",
             int,
             cpu_core_count,  # assume we want to utilize all cores
+        ),
+    )
+    job_array_index = cast(
+        int,
+        get_argument(
+            args,
+            "job_array_index",
+            int,
+            0,
         ),
     )
 
@@ -255,6 +265,7 @@ if __name__ == "__main__":
         random_generator=random_generator,
         state_sampler=state_sampler,
         number_workers=number_workers,
+        job_array_index=job_array_index,
         plot=False,  # do not plot on the HPC-Server!
         plot_title=f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
         write_to_file=True,

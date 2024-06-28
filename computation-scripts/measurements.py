@@ -20,6 +20,7 @@ def main_measurement_function(
     time_step: float,
     number_of_time_steps: int,
     number_workers: int,
+    job_array_index: int,
     plot: bool = False,
     plot_title: str = "Calculations on Spin System",
     plot_x_label: str = "time t",
@@ -40,7 +41,11 @@ def main_measurement_function(
     # file-writing
     current_file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "./../run-outputs/" + datetime.now().strftime("%Y-%m-%d__%H,%M,%S") + ".json",
+        "./../run-outputs/"
+        + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
+        + "-"
+        + str(job_array_index)
+        + ".json",
     )
     if write_to_file:  # write the base file information
         with open(current_file_path, mode="w", newline="") as file:
