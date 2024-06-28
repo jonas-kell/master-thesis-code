@@ -1,14 +1,14 @@
-import hamiltonian as hamiltonianImport
-import observables as observablesImport
-import sampler as samplerImport
-import numpy as np
-import matplotlib.pyplot as plt
+from typing import Dict, Union, Any, Tuple, List, cast, Literal
 import time as computerTime
 import multiprocessing
 from datetime import datetime
 import os
 import json
-from typing import Dict, Union, Any, Tuple, List, cast, Literal
+import hamiltonian as hamiltonianImport
+import observables as observablesImport
+import sampler as samplerImport
+import numpy as np
+import matplotlib.pyplot as plt
 from randomgenerator import RandomGenerator
 
 

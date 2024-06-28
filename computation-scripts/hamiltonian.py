@@ -1,8 +1,8 @@
+from typing import Dict, List, Tuple, Callable, Union, Any
+from enum import Enum
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-from typing import Dict, List, Tuple, Callable, Union, Any
-from enum import Enum
 import analyticalcalcfunctions
 
 

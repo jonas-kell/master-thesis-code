@@ -1,7 +1,7 @@
+from typing import Dict, Union, Any
 from abc import ABC, abstractmethod
 import state
 import systemgeometry
-from typing import Dict, Union, Any
 import hamiltonian
 import numpy as np
 

@@ -1,9 +1,9 @@
-import numpy as np
 from abc import ABC, abstractmethod
+from typing import Dict, Union, Any, List, Tuple
 from systemgeometry import SystemGeometry
 from randomgenerator import RandomGenerator
-from typing import Dict, Union, Any, List, Tuple
 import numpy.typing as npt
+import numpy as np
 
 
 class InitialSystemState(ABC):

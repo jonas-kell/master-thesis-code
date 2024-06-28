@@ -1,9 +1,9 @@
+import time
 import state
 import systemgeometry
 import numpy as np
 import hamiltonian
 from randomgenerator import RandomGenerator
-import time
 
 U = 0.3
 E = -0.4

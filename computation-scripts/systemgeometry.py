@@ -1,6 +1,5 @@
+from typing import Dict, Union, Any, List
 from abc import ABC, abstractmethod
-from typing import List
-from typing import Dict, Union, Any
 
 
 class SystemGeometry(ABC):

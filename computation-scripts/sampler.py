@@ -1,10 +1,9 @@
-import state
-from randomgenerator import RandomGenerator
-import hamiltonian
+from typing import Dict, Union, Any, Generator
 from abc import ABC, abstractmethod
-from typing import Generator
 import math
-from typing import Dict, Union, Any
+import hamiltonian
+from randomgenerator import RandomGenerator
+import state
 import numpy as np
 
 

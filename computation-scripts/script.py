@@ -1,6 +1,8 @@
 # pip3 install matplotlib
 # pip3 install numpy
 
+from typing import List, Literal
+import multiprocessing
 import numpy as np
 from randomgenerator import RandomGenerator
 import state
@@ -8,9 +10,7 @@ import sampler
 import hamiltonian
 import observables
 import measurements
-import multiprocessing
 import systemgeometry
-from typing import List, Literal
 
 if __name__ == "__main__":
     # ! General Hamiltonian properties
@@ -19,11 +19,12 @@ if __name__ == "__main__":
     J = 0.001
     # must NOT be integer-multiples of np.pi/2 or you get division by zero
     phi = np.pi / 100
+    n = 2
 
     # ! Simulation Scope Settings
-    start_time: float = 70
-    time_step: float = 7
-    number_of_time_steps: int = int(1)
+    start_time: float = 0
+    time_step: float = 2
+    number_of_time_steps: int = int(2)
 
     # ! Control behavioral settings here ----------------------------------------------------
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
@@ -31,32 +32,35 @@ if __name__ == "__main__":
     hamiltonian_type: Literal[
         "canonical", "swap_optimized", "flip_optimized", "both_optimizations"
     ] = "both_optimizations"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
     mc_thermalization_mode: Literal["flipping", "hopping"] = "hopping"
     num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 10  # arbitrary at the moment
+    num_samples_per_chain: int = 20  # arbitrary at the moment
     mc_pre_therm_strategy: Literal[
         "vacuum",
         "each_random",
         "specified_level",
         "random_level_uniform",
         "random_level_binomial",
-    ] = "random_level_binomial"
+    ] = "each_random"
     # only relevant for mc_pre_therm_strategy="specified_level"
     mc_pre_therm_specified_fill_level = 0.5
 
+    # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS !!!!!!!!!!!
+    # !!!!!!! BELOW THIS, THE VALUES GET USED, NO LONGER CHANGE THEM ONLY COMPUTE WITH THEM !!!!!!!!!!!
+
     # ! Randomizer
-    randomness_seed = "aok"
+    randomness_seed = "very_nice_seed"
     random_generator = RandomGenerator(randomness_seed)
 
     # ! Geometry of system
     if system_geometry_type == "square_np":  # type: ignore - switch is hard-coded.
-        system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
+        system_geometry = systemgeometry.SquareSystemNonPeriodicState(n)
     if system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
-        system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
+        system_geometry = systemgeometry.LinearChainNonPeriodicState(n)
 
     # ! Initial System State
     if initial_system_state_type == "homogenous":  # type: ignore - switch is hard-coded.
@@ -85,32 +89,35 @@ if __name__ == "__main__":
         ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
 
     # ! Observables that are tested for
-    current_from = 0
-    current_to = 2
-    direction_dependent = True
-    obs: List[observables.Observable] = [
-        observables.DoubleOccupationAtSite(0, system_geometry),
-        observables.DoubleOccupationAtSite(1, system_geometry),
-        observables.DoubleOccupationAtSite(2, system_geometry),
-        observables.DoubleOccupationAtSite(3, system_geometry),
-        # observables.DoubleOccupationFraction(),
-        observables.SpinCurrent(
-            direction_dependent=direction_dependent,
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up=True,
-            system_geometry=system_geometry,
-            system_hamiltonian=ham,
-        ),
-        observables.SpinCurrent(
-            direction_dependent=direction_dependent,
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up=False,
-            system_geometry=system_geometry,
-            system_hamiltonian=ham,
-        ),
+    num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
+    obs_generated: List[observables.Observable] = [
+        observables.DoubleOccupationAtSite(i, system_geometry)
+        for i in range(num_of_sites)
+    ]  # Measure the occupation at ALL sites
+
+    # current_from = 0
+    # current_to = 2
+    # direction_dependent = True
+    obs_hard_coded: List[observables.Observable] = [
+        observables.DoubleOccupationFraction(),
+        # observables.SpinCurrent(
+        #     direction_dependent=direction_dependent,
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up=True,
+        #     system_geometry=system_geometry,
+        #     system_hamiltonian=ham,
+        # ),
+        # observables.SpinCurrent(
+        #     direction_dependent=direction_dependent,
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up=False,
+        #     system_geometry=system_geometry,
+        #     system_hamiltonian=ham,
+        # ),
     ]
+    obs = obs_generated + obs_hard_coded
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
@@ -195,7 +202,7 @@ if __name__ == "__main__":
         random_generator=random_generator,
         state_sampler=state_sampler,
         number_workers=number_workers,
-        plot=True,
-        plot_title=f"obs for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
+        plot=False,  # do not plot on the HPC-Server!
+        plot_title=f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
         write_to_file=True,
     )
