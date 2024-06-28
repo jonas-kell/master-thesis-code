@@ -6,10 +6,11 @@ def main():
 
     # !! use to configure spread parameters
     experiments_array: List[Dict[Any, Any]] = [
-        {"U": 0.1, "E": -0.1},
-        {"U": 0.2, "E": -0.2},
-        {"U": 0.3, "E": -0.3},
+        {"U": 0.4, "E": -0.1},
+        {"U": 0.4, "E": -0.2},
+        {"U": 0.4, "E": -0.3},
         {"U": 0.4, "E": -0.4},
+        {"U": 0.4, "E": -0.5},
     ]
     print(
         f"Assignment Script contains the Job Description for {len(experiments_array)} jobs"
