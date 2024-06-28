@@ -8,7 +8,6 @@ import hamiltonian as hamiltonianImport
 import observables as observablesImport
 import sampler as samplerImport
 import numpy as np
-import matplotlib.pyplot as plt
 from randomgenerator import RandomGenerator
 
 
@@ -287,6 +286,8 @@ def plot_measurements(
         float,  # J
     ],
 ):
+    import matplotlib.pyplot as plt
+
     time_unit_type: Literal["unscaled", "one_over_U", "one_over_J", "one_over_E"] = (
         "one_over_J"
     )

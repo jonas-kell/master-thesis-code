@@ -10,7 +10,7 @@ ssh -i ~/.ssh/hpcaugsburg kelljona@alcc129.rz.uni-augsburg.de
 
 ## Run the test-job
 
-Copy all the stuff to the login-node.
+Copy all the stuff to the login-node or git-clone the repo.
 
 ```cmd
 # ONCE (or if scratch-disk is erased)
@@ -19,7 +19,22 @@ conda create --channel conda-forge -n myenv python=3.12.4 numpy
 conda activate myenv
 conda deactivate
 
-# RUN
+# RUN (in tests folder)
+sbatch job.slurm
+```
+
+## Run the experiment-job
+
+Copy all the stuff to the login-node or git-clone the repo.
+
+```cmd
+# ONCE (or if scratch-disk is erased)
+module load anaconda/2024.02
+conda create --channel conda-forge -n experimentenv python=3.12.4 numpy
+conda activate experimentenv
+conda deactivate
+
+# RUN (in experiments folder)
 sbatch job.slurm
 ```
 

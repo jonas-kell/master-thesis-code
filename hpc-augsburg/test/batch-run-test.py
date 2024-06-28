@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 
 
 def main():
@@ -26,6 +27,8 @@ def main():
         print(f"Successfully wrote to {filename}")
     except Exception as e:
         print(f"An error occurred while writing to the file: {e}")
+
+    print(f"Available Core Count: {multiprocessing.cpu_count()}")
 
 
 if __name__ == "__main__":
