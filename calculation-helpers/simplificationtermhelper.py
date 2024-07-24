@@ -11,7 +11,7 @@ UP_SYMBOL = Symbol(UP)
 DOWN_SYMBOL = Symbol(DOWN)
 OCCUPATION_NUMBER_FUNCTION = Function("n", positive=True)  # type: ignore
 
-FILENAME = "./../spin-onehalf-square-hcbosons/analyticalcalcfunctions.py"
+FILENAME = "./../computation-scripts/analyticalcalcfunctions.py"
 
 
 # This function marks the GENERATED FILE as not to be edited manually
