@@ -4,8 +4,6 @@ from typing import Literal
 
 mode: Literal["logic", "print"] = "logic"
 
-# could optimize this: https://github.com/classabbyamp/espresso-logic
-
 
 if mode == "print":  # type: ignore
     print("Lu Mu Ld Md   flp   a b c d")
@@ -50,10 +48,10 @@ for flip in range(4):
                         Mdp = 1 - Mdp
                         Mdbp = 1 - Mdbp
 
-                    a = 1 if Lu and Mub and Ld == Md else 0
-                    b = 1 if Lup and Mubp and Ldp == Mdp else 0
-                    c = 1 if Ld and Mdb and Lu == Mu else 0
-                    d = 1 if Ldp and Mdbp and Lup == Mup else 0
+                    a = 1 if Lu and Mub and Md and Ldb else 0
+                    b = 1 if Lup and Mubp and Mdp and Ldbp else 0
+                    c = 1 if Ld and Mdb and Mu and Lub else 0
+                    d = 1 if Ldp and Mdbp and Mup and Lubp else 0
 
                     if mode == "print":  # type: ignore
                         print(f"{Lu}  {Ld}  {Mu}  {Md}    {flipname} ", end="")
