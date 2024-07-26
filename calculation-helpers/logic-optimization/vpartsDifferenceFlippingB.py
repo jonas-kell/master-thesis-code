@@ -54,11 +54,14 @@ for flip in range(4):
                     d = 1 if Ldp and Mdbp and Mubp and Lup else 0
 
                     if mode == "print":  # type: ignore
-                        print(f"{Lu}  {Ld}  {Mu}  {Md}    {flipname} ", end="")
-                        print(f"   {a} {b} {c} {d}    {a-b+c-d}")
+                        print(
+                            f"{Lu}  {Ld}  {Mu}  {Md}    {flipname}{1-(flip%2)}{1-(flip//2)} ",
+                            end="",
+                        )
+                        print(f"   {a} {b} {c} {d}      {a-b+c-d}")
                     if mode == "logic":  # type: ignore
                         # result times 2
-                        print(f"{Lu}{Ld}{Mu}{Md}{flip%2}{flip//2} {a}{b}")
+                        print(f"{Lu}{Ld}{Mu}{Md}{1-(flip%2)}{1-(flip//2)} {a}{b}")
 
 
 if mode == "logic":  # type: ignore

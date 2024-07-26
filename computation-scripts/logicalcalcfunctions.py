@@ -14,13 +14,13 @@ def part_A_flipping(
         or (Lu and Ld and not Mu and Md)
     )
     res -= (
-        (not Lu and not Ld and not Mu and not Md and not flip_l)
-        or (not Lu and Ld and Mu and not Md and not flip_up)
+        (Lu and not Ld and not Mu and Md and not flip_up)
         or (not Lu and Ld and not Mu and Md and not flip_up and not flip_l)
+        or (Lu and Ld and Mu and Md and not flip_l)
         or (Lu and not Ld and Mu and not Md and flip_up and not flip_l)
-        or (Lu and not Ld and not Mu and Md and flip_up)
+        or (not Lu and Ld and Mu and not Md and flip_up)
+        or (not Lu and not Ld and not Mu and not Md and flip_l)
         or (Lu and not Ld and Mu and not Md and not flip_up and flip_l)
-        or (Lu and Ld and Mu and Md and flip_l)
         or (not Lu and Ld and not Mu and Md and flip_up and flip_l)
         or (Lu and Ld and not Mu and not Md)
     )
@@ -33,10 +33,10 @@ def part_B_flipping(
     res = 0
     res += Lu and Ld and not Mu and not Md
     res -= (
-        (not Lu and Ld and not Mu and not Md and not flip_up and not flip_l)
-        or (Lu and not Ld and not Mu and not Md and flip_up and not flip_l)
-        or (Lu and Ld and Mu and not Md and not flip_up and flip_l)
-        or (Lu and Ld and not Mu and Md and flip_up and flip_l)
+        (Lu and Ld and not Mu and Md and not flip_up and not flip_l)
+        or (Lu and Ld and Mu and not Md and flip_up and not flip_l)
+        or (Lu and not Ld and not Mu and not Md and not flip_up and flip_l)
+        or (not Lu and Ld and not Mu and not Md and flip_up and flip_l)
     )
     return 2 * res
 
@@ -47,13 +47,13 @@ def part_C_flipping(
     res = 0
     res += (not Lu and Ld and Mu and not Md) or (Lu and not Ld and not Mu and Md)
     res -= (
-        (Lu and Ld and Mu and not Md and not flip_up and not flip_l)
-        or (not Lu and not Ld and not Mu and Md and not flip_up and not flip_l)
-        or (not Lu and not Ld and Mu and not Md and flip_up and not flip_l)
-        or (Lu and Ld and not Mu and Md and flip_up and not flip_l)
-        or (not Lu and Ld and not Mu and not Md and not flip_up and flip_l)
-        or (Lu and not Ld and Mu and Md and not flip_up and flip_l)
-        or (Lu and not Ld and not Mu and not Md and flip_up and flip_l)
-        or (not Lu and Ld and Mu and Md and flip_up and flip_l)
+        (Lu and not Ld and not Mu and not Md and not flip_up and not flip_l)
+        or (not Lu and Ld and Mu and Md and not flip_up and not flip_l)
+        or (not Lu and Ld and not Mu and not Md and flip_up and not flip_l)
+        or (Lu and not Ld and Mu and Md and flip_up and not flip_l)
+        or (not Lu and not Ld and Mu and not Md and not flip_up and flip_l)
+        or (Lu and Ld and not Mu and Md and not flip_up and flip_l)
+        or (Lu and Ld and Mu and not Md and flip_up and flip_l)
+        or (not Lu and not Ld and not Mu and Md and flip_up and flip_l)
     )
     return res

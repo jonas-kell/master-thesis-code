@@ -11,8 +11,9 @@ from logicalcalcfunctions import (
 )
 from random import randrange
 
-start = time.time()
 
+# ! validity check
+start = time.time()
 for i in range(1000):
     a = randrange(2)
     b = randrange(2)
@@ -20,20 +21,16 @@ for i in range(1000):
     d = randrange(2)
     e = randrange(2) == 1
     f = randrange(2) == 1
-
     if flipping_A_pure_logic(a, b, c, d, e, f) != flipping_A_espresso(a, b, c, d, e, f):
-        print("alarm")
+        print("alarm: A")
         print(a, b, c, d, e, f)
         exit()
-
-    # if flipping_B_pure_logic(a, b, c, d, e, f) != flipping_B_espresso(a, b, c, d, e, f):
-    #     print("alarm")
-    #     print(a,b,c,d,e,f)
-
-    # if flipping_C_pure_logic(a, b, c, d, e, f) != flipping_C_espresso(a, b, c, d, e, f):
-    #     print("alarm")
-    #     print(a,b,c,d,e,f)
-
+    if flipping_B_pure_logic(a, b, c, d, e, f) != flipping_B_espresso(a, b, c, d, e, f):
+        print("alarm: B")
+        print(a, b, c, d, e, f)
+        exit()
+    if flipping_C_pure_logic(a, b, c, d, e, f) != flipping_C_espresso(a, b, c, d, e, f):
+        print("alarm: C")
+        print(a, b, c, d, e, f)
 end = time.time()
-
 print(f"took {end-start:.4}s")
