@@ -1,0 +1,14 @@
+took comparison 15.71s
+took pure_logic 2.831s
+took pure_logic_if 2.557s
+took espresso 2.766s
+
+took comparison 15.66s
+took pure_logic_if 2.254s
+took pure_logic 2.7s
+took espresso 2.677s
+
+took comparison 17.03s
+took espresso 2.767s
+took pure_logic 3.124s
+took pure_logic_if 2.585s
