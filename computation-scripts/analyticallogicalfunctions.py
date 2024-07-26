@@ -1,7 +1,7 @@
 # python3 treats (1 == True) -> True and (0 == False) -> True
 
 
-def part_A_flipping(
+def part_A_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
@@ -20,7 +20,7 @@ def part_A_flipping(
     return res
 
 
-def part_B_flipping(
+def part_B_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
@@ -39,7 +39,7 @@ def part_B_flipping(
     return res
 
 
-def part_C_flipping(
+def part_C_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
@@ -58,7 +58,7 @@ def part_C_flipping(
     return res
 
 
-def part_A_flipping_if(
+def part_A_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
@@ -94,7 +94,7 @@ def part_A_flipping_if(
     return res
 
 
-def part_B_flipping_if(
+def part_B_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
@@ -130,7 +130,7 @@ def part_B_flipping_if(
     return res
 
 
-def part_C_flipping_if(
+def part_C_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 

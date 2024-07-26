@@ -1,11 +1,11 @@
 import time
 from analyticallogicalfunctions import (
-    part_A_flipping as flipping_A_pure_logic,
-    part_B_flipping as flipping_B_pure_logic,
-    part_C_flipping as flipping_C_pure_logic,
-    part_A_flipping_if as flipping_A_pure_logic_if,
-    part_B_flipping_if as flipping_B_pure_logic_if,
-    part_C_flipping_if as flipping_C_pure_logic_if,
+    part_A_flipping_if_free as flipping_A_pure_logic,
+    part_B_flipping_if_free as flipping_B_pure_logic,
+    part_C_flipping_if_free as flipping_C_pure_logic,
+    part_A_flipping as flipping_A_pure_logic_if,
+    part_B_flipping as flipping_B_pure_logic_if,
+    part_C_flipping as flipping_C_pure_logic_if,
 )
 from logicalcalcfunctions import (
     part_A_flipping as flipping_A_espresso,
