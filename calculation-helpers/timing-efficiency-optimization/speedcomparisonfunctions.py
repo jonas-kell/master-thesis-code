@@ -19,7 +19,7 @@ from typing import List, Tuple
 # ! validity check
 start = time.time()
 inputs: List[Tuple[int, int, int, int, bool, bool]] = []
-for i in range(2000000):
+for i in range(20000000):
     a = randrange(2)
     b = randrange(2)
     c = randrange(2)

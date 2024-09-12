@@ -11,7 +11,7 @@ UP_SYMBOL = Symbol(UP)
 DOWN_SYMBOL = Symbol(DOWN)
 OCCUPATION_NUMBER_FUNCTION = Function("n", positive=True)  # type: ignore
 
-FILENAME = "./../computation-scripts/analyticalcalcfunctions.py"
+FILENAME = "./analyticalcalcfunctions.py"
 
 
 # This function marks the GENERATED FILE as not to be edited manually

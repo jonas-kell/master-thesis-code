@@ -1,6 +1,6 @@
 from typing import List
 
-FILENAME = "./../../computation-scripts/logicalcalcfunctions.py"
+FILENAME = "./../logicalcalcfunctions.py"
 
 
 # This function marks the GENERATED FILE as not to be edited manually

@@ -1,7 +1,7 @@
 # Installation of the `EspressoII` program to minimize logical expressions
 
 ```shell
-cd calculation-helpers/logic-optimization
+cd calculation-helpers/timing-efficiency-optimization/logic-optimization
 git clone https://github.com/classabbyamp/espresso-logic.git program-generation/espresso
 cd program-generation/espresso/espresso-src
 make
