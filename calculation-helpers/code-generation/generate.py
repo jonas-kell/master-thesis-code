@@ -70,44 +70,8 @@ def printDifference(logicCallback, logicCallback2):
                         print(f"{Lc}{Mc}{Ld}{Md}   {a} <-> {b}")
 
 
-if __name__ == "__main__":
-
-    mappingsDict = {
-        "16CF": [
-            lambda Lc, Mc, Ld, Md: Lc * Ld * Md * (1 - Mc) + Ld * Lc * Mc * (1 - Md),
-            lambda Lc, Mc, Ld, Md: Lc * Ld * (Md + Mc - (2 * Mc * Md)),
-            lambda Lc, Mc, Ld, Md: Lc and Ld and xor(Md, Mc),
-        ],
-        "2iAE": [
-            lambda Lc, Mc, Ld, Md: Lc
-            - (Lc * (1 - Mc) * Ld)
-            + Ld
-            - (Ld * (1 - Md) * Lc),
-            # lambda Lc, Mc, Ld, Md: Lc != Mc or Mc and Ld or Md and Ld, # doesn't capture 1111 being 2
-        ],
-        "2iBD": [
-            lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Md + Ld * (1 - Md) * Mc,
-        ],
-        "8BF": [
-            lambda Lc, Mc, Ld, Md: Lc * Ld * (1 - Mc - Md) + Ld * Lc * (1 - Md - Mc),
-        ],
-        "8CE": [
-            lambda Lc, Mc, Ld, Md: Lc * Md * (1 - Mc) + Ld * Mc * (1 - Md),
-        ],
-        "4iAF": [
-            lambda Lc, Mc, Ld, Md: Lc * Ld + Ld * Lc,
-            lambda Lc, Mc, Ld, Md: 2 * Lc * Ld,
-        ],
-        "4BE": [
-            lambda Lc, Mc, Ld, Md: Lc * (1 - Mc - Md)
-            + Lc * (1 - Mc) * Ld * Md
-            + Ld * (1 - Md - Mc)
-            + Ld * (1 - Md) * Lc * Mc,
-        ],
-        "AD": [lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) + Ld * (1 - Md)],
-    }
-
-    for key, mappings in mappingsDict.items():
+def checkOptimizations(inputMapings):
+    for key, mappings in inputMapings.items():
         print("\n\n\n" + key)
 
         canEspresso = True
@@ -129,4 +93,55 @@ if __name__ == "__main__":
 
                 raise Exception(f"Difference found at {key}")
 
+
+def checkCoverage(inputMapings):
+    for Lc in range(2):
+        for Mc in range(2):
+            for Ld in range(2):
+                for Md in range(2):
+                    print(f"{Lc}{Mc}{Ld}{Md}", end="")
+                    for key, mappings in inputMapings.items():
+                        mainMapping = mappings[0]
+                        res = mainMapping(Lc, Mc, Ld, Md)
+                        if res != 0 and res != False:
+                            print(f"  {res} {key}", end="")
+                    print("")
+
+
+mappingsDict = {
+    "16CF": [
+        lambda Lc, Mc, Ld, Md: Lc * Ld * Md * (1 - Mc) + Ld * Lc * Mc * (1 - Md),
+        lambda Lc, Mc, Ld, Md: Lc * Ld * (Md + Mc - (2 * Mc * Md)),
+        lambda Lc, Mc, Ld, Md: Lc and Ld and xor(Md, Mc),
+    ],
+    "2iAE": [
+        lambda Lc, Mc, Ld, Md: Lc - (Lc * (1 - Mc) * Ld) + Ld - (Ld * (1 - Md) * Lc),
+        # lambda Lc, Mc, Ld, Md: Lc != Mc or Mc and Ld or Md and Ld, # doesn't capture 1111 being 2
+    ],
+    "2iBD": [
+        lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Md + Ld * (1 - Md) * Mc,
+    ],
+    "8BF": [
+        lambda Lc, Mc, Ld, Md: Lc * Ld * (1 - Mc - Md) + Ld * Lc * (1 - Md - Mc),
+    ],
+    "8CE": [
+        lambda Lc, Mc, Ld, Md: Lc * Md * (1 - Mc) + Ld * Mc * (1 - Md),
+    ],
+    "4iAF": [
+        lambda Lc, Mc, Ld, Md: Lc * Ld + Ld * Lc,
+        lambda Lc, Mc, Ld, Md: 2 * Lc * Ld,
+    ],
+    "4BE": [
+        lambda Lc, Mc, Ld, Md: Lc * (1 - Mc - Md)
+        + Lc * (1 - Mc) * Ld * Md
+        + Ld * (1 - Md - Mc)
+        + Ld * (1 - Md) * Lc * Mc,
+    ],
+    "AD": [lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) + Ld * (1 - Md)],
+}
+
+
+if __name__ == "__main__":
+    checkOptimizations(mappingsDict)
     print("Lc Mc Ld Md")
+    checkCoverage(mappingsDict)
