@@ -1,0 +1,3 @@
+espresso/**
+bin/*
+!bin/.gitkeep

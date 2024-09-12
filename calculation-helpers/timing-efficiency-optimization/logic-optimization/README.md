@@ -15,7 +15,7 @@ cd ..
 Bit of documentation and newer release, but doesn't compile on my linux machine (probably a skill issue):
 https://github.com/Gigantua/Espresso
 
-## Usage:
+## Usage
 
 ```shell
 python3 vpartsDifferenceFlippingA.py > tmpfA.pla
