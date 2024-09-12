@@ -108,6 +108,20 @@ def checkCoverage(inputMapings):
                     print("")
 
 
+def checkSymmetry(inputMapings):
+    for Lc in range(2):
+        for Mc in range(2):
+            for Ld in range(2):
+                for Md in range(2):
+                    for key, mappings in inputMapings.items():
+                        mainMapping = mappings[0]
+                        res = mainMapping(Lc, Mc, Ld, Md)
+                        res2 = mainMapping(Ld, Md, Lc, Mc)
+
+                        if res != res2:
+                            raise Exception(f"{key} not symmetric at {Lc}{Mc}{Ld}{Md}")
+
+
 mappingsDict = {
     "16CF": [
         lambda Lc, Mc, Ld, Md: Lc * Ld * Md * (1 - Mc) + Ld * Lc * Mc * (1 - Md),
@@ -142,6 +156,7 @@ mappingsDict = {
 
 
 if __name__ == "__main__":
+    checkSymmetry(mappingsDict)
     checkOptimizations(mappingsDict)
     print("Lc Mc Ld Md")
     checkCoverage(mappingsDict)
