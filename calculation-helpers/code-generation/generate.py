@@ -132,6 +132,7 @@ def init_file():
 # DO NOT EDIT. 
 # SEE calculation-helpers/generate.py
 
+from typing import List, Tuple
 import numpy as np
 
 """
@@ -151,26 +152,30 @@ def indent(spaces: int):
 def generateIfTree(
     initialIndent: int,
     checks: List[str],
+    callbackForTop=lambda a, b: a + "pass\n",
     currentDepth: int = 0,
     currentTruthinesses: List[bool] = [],
 ) -> str:
     maxDepth = len(checks)
 
     if currentDepth == maxDepth:
-        return (
-            indent(initialIndent + currentDepth + 1)
-            + "pass #"
-            + str(currentTruthinesses)
-            + "\n"
-        )
+        return callbackForTop(indent(initialIndent + currentDepth), currentTruthinesses)
     else:
         res = indent(initialIndent + currentDepth) + f"if {checks[currentDepth]}:\n"
         res += generateIfTree(
-            initialIndent, checks, currentDepth + 1, currentTruthinesses + [True]
+            initialIndent,
+            checks,
+            callbackForTop,
+            currentDepth + 1,
+            currentTruthinesses + [True],
         )
-        res += indent(initialIndent + currentDepth) + f"else:\n"
+        res += indent(initialIndent + currentDepth) + "else:\n"
         res += generateIfTree(
-            initialIndent, checks, currentDepth + 1, currentTruthinesses + [False]
+            initialIndent,
+            checks,
+            callbackForTop,
+            currentDepth + 1,
+            currentTruthinesses + [False],
         )
         return res
 
@@ -178,18 +183,44 @@ def generateIfTree(
 def generateHelperFile(inputMappings, inputCoefficientInfo):
     init_file()
 
+    # normal V
     write_file(
-        "def v(l: int, occ_l_up: int, occ_l_down: int,neighbors_index_occupation_tuples: List[Tuple[int, int, int]],) -> np.complex128:\n"
+        "def v(U: float, t: float, epsl: float, occ_l_up: int, occ_l_down: int,neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],) -> np.complex128:\n"
+    )
+    write_file(indent(1) + "res: np.complex128 = np.complex128(0)\n")
+    write_file(
+        indent(1)
+        + "for (epsm, occ_m_up, occ_m_down,) in neighbors_eps_occupation_tuples:\n"
     )
 
-    write_file(generateIfTree(1, ["a", "b", "c", "d"]))
+    def endCallback(lineStart: str, currentTruthinesses: List[bool]):
+        Lc, Ld, Mc, Md = currentTruthinesses
 
-    deep = 3
-    write_file(indent(deep) + "res: np.complex128 = np.complex128(0)")
+        res = ""
+        res += lineStart + f"# Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}" + "\n"
+        res += lineStart + "res += 0 "
+        for meta, mappings in inputMappings.values():
+            factor, letters = meta
+            mult = factor * mappings[0](Lc, Mc, Ld, Md)
+            if mult != 0:
+                res += (
+                    "+ "
+                    + str(mult)
+                    + " * "
+                    + inputCoefficientInfo[letters[0]]
+                    + " * "
+                    + inputCoefficientInfo[letters[1]]
+                )  #! doesn't do more than 2 letters, as not necessary
+        res += "\n"
+        return res
+
     write_file(
-        indent(deep)
-        + "for (m, occ_m_up, occ_m_down,) in flipping_neighbors_index_occupation_tuples:"
+        generateIfTree(
+            2, ["occ_l_up", "occ_l_down", "occ_m_up", "occ_m_down"], endCallback
+        )
     )
+
+    write_file(indent(1) + "return res\n")
 
 
 mappingsDict = {
@@ -251,10 +282,10 @@ mappingsDict = {
 coefficientInfo = {
     "A": "np.exp(- 1j * epsm * t)",
     "B": "np.sin(epsm * t)",
-    "C": "np.sin((U + epsm) * t) - np.sin(epsm * t)",
+    "C": "(np.sin((U + epsm) * t) - np.sin(epsm * t))",
     "D": "np.exp(1j * epsl * t)",
     "E": "np.sin(epsl * t)",
-    "F": "np.sin((U + epsl) * t) - np.sin(epsl * t)",
+    "F": "(np.sin((U + epsl) * t) - np.sin(epsl * t))",
 }
 
 
