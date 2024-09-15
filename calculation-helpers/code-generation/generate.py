@@ -180,7 +180,7 @@ def generateIfTree(
         return res
 
 
-def generateHelperFile(inputMappings, inputCoefficientInfo):
+def generateHelperFile(inputMappings):
     init_file()
 
     # normal V
@@ -200,16 +200,11 @@ def generateHelperFile(inputMappings, inputCoefficientInfo):
         res += lineStart + f"# Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}" + "\n"
         res += lineStart + "res += 0 "
         for meta, mappings in inputMappings.values():
-            factor, letters = meta
+            factor, numpyStuff = meta
             mult = factor * mappings[0](Lc, Mc, Ld, Md)
             if mult != 0:
                 res += (
-                    "+ "
-                    + str(mult)
-                    + " * "
-                    + inputCoefficientInfo[letters[0]]
-                    + " * "
-                    + inputCoefficientInfo[letters[1]]
+                    "+ " + str(mult) + " * " + numpyStuff
                 )  #! doesn't do more than 2 letters, as not necessary
         res += "\n"
         return res
@@ -220,12 +215,17 @@ def generateHelperFile(inputMappings, inputCoefficientInfo):
         )
     )
 
-    write_file(indent(1) + "return res\n")
+    write_file(indent(1) + "return res\n\n\n")
 
 
 mappingsDict = {
     "16CF": (
-        (16, ["C", "F"]),
+        (
+            16,
+            "(( ( ((U + epsl)-(U + epsm)) * np.sin( ((U + epsl)+(U + epsm)) * t ) + ((U + epsl)+(U + epsm)) * np.sin( ((U + epsm)-(U + epsl)) * t ) ) /(2 *((U + epsm)**2 - (U + epsl)**2)) )-( ( ((U + epsl)-(epsm)) * np.sin( ((U + epsl)+(epsm)) * t ) + ((U + epsl)+(epsm)) * np.sin( ((epsm)-(U + epsl)) * t ) ) /(2 *((epsm)**2 - (U + epsl)**2)) )-( ( ((epsl)-(U + epsm)) * np.sin( ((epsl)+(U + epsm)) * t ) + ((epsl)+(U + epsm)) * np.sin( ((U + epsm)-(epsl)) * t ) ) /(2 *((U + epsm)**2 - (epsl)**2)) )+( ( ((epsl)-(epsm)) * np.sin( ((epsl)+(epsm)) * t ) + ((epsl)+(epsm)) * np.sin( ((epsm)-(epsl)) * t ) ) /(2 *((epsm)**2 - (epsl)**2)) ))",
+        ),
+        # "C": "(np.sin((U + epsm) * t) - np.sin(epsm * t))",
+        # "F": "(np.sin((U + epsl) * t) - np.sin(epsl * t))",
         [
             lambda Lc, Mc, Ld, Md: Lc * Ld * Md * (1 - Mc) + Ld * Lc * Mc * (1 - Md),
             lambda Lc, Mc, Ld, Md: Lc * Ld * (Md + Mc - (2 * Mc * Md)),
@@ -233,7 +233,12 @@ mappingsDict = {
         ],
     ),
     "2iAE": (
-        (2j, ["A", "E"]),
+        (
+            2j,
+            "(( ( np.exp((-1j * epsm) * t) * ( (-1j * epsm) * np.sin((epsl) * t) - (epsl) * np.cos((-1j * epsm) * t) ) + (epsl) ) / ((-1j * epsm)**2 + (epsl)**2) ))",
+        ),
+        # "A": "np.exp(- 1j * epsm * t)",
+        # "E": "np.sin(epsl * t)",
         [
             lambda Lc, Mc, Ld, Md: Lc
             - (Lc * (1 - Mc) * Ld)
@@ -243,32 +248,57 @@ mappingsDict = {
         ],
     ),
     "2iBD": (
-        (2j, ["B", "D"]),
+        (
+            2j,
+            "(( ( np.exp((1j * epsl) * t) * ( (1j * epsl) * np.sin((epsm) * t) - (epsm) * np.cos((1j * epsl) * t) ) + (epsm) ) / ((1j * epsl)**2 + (epsm)**2) ))",
+        ),
+        # "B": "np.sin(epsm * t)",
+        # "D": "np.exp(1j * epsl * t)",
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Md + Ld * (1 - Md) * Mc,
         ],
     ),
     "8BF": (
-        (8, ["B", "F"]),
+        (
+            8,
+            "(( ( ((U + epsl)-(epsm)) * np.sin( ((U + epsl)+(epsm)) * t ) + ((U + epsl)+(epsm)) * np.sin( ((epsm)-(U + epsl)) * t ) ) /(2 *((epsm)**2 - (U + epsl)**2)) )-( ( ((epsl)-(epsm)) * np.sin( ((epsl)+(epsm)) * t ) + ((epsl)+(epsm)) * np.sin( ((epsm)-(epsl)) * t ) ) /(2 *((epsm)**2 - (epsl)**2)) ))",
+        ),
+        # "B": "np.sin(epsm * t)",
+        # "F": "(np.sin((U + epsl) * t) - np.sin(epsl * t))",
         [
             lambda Lc, Mc, Ld, Md: Lc * Ld * (1 - Mc - Md) + Ld * Lc * (1 - Md - Mc),
         ],
     ),
     "8CE": (
-        (8, ["C", "E"]),
+        (
+            8,
+            "(( ( ((U + epsm)-(epsl)) * np.sin( ((U + epsm)+(epsl)) * t ) + ((U + epsm)+(epsl)) * np.sin( ((epsl)-(U + epsm)) * t ) ) /(2 *((epsl)**2 - (U + epsm)**2)) )-( ( ((epsm)-(epsl)) * np.sin( ((epsm)+(epsl)) * t ) + ((epsm)+(epsl)) * np.sin( ((epsl)-(epsm)) * t ) ) /(2 *((epsl)**2 - (epsm)**2)) ))",
+        ),
+        # "C": "(np.sin((U + epsm) * t) - np.sin(epsm * t))",
+        # "E": "np.sin(epsl * t)",
         [
             lambda Lc, Mc, Ld, Md: Lc * Md * (1 - Mc) + Ld * Mc * (1 - Md),
         ],
     ),
     "4iAF": (
-        (4j, ["A", "F"]),
+        (
+            4j,
+            "(( ( np.exp((-1j * epsm) * t) * ( (-1j * epsm) * np.sin((U + epsl) * t) - (U + epsl) * np.cos((-1j * epsm) * t) ) + (U + epsl) ) / ((-1j * epsm)**2 + (U + epsl)**2) )-( ( np.exp((-1j * epsm) * t) * ( (-1j * epsm) * np.sin((epsl) * t) - (epsl) * np.cos((-1j * epsm) * t) ) + (epsl) ) / ((-1j * epsm)**2 + (epsl)**2) ))",
+        ),
+        # "A": "np.exp(- 1j * epsm * t)",
+        # "F": "(np.sin((U + epsl) * t) - np.sin(epsl * t))",
         [
             lambda Lc, Mc, Ld, Md: Lc * Ld + Ld * Lc,
             lambda Lc, Mc, Ld, Md: 2 * Lc * Ld,
         ],
     ),
     "4BE": (
-        (4, ["B", "E"]),
+        (
+            4,
+            "(( ( ((epsm)-(epsl)) * np.sin( ((epsm)+(epsl)) * t ) + ((epsm)+(epsl)) * np.sin( ((epsl)-(epsm)) * t ) ) /(2 *((epsl)**2 - (epsm)**2)) ))",
+        ),
+        # "B": "np.sin(epsm * t)",
+        # "E": "np.sin(epsl * t)",
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc - Md)
             + Lc * (1 - Mc) * Ld * Md
@@ -276,16 +306,12 @@ mappingsDict = {
             + Ld * (1 - Md) * Lc * Mc,
         ],
     ),
-    "AD": ((1, ["A", "D"]), [lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) + Ld * (1 - Md)]),
-}
-
-coefficientInfo = {
-    "A": "np.exp(- 1j * epsm * t)",
-    "B": "np.sin(epsm * t)",
-    "C": "(np.sin((U + epsm) * t) - np.sin(epsm * t))",
-    "D": "np.exp(1j * epsl * t)",
-    "E": "np.sin(epsl * t)",
-    "F": "(np.sin((U + epsl) * t) - np.sin(epsl * t))",
+    "AD": (
+        (1, "(((1j * np.exp(1j * (epsl - epsm) * t)) - 1) / (epsm-epsl))"),
+        # "A": "np.exp(- 1j * epsm * t)",
+        # "D": "np.exp(1j * epsl * t)",
+        [lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) + Ld * (1 - Md)],
+    ),
 }
 
 
@@ -295,4 +321,4 @@ if __name__ == "__main__":
     print("Lc Mc Ld Md")
     checkCoverage(mappingsDict)
 
-    generateHelperFile(mappingsDict, coefficientInfo)
+    generateHelperFile(mappingsDict)

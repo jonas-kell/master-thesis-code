@@ -27,32 +27,213 @@ def v(
                         # Lc:True, Mc:True, Ld:True, Md:True
                         res += (
                             0
-                            + 4j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
+                            + 4j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
                             + -16
-                            * np.sin(epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
+                            * (
+                                (
+                                    (
+                                        ((U + epsl) - (epsm))
+                                        * np.sin(((U + epsl) + (epsm)) * t)
+                                        + ((U + epsl) + (epsm))
+                                        * np.sin(((epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsl) - (epsm))
+                                        * np.sin(((epsl) + (epsm)) * t)
+                                        + ((epsl) + (epsm))
+                                        * np.sin(((epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (epsl) ** 2))
+                                )
+                            )
                             + 8j
-                            * np.exp(-1j * epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + -8 * np.sin(epsm * t) * np.sin(epsl * t)
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((U + epsl) * t)
+                                            - (U + epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (U + epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (U + epsl) ** 2)
+                                )
+                                - (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + -8
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
                         )
                     else:
                         # Lc:True, Mc:True, Ld:True, Md:False
                         res += (
                             0
                             + 16
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 2j * np.sin(epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsl) - (U + epsm))
+                                        * np.sin(((U + epsl) + (U + epsm)) * t)
+                                        + ((U + epsl) + (U + epsm))
+                                        * np.sin(((U + epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((U + epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((U + epsl) - (epsm))
+                                        * np.sin(((U + epsl) + (epsm)) * t)
+                                        + ((U + epsl) + (epsm))
+                                        * np.sin(((epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsl) - (U + epsm))
+                                        * np.sin(((epsl) + (U + epsm)) * t)
+                                        + ((epsl) + (U + epsm))
+                                        * np.sin(((U + epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((U + epsm) ** 2 - (epsl) ** 2))
+                                )
+                                + (
+                                    (
+                                        ((epsl) - (epsm))
+                                        * np.sin(((epsl) + (epsm)) * t)
+                                        + ((epsl) + (epsm))
+                                        * np.sin(((epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (epsl) ** 2))
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((1j * epsl) * t)
+                                        * (
+                                            (1j * epsl) * np.sin((epsm) * t)
+                                            - (epsm) * np.cos((1j * epsl) * t)
+                                        )
+                                        + (epsm)
+                                    )
+                                    / ((1j * epsl) ** 2 + (epsm) ** 2)
+                                )
+                            )
                             + 8
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * np.sin(epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsm) - (epsl))
+                                        * np.sin(((U + epsm) + (epsl)) * t)
+                                        + ((U + epsm) + (epsl))
+                                        * np.sin(((epsl) - (U + epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (U + epsm) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
                             + 8j
-                            * np.exp(-1j * epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + 4 * np.sin(epsm * t) * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((U + epsl) * t)
+                                            - (U + epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (U + epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (U + epsl) ** 2)
+                                )
+                                - (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
                 else:
                     if occ_m_down:
@@ -60,31 +241,203 @@ def v(
                         res += (
                             0
                             + 16
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 2j * np.sin(epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsl) - (U + epsm))
+                                        * np.sin(((U + epsl) + (U + epsm)) * t)
+                                        + ((U + epsl) + (U + epsm))
+                                        * np.sin(((U + epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((U + epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((U + epsl) - (epsm))
+                                        * np.sin(((U + epsl) + (epsm)) * t)
+                                        + ((U + epsl) + (epsm))
+                                        * np.sin(((epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsl) - (U + epsm))
+                                        * np.sin(((epsl) + (U + epsm)) * t)
+                                        + ((epsl) + (U + epsm))
+                                        * np.sin(((U + epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((U + epsm) ** 2 - (epsl) ** 2))
+                                )
+                                + (
+                                    (
+                                        ((epsl) - (epsm))
+                                        * np.sin(((epsl) + (epsm)) * t)
+                                        + ((epsl) + (epsm))
+                                        * np.sin(((epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (epsl) ** 2))
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((1j * epsl) * t)
+                                        * (
+                                            (1j * epsl) * np.sin((epsm) * t)
+                                            - (epsm) * np.cos((1j * epsl) * t)
+                                        )
+                                        + (epsm)
+                                    )
+                                    / ((1j * epsl) ** 2 + (epsm) ** 2)
+                                )
+                            )
                             + 8
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * np.sin(epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsm) - (epsl))
+                                        * np.sin(((U + epsm) + (epsl)) * t)
+                                        + ((U + epsm) + (epsl))
+                                        * np.sin(((epsl) - (U + epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (U + epsm) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
                             + 8j
-                            * np.exp(-1j * epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + 4 * np.sin(epsm * t) * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((U + epsl) * t)
+                                            - (U + epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (U + epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (U + epsl) ** 2)
+                                )
+                                - (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
                     else:
                         # Lc:True, Mc:False, Ld:True, Md:False
                         res += (
                             0
                             + 16
-                            * np.sin(epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
+                            * (
+                                (
+                                    (
+                                        ((U + epsl) - (epsm))
+                                        * np.sin(((U + epsl) + (epsm)) * t)
+                                        + ((U + epsl) + (epsm))
+                                        * np.sin(((epsm) - (U + epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (U + epsl) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsl) - (epsm))
+                                        * np.sin(((epsl) + (epsm)) * t)
+                                        + ((epsl) + (epsm))
+                                        * np.sin(((epsm) - (epsl)) * t)
+                                    )
+                                    / (2 * ((epsm) ** 2 - (epsl) ** 2))
+                                )
+                            )
                             + 8j
-                            * np.exp(-1j * epsm * t)
-                            * (np.sin((U + epsl) * t) - np.sin(epsl * t))
-                            + 8 * np.sin(epsm * t) * np.sin(epsl * t)
-                            + 2 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((U + epsl) * t)
+                                            - (U + epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (U + epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (U + epsl) ** 2)
+                                )
+                                - (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 8
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 2
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
             else:
                 if occ_m_up:
@@ -92,31 +445,143 @@ def v(
                         # Lc:True, Mc:True, Ld:False, Md:True
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + -4 * np.sin(epsm * t) * np.sin(epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + -4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
                         )
                     else:
                         # Lc:True, Mc:True, Ld:False, Md:False
-                        res += 0 + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
+                        res += 0 + 2j * (
+                            (
+                                (
+                                    np.exp((-1j * epsm) * t)
+                                    * (
+                                        (-1j * epsm) * np.sin((epsl) * t)
+                                        - (epsl) * np.cos((-1j * epsm) * t)
+                                    )
+                                    + (epsl)
+                                )
+                                / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                            )
+                        )
                 else:
                     if occ_m_down:
                         # Lc:True, Mc:False, Ld:False, Md:True
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 2j * np.sin(epsm * t) * np.exp(1j * epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((1j * epsl) * t)
+                                        * (
+                                            (1j * epsl) * np.sin((epsm) * t)
+                                            - (epsm) * np.cos((1j * epsl) * t)
+                                        )
+                                        + (epsm)
+                                    )
+                                    / ((1j * epsl) ** 2 + (epsm) ** 2)
+                                )
+                            )
                             + 8
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsm) - (epsl))
+                                        * np.sin(((U + epsm) + (epsl)) * t)
+                                        + ((U + epsm) + (epsl))
+                                        * np.sin(((epsl) - (U + epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (U + epsm) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
                     else:
                         # Lc:True, Mc:False, Ld:False, Md:False
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 4 * np.sin(epsm * t) * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
         else:
             if occ_l_down:
@@ -125,31 +590,143 @@ def v(
                         # Lc:False, Mc:True, Ld:True, Md:True
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + -4 * np.sin(epsm * t) * np.sin(epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + -4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
                         )
                     else:
                         # Lc:False, Mc:True, Ld:True, Md:False
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 2j * np.sin(epsm * t) * np.exp(1j * epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((1j * epsl) * t)
+                                        * (
+                                            (1j * epsl) * np.sin((epsm) * t)
+                                            - (epsm) * np.cos((1j * epsl) * t)
+                                        )
+                                        + (epsm)
+                                    )
+                                    / ((1j * epsl) ** 2 + (epsm) ** 2)
+                                )
+                            )
                             + 8
-                            * (np.sin((U + epsm) * t) - np.sin(epsm * t))
-                            * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            * (
+                                (
+                                    (
+                                        ((U + epsm) - (epsl))
+                                        * np.sin(((U + epsm) + (epsl)) * t)
+                                        + ((U + epsm) + (epsl))
+                                        * np.sin(((epsl) - (U + epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (U + epsm) ** 2))
+                                )
+                                - (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
                 else:
                     if occ_m_down:
                         # Lc:False, Mc:False, Ld:True, Md:True
-                        res += 0 + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
+                        res += 0 + 2j * (
+                            (
+                                (
+                                    np.exp((-1j * epsm) * t)
+                                    * (
+                                        (-1j * epsm) * np.sin((epsl) * t)
+                                        - (epsl) * np.cos((-1j * epsm) * t)
+                                    )
+                                    + (epsl)
+                                )
+                                / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                            )
+                        )
                     else:
                         # Lc:False, Mc:False, Ld:True, Md:False
                         res += (
                             0
-                            + 2j * np.exp(-1j * epsm * t) * np.sin(epsl * t)
-                            + 4 * np.sin(epsm * t) * np.sin(epsl * t)
-                            + 1 * np.exp(-1j * epsm * t) * np.exp(1j * epsl * t)
+                            + 2j
+                            * (
+                                (
+                                    (
+                                        np.exp((-1j * epsm) * t)
+                                        * (
+                                            (-1j * epsm) * np.sin((epsl) * t)
+                                            - (epsl) * np.cos((-1j * epsm) * t)
+                                        )
+                                        + (epsl)
+                                    )
+                                    / ((-1j * epsm) ** 2 + (epsl) ** 2)
+                                )
+                            )
+                            + 4
+                            * (
+                                (
+                                    (
+                                        ((epsm) - (epsl))
+                                        * np.sin(((epsm) + (epsl)) * t)
+                                        + ((epsm) + (epsl))
+                                        * np.sin(((epsl) - (epsm)) * t)
+                                    )
+                                    / (2 * ((epsl) ** 2 - (epsm) ** 2))
+                                )
+                            )
+                            + 1
+                            * (
+                                ((1j * np.exp(1j * (epsl - epsm) * t)) - 1)
+                                / (epsm - epsl)
+                            )
                         )
             else:
                 if occ_m_up:
