@@ -1,4 +1,4 @@
-# Master-Thesis: # TODO Working Title
+# Master-Thesis: Classical networks for the Hubbard model with a tilted potential
 
 The work for my Master-Thesis is split into multiple repositories (links for quick access, it may be possible that the repo is private).
 
