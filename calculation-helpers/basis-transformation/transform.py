@@ -188,13 +188,3 @@ if __name__ == "__main__":
     )
     print(backTransformedOperator)
     print()
-
-    print("Intermediate matrix")
-    intermediate = operator * backTransformedOperator
-    print(intermediate)
-    print()
-
-    print("Squares of lambdas")
-    sqLambdas = intermediate.eigenvals()
-    print(sqLambdas)
-    print()

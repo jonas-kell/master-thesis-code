@@ -25,14 +25,14 @@ print(mat.shape)
 print(mat.eigenvals())
 print(sqrt(mat))
 
-# mat2 = Matrix(
-#     [
-#         [symbols("a"), symbols("b"), symbols("c"), symbols("d")],
-#         [symbols("e"), symbols("f"), symbols("g"), symbols("h")],
-#         [symbols("k"), symbols("l"), symbols("m"), symbols("n")],
-#         [symbols("o"), symbols("p"), symbols("q"), symbols("r")],
-#     ]
-# )
-# print(mat2.eigenvals())
+mat2 = Matrix(
+    [
+        [symbols("a"), symbols("b"), symbols("c"), symbols("d")],
+        [symbols("e"), symbols("f"), symbols("g"), symbols("h")],
+        [symbols("k"), symbols("l"), symbols("m"), symbols("n")],
+        [symbols("o"), symbols("p"), symbols("q"), symbols("r")],
+    ]
+)
+print(mat2.eigenvals())
 # print(mat2.trace())
 # print(sqrt(mat2))
