@@ -1,5 +1,5 @@
 from typing import Tuple, Literal, List
-from sympy import symbols, conjugate, Matrix, nsimplify, simplify, sqrt
+from sympy import symbols, conjugate, Matrix, nsimplify, simplify, pprint
 from sympy.core.sympify import sympify
 
 BASIS_ELEMENT = Tuple[bool, bool, Literal["uu", "dd", "ud", "du"]]
@@ -151,19 +151,24 @@ if __name__ == "__main__":
     print("q_ji")
     operator = Matrix(
         [
-            [symbols("a"), symbols("b"), symbols("c"), symbols("d")],
-            [conjugate(symbols("b")), symbols("e"), symbols("f"), symbols("g")],
+            [symbols("a", real=True), symbols("b"), symbols("c"), symbols("d")],
+            [
+                conjugate(symbols("b")),
+                symbols("e", real=True),
+                symbols("f"),
+                symbols("g"),
+            ],
             [
                 conjugate(symbols("c")),
                 conjugate(symbols("f")),
-                symbols("h"),
+                symbols("h", real=True),
                 symbols("k"),
             ],
             [
                 conjugate(symbols("d")),
                 conjugate(symbols("g")),
                 conjugate(symbols("k")),
-                symbols("l"),
+                symbols("l", real=True),
             ],
         ]
     )
@@ -188,3 +193,8 @@ if __name__ == "__main__":
     )
     print(backTransformedOperator)
     print()
+
+    print("Spin flip operation result")
+    pprint(operator)
+    print()
+    pprint(backTransformedOperator)
