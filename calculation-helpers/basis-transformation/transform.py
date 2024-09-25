@@ -1,8 +1,7 @@
 from typing import Tuple, Literal, List
-from sympy import symbols, conjugate, Matrix, sqrt
+from sympy import symbols, conjugate, Matrix, nsimplify, simplify, sqrt
 from sympy.core.sympify import sympify
 
-#                    has i, plus
 BASIS_ELEMENT = Tuple[bool, bool, Literal["uu", "dd", "ud", "du"]]
 BASIS = Tuple[
     List[BASIS_ELEMENT],
@@ -88,7 +87,9 @@ def format_complex(c):
         return "0"
 
 
-def transformOperator(j: int, l: int, op: Matrix, basisFrom: BASIS, basisTo: BASIS):
+def transformOperatorElement(
+    j: int, l: int, op: Matrix, basisFrom: BASIS, basisTo: BASIS
+):
     out = sympify(0)
 
     for i in range(4):
@@ -102,6 +103,22 @@ def transformOperator(j: int, l: int, op: Matrix, basisFrom: BASIS, basisTo: BAS
                 out += sympify(factor) * op[i * op.shape[0] + k]
 
     return out
+
+
+def transformOperator(op: Matrix, basisFrom: BASIS, basisTo: BASIS):
+    return (
+        Matrix(
+            [
+                [
+                    transformOperatorElement(j_row, i_col, op, basisFrom, basisTo)
+                    for i_col in range(4)
+                ]
+                for j_row in range(4)
+            ]
+        )
+        .applyfunc(nsimplify)
+        .applyfunc(simplify)
+    )
 
 
 if __name__ == "__main__":
@@ -151,25 +168,33 @@ if __name__ == "__main__":
         ]
     )
     print(operator)
+    print()
+
     print("q_ji in transformed basis")
-    transformedOperator = Matrix(
-        [
-            [
-                transformOperator(j_row, i_col, operator, standardBasis, magicBasis)
-                for i_col in range(4)
-            ]
-            for j_row in range(4)
-        ]
-    )
+    transformedOperator = transformOperator(operator, standardBasis, magicBasis)
     print(transformedOperator)
+    print()
 
+    print("complex conjugation in transformed basis")
+    conjugation = conjugate(transformedOperator)
+    print(conjugation)
+    print()
 
-    print("R matrix")
-    intermediate = operator * conjugate(transformedOperator) * innerRoot)
-    print(Roperator)
+    print("conjugation transformed back")
+    backTransformedOperator = (
+        (transformOperator(conjugation, magicBasis, standardBasis) / 4)
+        .applyfunc(nsimplify)
+        .applyfunc(simplify)
+    )
+    print(backTransformedOperator)
+    print()
 
-    print("Eigenvals of R")
-    print(Roperator.eigenvals())
+    print("Intermediate matrix")
+    intermediate = operator * backTransformedOperator
+    print(intermediate)
+    print()
 
-    print("Trace of R")
-    print(Roperator.trace())
+    print("Squares of lambdas")
+    sqLambdas = intermediate.eigenvals()
+    print(sqLambdas)
+    print()
