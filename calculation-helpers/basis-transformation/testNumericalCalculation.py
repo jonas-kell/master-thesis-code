@@ -1,10 +1,11 @@
 import numpy as np
+from typing import Tuple
 
 
 def generateRandomHermitian4x4Matrix() -> np.ndarray:
     # Generate a random 4x4 complex matrix
-    real_part = np.random.randn(4, 4)
-    imag_part = np.random.randn(4, 4)
+    real_part = 2 * np.random.rand(4, 4) - 1
+    imag_part = 2 * np.random.rand(4, 4) - 1
 
     # Create a complex matrix
     A = real_part + 1j * imag_part
@@ -15,19 +16,106 @@ def generateRandomHermitian4x4Matrix() -> np.ndarray:
     return hermitian_matrix
 
 
+# -> (matrix, factors)
+# order: |uu>, |dd>, |ud>, |du>
+def generateRandomTwoSpinPureDensityMatrix() -> Tuple[np.ndarray, np.ndarray]:
+    real_part = 2 * np.random.rand(4) - 1
+    imag_part = 2 * np.random.rand(4) - 1
+
+    coefficients = real_part + 1j * imag_part
+
+    normalization = np.sum(np.abs(coefficients) ** 2)
+    normalized_coefficients = coefficients / normalization
+
+    alpha = normalized_coefficients[0]
+    beta = normalized_coefficients[1]
+    gamma = normalized_coefficients[2]
+    delta = normalized_coefficients[3]
+
+    densityMatrix = np.array(
+        [
+            [
+                alpha * np.conjugate(alpha),
+                alpha * np.conjugate(beta),
+                alpha * np.conjugate(gamma),
+                alpha * np.conjugate(delta),
+            ],
+            [
+                beta * np.conjugate(alpha),
+                beta * np.conjugate(beta),
+                beta * np.conjugate(gamma),
+                beta * np.conjugate(delta),
+            ],
+            [
+                gamma * np.conjugate(alpha),
+                gamma * np.conjugate(beta),
+                gamma * np.conjugate(gamma),
+                gamma * np.conjugate(delta),
+            ],
+            [
+                delta * np.conjugate(alpha),
+                delta * np.conjugate(beta),
+                delta * np.conjugate(gamma),
+                delta * np.conjugate(delta),
+            ],
+        ]
+    )
+
+    return (densityMatrix, coefficients)
+
+
 def sqrHermitianMatrixNumerically(matr: np.ndarray) -> np.ndarray:
     evalues, evectors = np.linalg.eigh(matr)
     sqrt_matrix = evectors * np.emath.sqrt(evalues) @ np.linalg.inv(evectors)
     return sqrt_matrix
 
 
+def spinFlipHermitianMatrix(matr: np.ndarray) -> np.ndarray:
+    # Spin flip operation result
+    # ⎡a  b  c  d⎤
+    # ⎢          ⎥
+    # ⎢_         ⎥
+    # ⎢b  e  f  g⎥
+    # ⎢          ⎥
+    # ⎢_  _      ⎥
+    # ⎢c  f  h  k⎥
+    # ⎢          ⎥
+    # ⎢_  _  _   ⎥
+    # ⎣d  g  k  l⎦
+
+    # ->
+
+    # ⎡     _   _  _ ⎤
+    # ⎢a   -b  -c  d ⎥
+    # ⎢              ⎥
+    # ⎢        _    _⎥
+    # ⎢-b  e   f   -g⎥
+    # ⎢              ⎥
+    # ⎢             _⎥
+    # ⎢-c  f   h   -k⎥
+    # ⎢              ⎥
+    # ⎣d   -g  -k  l ⎦
+
+    conj = np.conjugate(matr)
+    mask = np.array(
+        [
+            [1, -1, -1, 1],
+            [-1, 1, 1, -1],
+            [-1, 1, 1, -1],
+            [1, -1, -1, 1],
+        ]
+    )
+
+    return mask * conj
+
+
 def concurrenceOfDensityMatrix(mat: np.ndarray):
     rho = mat
-    rhoTilde = np.conjugate(mat)
+    rhoTilde = spinFlipHermitianMatrix(mat)
 
-    sq = sqrHermitianMatrixNumerically(rho)
+    sqrtMat = sqrHermitianMatrixNumerically(rho)
 
-    RMatrix = sqrHermitianMatrixNumerically(sq @ rhoTilde @ sq)
+    RMatrix = sqrHermitianMatrixNumerically(sqrtMat @ rhoTilde @ sqrtMat)
 
     eigenvals = np.flip(np.linalg.eigvalsh(RMatrix))  # eigsh -> "in ascending order" !!
 
@@ -39,7 +127,6 @@ def concurrenceOfDensityMatrix(mat: np.ndarray):
 
     # comparison calculation
     largest = eigenvals[0]
-    print(np.trace(RMatrix))
     print(2 * largest - np.trace(RMatrix))
 
     return directConcurrence
@@ -47,8 +134,10 @@ def concurrenceOfDensityMatrix(mat: np.ndarray):
 
 if __name__ == "__main__":
 
-    test = generateRandomHermitian4x4Matrix()
-    # print(test)
+    # test = generateRandomHermitian4x4Matrix()
+    test, factors = generateRandomTwoSpinPureDensityMatrix()
+    print(test)
+    print(factors)
 
     sq = sqrHermitianMatrixNumerically(test)
     # print(sq)
@@ -58,3 +147,10 @@ if __name__ == "__main__":
     # print((np.abs(np.imag(comp))) < 1e-14)
 
     print(concurrenceOfDensityMatrix(test))
+
+    alphaFactor = factors[0]
+    betaFactor = factors[1]
+    gammaFactor = factors[2]
+    deltaFactor = factors[3]
+
+    print(2 * np.abs(alphaFactor * betaFactor - gammaFactor * deltaFactor))
