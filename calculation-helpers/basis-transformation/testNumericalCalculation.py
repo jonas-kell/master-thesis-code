@@ -152,6 +152,29 @@ def concurrenceOfDensityMatrix(mat: np.ndarray, useSpin: bool):
     return directConcurrence
 
 
+def nonSymmConcurrenceOfDensityMatrix(mat: np.ndarray, useSpin: bool):
+    rho = mat
+
+    if useSpin:
+        rhoTilde = spinFlipHermitianMatrixSpin(mat)
+    else:
+        rhoTilde = spinFlipHermitianMatrix(mat)
+
+    intermediate = rho @ rhoTilde
+
+    eigenvals = np.flip(np.linalg.eigvals(intermediate))
+
+    print(eigenvals)
+    eigenvals = np.sort(np.real(eigenvals))[::-1]
+    print(eigenvals)
+
+    directConcurrence = np.max(
+        [0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]]
+    )
+
+    return directConcurrence
+
+
 if __name__ == "__main__":
 
     # test = generateRandomHermitian4x4Matrix()
@@ -179,6 +202,14 @@ if __name__ == "__main__":
     print(concurrenceOfDensityMatrix(test, False))
     print()
 
+    print("Assym With spin flip matrix")
+    print(nonSymmConcurrenceOfDensityMatrix(test, True))
+    print()
+
+    print("Assym basis transformation")
+    print(nonSymmConcurrenceOfDensityMatrix(test, False))
+    print()
+
     alphaFactor = factors[0]
     betaFactor = factors[1]
     gammaFactor = factors[2]
@@ -186,4 +217,7 @@ if __name__ == "__main__":
 
     print("Direct calculation as per wiki")
     print(2 * np.abs(alphaFactor * deltaFactor - betaFactor * gammaFactor))
+    # test if wrong order
+    print(2 * np.abs(alphaFactor * betaFactor - gammaFactor * deltaFactor))
+    print(2 * np.abs(alphaFactor * gammaFactor - betaFactor * deltaFactor))
     print()
