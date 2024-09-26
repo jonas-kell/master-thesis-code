@@ -39,10 +39,10 @@ def printBasis(basis: BASIS):
 
 
 def sFactor(j: int, i: int, basisFromKet, basisToKet):
-    basisToBra = getBraFromKet(basisToKet)
+    basisFromBra = getBraFromKet(basisFromKet)
 
-    left = basisToBra[i]
-    right = basisFromKet[j]
+    left = basisFromBra[i]
+    right = basisToKet[j]
 
     out = 0.0
     for leftElem in left:
@@ -57,34 +57,6 @@ def sFactor(j: int, i: int, basisFromKet, basisToKet):
                 out += leftFactor * rightFactor
 
     return out
-
-
-def format_complex(c):
-    real_part = c.real
-    imag_part = c.imag
-
-    # Handle real and imaginary parts
-    real_str = "" if real_part == 0 else f"{real_part:.0f}"
-
-    if imag_part == 0:
-        imag_str = ""
-    elif imag_part == 1:
-        imag_str = "i"
-    elif imag_part == -1:
-        imag_str = "-i"
-    else:
-        imag_str = f"{imag_part:.0f}i"
-
-    # Combine parts properly
-    if real_str and imag_str:
-        sign = "+" if imag_part > 0 else ""
-        return f"{real_str}{sign}{imag_str}"
-    elif real_str:
-        return real_str
-    elif imag_str:
-        return imag_str
-    else:
-        return "0"
 
 
 def transformOperatorElement(
@@ -115,6 +87,27 @@ def transformOperator(op: Matrix, basisFrom: BASIS, basisTo: BASIS):
                 ]
                 for j_row in range(4)
             ]
+        )
+        .applyfunc(nsimplify)
+        .applyfunc(simplify)
+    )
+
+
+def evalMatrix(expr, a=0, b=0, c=0, d=0, e=0, f=0, g=0, h=0, k=0, l=0):
+    pprint(
+        expr.subs(
+            {
+                symbols("a", real=True): a,
+                symbols("b"): b,
+                symbols("c"): c,
+                symbols("d"): d,
+                symbols("e", real=True): e,
+                symbols("f"): f,
+                symbols("g"): g,
+                symbols("h", real=True): h,
+                symbols("k"): k,
+                symbols("l", real=True): l,
+            }
         )
         .applyfunc(nsimplify)
         .applyfunc(simplify)
@@ -198,3 +191,7 @@ if __name__ == "__main__":
     pprint(operator)
     print()
     pprint(backTransformedOperator)
+
+    # evalMatrix(operator, a=1)
+    # print()
+    # evalMatrix(transformedOperator, a=1)

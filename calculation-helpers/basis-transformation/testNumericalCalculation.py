@@ -82,21 +82,19 @@ def spinFlipHermitianMatrix(matr: np.ndarray) -> np.ndarray:
     # ⎢          ⎥
     # ⎢_  _  _   ⎥
     # ⎣d  g  k  l⎦
-
-    # ->
-
-    # ⎡     _   _  _ ⎤
-    # ⎢a   -b  -c  d ⎥
+    # ----->
+    # ⎡l   -k  -g  d ⎤
     # ⎢              ⎥
-    # ⎢        _    _⎥
-    # ⎢-b  e   f   -g⎥
+    # ⎢ _            ⎥
+    # ⎢-k  h   f   -c⎥
     # ⎢              ⎥
-    # ⎢             _⎥
-    # ⎢-c  f   h   -k⎥
+    # ⎢ _  _         ⎥
+    # ⎢-g  f   e   -b⎥
     # ⎢              ⎥
-    # ⎣d   -g  -k  l ⎦
+    # ⎢_    _   _    ⎥
+    # ⎣d   -c  -b  a ⎦
 
-    conj = np.conjugate(matr)
+    antiTranspose = matr[::-1, ::-1].T
     mask = np.array(
         [
             [1, -1, -1, 1],
@@ -106,7 +104,7 @@ def spinFlipHermitianMatrix(matr: np.ndarray) -> np.ndarray:
         ]
     )
 
-    return mask * conj
+    return mask * antiTranspose
 
 
 def spinFlipHermitianMatrixSpin(matr: np.ndarray) -> np.ndarray:
@@ -186,6 +184,6 @@ if __name__ == "__main__":
     gammaFactor = factors[2]
     deltaFactor = factors[3]
 
-    print("Direct calculation as per source")
+    print("Direct calculation as per wiki")
     print(2 * np.abs(alphaFactor * deltaFactor - betaFactor * gammaFactor))
     print()
