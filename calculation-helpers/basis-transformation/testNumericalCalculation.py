@@ -17,7 +17,7 @@ def generateRandomHermitian4x4Matrix() -> np.ndarray:
 
 
 # -> (matrix, factors)
-# order: |uu>, |dd>, |ud>, |du>
+# order: |uu>, |ud>, |du>, |dd>
 def generateRandomTwoSpinPureDensityMatrix() -> Tuple[np.ndarray, np.ndarray]:
     real_part = 2 * np.random.rand(4) - 1
     imag_part = 2 * np.random.rand(4) - 1
@@ -109,7 +109,7 @@ def spinFlipHermitianMatrix(matr: np.ndarray) -> np.ndarray:
     return mask * conj
 
 
-def spinFlipHermitianMatrixMult(matr: np.ndarray) -> np.ndarray:
+def spinFlipHermitianMatrixSpin(matr: np.ndarray) -> np.ndarray:
     # sigma_y x sigma_y conj(matr) sigma_y x sigma_y
 
     sigma_y_sigma_y = np.array(
@@ -130,7 +130,7 @@ def concurrenceOfDensityMatrix(mat: np.ndarray, useSpin: bool):
     rho = mat
 
     if useSpin:
-        rhoTilde = spinFlipHermitianMatrixMult(mat)
+        rhoTilde = spinFlipHermitianMatrixSpin(mat)
     else:
         rhoTilde = spinFlipHermitianMatrix(mat)
 
@@ -140,14 +140,14 @@ def concurrenceOfDensityMatrix(mat: np.ndarray, useSpin: bool):
 
     eigenvals = np.flip(np.linalg.eigvalsh(RMatrix))  # eigsh -> "in ascending order" !!
 
-    # print(eigenvals)
-
     directConcurrence = np.max(
         [0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]]
     )
 
     # comparison calculation
     # !! caution, I think that the complex part here is rather large...
+    # print("Trace/eigenval check")
+    # print(np.sum(eigenvals) - np.trace(RMatrix))
     # largest = eigenvals[0]
     # print(2 * largest - np.trace(RMatrix))
 
@@ -160,20 +160,26 @@ if __name__ == "__main__":
     test, factors = generateRandomTwoSpinPureDensityMatrix()
     print("Test density matrix")
     print(test)
+    print()
+
     print("Test factors")
     print(factors)
+    print()
 
-    sq = sqrHermitianMatrixNumerically(test)
+    # ! sqrt of matrix check
+    # sq = sqrHermitianMatrixNumerically(test)
     # print(sq)
-
-    comp = sq @ sq - test
+    # comp = sq @ sq - test
     # print((np.abs(np.real(comp))) < 1e-14)
     # print((np.abs(np.imag(comp))) < 1e-14)
 
     print("With spin flip matrix")
     print(concurrenceOfDensityMatrix(test, True))
+    print()
+
     print("With basis transformation")
     print(concurrenceOfDensityMatrix(test, False))
+    print()
 
     alphaFactor = factors[0]
     betaFactor = factors[1]
@@ -181,4 +187,5 @@ if __name__ == "__main__":
     deltaFactor = factors[3]
 
     print("Direct calculation as per source")
-    print(2 * np.abs(alphaFactor * betaFactor - gammaFactor * deltaFactor))
+    print(2 * np.abs(alphaFactor * deltaFactor - betaFactor * gammaFactor))
+    print()

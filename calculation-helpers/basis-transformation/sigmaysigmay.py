@@ -9,16 +9,6 @@ sigmaysigmay = np.array(
     ]
 )
 
-# in the other order: |uu>, |dd>, |ud>, |du>
-# sigmaysigmay = np.array(
-#     [
-#         [0.0 + 0.0j, -1.0 + 0.0j, 0.0 - 0.0j, 0.0 - 0.0j],
-#         [-1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j],
-#         [0.0 + 0.0j, 0.0 - 0.0j, 0.0 + 0.0j, 1.0 - 0.0j],
-#         [0.0 + 0.0j, 0.0 - 0.0j, 1.0 - 0.0j, 0.0 + 0.0j],
-#     ]
-# )
-
 print(sigmay)
 print(sigmaysigmay)
 

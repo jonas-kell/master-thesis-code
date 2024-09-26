@@ -124,9 +124,9 @@ def transformOperator(op: Matrix, basisFrom: BASIS, basisTo: BASIS):
 if __name__ == "__main__":
     standardBasis: BASIS = [
         [(False, True, "uu")],
-        [(False, True, "dd")],
         [(False, True, "ud")],
         [(False, True, "du")],
+        [(False, True, "dd")],
     ]
     magicBasis: BASIS = [
         [(False, True, "uu"), (False, True, "dd")],
