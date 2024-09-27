@@ -225,13 +225,12 @@ def nonSymmConcurrenceOfDensityMatrix(mat: np.ndarray, useSpin: bool):
 
     eigenvals = np.flip(np.linalg.eigvals(intermediate))
 
-    # print(eigenvals)
     eigenvals = np.sort(np.real(eigenvals))[::-1]
-    # print(eigenvals)
+    eigenvals[eigenvals < 0] = 0
 
-    directConcurrence = np.max(
-        [0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]]
-    )
+    lambdas = np.sqrt(eigenvals)
+
+    directConcurrence = np.max([0, lambdas[0] - lambdas[1] - lambdas[2] - lambdas[3]])
 
     return directConcurrence
 
@@ -281,23 +280,23 @@ if __name__ == "__main__":
         )
     )
     print()
-    print("Direct calculation as per paper Z-Basis")
+    print("Direct calculation as per wiki Z-Basis")
+    print(
+        concurrencePerPureStatesComponentsZBasis(
+            alphaFactor, betaFactor, gammaFactor, deltaFactor
+        )
+    )
+    print()
+    print("Direct calculation as per paper Z-Basis (different!)")
     print(
         concurrencePerPureStatesComponentsPaperZBasis(
             alphaFactor, betaFactor, gammaFactor, deltaFactor
         )
     )
     print()
-    print("Direct calculation as per wiki Magic-Basis")
+    print("Direct calculation as per wiki Magic-Basis (different!)")
     print(
         concurrencePerPureStatesComponents(
-            alphaFactor, betaFactor, gammaFactor, deltaFactor
-        )
-    )
-    print()
-    print("Direct calculation as per wiki Z-Basis")
-    print(
-        concurrencePerPureStatesComponentsZBasis(
             alphaFactor, betaFactor, gammaFactor, deltaFactor
         )
     )
