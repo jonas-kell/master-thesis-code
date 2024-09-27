@@ -180,7 +180,9 @@ if __name__ == "__main__":
 
     print("conjugation transformed back")
     backTransformedOperator = (
-        (transformOperator(conjugation, magicBasis, standardBasis) / 4)
+        (
+            transformOperator(conjugation, magicBasis, standardBasis) / 4
+        )  # each transformation (to and back) applies two factors of each 1/sqrt(2)
         .applyfunc(nsimplify)
         .applyfunc(simplify)
     )
