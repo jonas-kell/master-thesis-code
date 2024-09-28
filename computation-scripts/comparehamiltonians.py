@@ -6,14 +6,14 @@ import hamiltonian
 from randomgenerator import RandomGenerator
 import datetime
 
-U = 0.3
+U = 0
 E = -0.4
 J = 1
 phi = np.pi / 3
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
+system_geometry = systemgeometry.LinearChainNonPeriodicState(2)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -35,10 +35,10 @@ use_state = state.SystemState(system_geometry, initial_system_state)
 total_time_new = 0
 total_time_legacy = 0
 
-for _ in range(10):
+for _ in range(1):
     use_state.init_random_filling(random)
 
-    measurement_time = 1
+    measurement_time = 1.5
 
     sw1_up: bool = random.randbool()
     sw1_index: int = 2
