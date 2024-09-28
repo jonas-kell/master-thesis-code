@@ -621,7 +621,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                 neighbors_eps_occupation_tuples=neighbors_occupation_tuples,
             )
 
-            return total_sum * self.J
+        return total_sum * self.J
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
