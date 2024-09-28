@@ -123,7 +123,7 @@ def checkSymmetry(inputMappings):
                             raise Exception(f"{key} not symmetric at {Lc}{Mc}{Ld}{Md}")
 
 
-FILENAME = "./../../computation-scripts/v-components.py"
+FILENAME = "./v-components.py"
 
 
 # This function marks the GENERATED FILE as not to be edited manually
