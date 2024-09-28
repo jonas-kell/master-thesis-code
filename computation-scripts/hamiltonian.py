@@ -3,7 +3,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-import analyticalcalcfunctions
+from vcomponents import v as calculate_v_plain
 
 
 class Hamiltonian(ABC):
@@ -201,7 +201,53 @@ sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
 ]
 
 
-class HardcoreBosonicHamiltonian(Hamiltonian):
+def get_lambda_functions(
+    ham: Hamiltonian,
+    time: float,
+    before_swap_system_state: state.SystemState,
+) -> Tuple[
+    Callable[[int, int], np.complex128],
+    Callable[[int, int], np.complex128],
+    Callable[[int, int], np.complex128],
+]:
+    def eps_m_minus_eps_l(l: int, m: int) -> float:
+        return ham.E * (
+            before_swap_system_state.get_eps_multiplier(
+                index=m,
+                phi=ham.phi,
+                sin_phi=ham.sin_phi,
+                cos_phi=ham.cos_phi,
+            )
+            - before_swap_system_state.get_eps_multiplier(
+                index=l,
+                phi=ham.phi,
+                sin_phi=ham.sin_phi,
+                cos_phi=ham.cos_phi,
+            )
+        )
+
+    def part_A_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
+        return (1 / eps_m_minus_eps_l_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_cache)
+        )
+
+    def part_B_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + ham.U
+        return (1 / eps_m_minus_eps_l_plus_U_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
+        )
+
+    def part_C_lambda_callback(l: int, m: int) -> np.complex128:
+        eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - ham.U
+        return (1 / eps_m_minus_eps_l_minus_U_cache) * (
+            np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
+        )
+
+    return part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback
+
+
+class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
     def __init__(
         self,
         U: float,
@@ -480,56 +526,112 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonian",
+                "type": "HardcoreBosonicHamiltonianStraightCalcPsiDiff",
                 **additional_info,
             }
         )
 
 
-def get_lambda_functions(
-    ham: Hamiltonian,
-    time: float,
-    before_swap_system_state: state.SystemState,
-) -> Tuple[
-    Callable[[int, int], np.complex128],
-    Callable[[int, int], np.complex128],
-    Callable[[int, int], np.complex128],
-]:
-    def eps_m_minus_eps_l(l: int, m: int) -> float:
-        return ham.E * (
-            before_swap_system_state.get_eps_multiplier(
-                index=m,
-                phi=ham.phi,
-                sin_phi=ham.sin_phi,
-                cos_phi=ham.cos_phi,
+class HardcoreBosonicHamiltonian(Hamiltonian):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+    ):
+        super().__init__(U=U, E=E, J=J, phi=phi)
+
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
             )
-            - before_swap_system_state.get_eps_multiplier(
-                index=l,
-                phi=ham.phi,
-                sin_phi=ham.sin_phi,
-                cos_phi=ham.cos_phi,
+
+    def get_base_energy(
+        self,
+        system_state: state.SystemState,
+    ) -> float:
+        u_count = 0.0
+        eps_collector = 0.0
+
+        for index in range(system_state.get_number_sites_wo_spin_degree()):
+            # opposite spin
+            index_os = system_state.get_opposite_spin_index(index)
+
+            # count number of double occupancies
+            u_count += (
+                system_state.get_state_array()[index]
+                * system_state.get_state_array()[index_os]
             )
-        )
 
-    def part_A_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
-        return (1 / eps_m_minus_eps_l_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_cache)
-        )
+            # collect epsilon values
+            eps_collector += system_state.get_state_array()[
+                index
+            ] * system_state.get_eps_multiplier(
+                index=index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+            ) + system_state.get_state_array()[
+                index_os
+            ] * system_state.get_eps_multiplier(
+                index=index_os, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+            )
 
-    def part_B_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + ham.U
-        return (1 / eps_m_minus_eps_l_plus_U_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
-        )
+        return self.U * u_count + self.E * eps_collector
 
-    def part_C_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - ham.U
-        return (1 / eps_m_minus_eps_l_minus_U_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
-        )
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        number_sites = system_state.get_number_sites_wo_spin_degree()
 
-    return part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback
+        total_sum: np.complex128 = np.complex128(0)
+
+        # CAUTION we NEED doubling here. Meaning for (l=0,m=1) we WANT (l=1,m=0) ALSO
+
+        for l in range(number_sites):
+            l_os = system_state.get_opposite_spin_index(l)
+
+            index_neighbors = system_state.get_nearest_neighbor_indices(l)
+
+            neighbors_occupation_tuples = [
+                (
+                    system_state.get_eps_multiplier(
+                        index=nb,
+                        phi=self.phi,
+                        sin_phi=self.sin_phi,
+                        cos_phi=self.cos_phi,
+                    ),
+                    system_state.get_state_array()[nb],
+                    system_state.get_state_array()[
+                        system_state.get_opposite_spin_index(nb)
+                    ],
+                )
+                for nb in index_neighbors
+            ]
+
+            total_sum += calculate_v_plain(
+                U=self.U,
+                t=time,
+                epsl=system_state.get_eps_multiplier(
+                    index=l, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+                ),
+                occ_l_up=system_state.get_state_array()[l],
+                occ_l_down=system_state.get_state_array()[l_os],
+                neighbors_eps_occupation_tuples=neighbors_occupation_tuples,
+            )
+
+            return total_sum * self.J
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonian",
+                **additional_info,
+            }
+        )
 
 
 analytical_calculation_mapper_hopping: Dict[
@@ -551,14 +653,14 @@ analytical_calculation_mapper_hopping: Dict[
         np.complex128,
     ],
 ] = {
-    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm_hopping,
-    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm_hopping,
-    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm_hopping,
-    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm_hopping,
-    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl_hopping,
-    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm_hopping,
-    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm_hopping,
-    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm_hopping,
+    VPartsMapping.ClCHm: lambda a: a,  # TODO
+    VPartsMapping.DlDHm: lambda a: a,
+    VPartsMapping.ClCmCHlCHmDlDHm: lambda a: a,
+    VPartsMapping.ClCHmDlDmDHlDHm: lambda a: a,
+    VPartsMapping.ClCHmDlDHl: lambda a: a,
+    VPartsMapping.ClCHlDlDHm: lambda a: a,
+    VPartsMapping.ClCHmDmDHm: lambda a: a,
+    VPartsMapping.CmCHmDlDHm: lambda a: a,
 }
 
 
@@ -571,7 +673,9 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         phi: float,
         initial_system_state: state.InitialSystemState,
     ):
-        super().__init__(U=U, E=E, J=J, phi=phi)
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
 
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -764,14 +868,14 @@ analytical_calculation_mapper_flipping: Dict[
         np.complex128,
     ],
 ] = {
-    VPartsMapping.ClCHm: analyticalcalcfunctions.ClCHm_flipping,
-    VPartsMapping.DlDHm: analyticalcalcfunctions.DlDHm_flipping,
-    VPartsMapping.ClCmCHlCHmDlDHm: analyticalcalcfunctions.ClCmCHlCHmDlDHm_flipping,
-    VPartsMapping.ClCHmDlDmDHlDHm: analyticalcalcfunctions.ClCHmDlDmDHlDHm_flipping,
-    VPartsMapping.ClCHmDlDHl: analyticalcalcfunctions.ClCHmDlDHl_flipping,
-    VPartsMapping.ClCHlDlDHm: analyticalcalcfunctions.ClCHlDlDHm_flipping,
-    VPartsMapping.ClCHmDmDHm: analyticalcalcfunctions.ClCHmDmDHm_flipping,
-    VPartsMapping.CmCHmDlDHm: analyticalcalcfunctions.CmCHmDlDHm_flipping,
+    VPartsMapping.ClCHm: lambda a: a,  # TODO
+    VPartsMapping.DlDHm: lambda a: a,  # TODO
+    VPartsMapping.ClCmCHlCHmDlDHm: lambda a: a,  # TODO
+    VPartsMapping.ClCHmDlDmDHlDHm: lambda a: a,  # TODO
+    VPartsMapping.ClCHmDlDHl: lambda a: a,  # TODO
+    VPartsMapping.ClCHlDlDHm: lambda a: a,  # TODO
+    VPartsMapping.ClCHmDmDHm: lambda a: a,  # TODO
+    VPartsMapping.CmCHmDlDHm: lambda a: a,  # TODO
 }
 
 
@@ -784,7 +888,9 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
         phi: float,
         initial_system_state: state.InitialSystemState,
     ):
-        super().__init__(U=U, E=E, J=J, phi=phi)
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
 
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(

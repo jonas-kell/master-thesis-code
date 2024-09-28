@@ -94,7 +94,11 @@ if __name__ == "__main__":
     system_geometry_type: Literal["square_np", "chain"] = "square_np"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
     hamiltonian_type: Literal[
-        "canonical", "swap_optimized", "flip_optimized", "both_optimizations"
+        "canonical",
+        "swap_optimized",
+        "flip_optimized",
+        "both_optimizations",
+        "canonical_legacy_care_for_psi",
     ] = "both_optimizations"
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
@@ -150,7 +154,13 @@ if __name__ == "__main__":
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonian(U=U, E=E, J=J, phi=phi)
+        ham = hamiltonian.HardcoreBosonicHamiltonian(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+    if hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiff(
+            U=U, E=E, J=J, phi=phi
+        )
 
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
