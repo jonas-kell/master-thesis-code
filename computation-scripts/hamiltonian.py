@@ -201,52 +201,6 @@ sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
 ]
 
 
-def get_lambda_functions(
-    ham: Hamiltonian,
-    time: float,
-    before_swap_system_state: state.SystemState,
-) -> Tuple[
-    Callable[[int, int], np.complex128],
-    Callable[[int, int], np.complex128],
-    Callable[[int, int], np.complex128],
-]:
-    def eps_m_minus_eps_l(l: int, m: int) -> float:
-        return ham.E * (
-            before_swap_system_state.get_eps_multiplier(
-                index=m,
-                phi=ham.phi,
-                sin_phi=ham.sin_phi,
-                cos_phi=ham.cos_phi,
-            )
-            - before_swap_system_state.get_eps_multiplier(
-                index=l,
-                phi=ham.phi,
-                sin_phi=ham.sin_phi,
-                cos_phi=ham.cos_phi,
-            )
-        )
-
-    def part_A_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_cache = eps_m_minus_eps_l(l=l, m=m)
-        return (1 / eps_m_minus_eps_l_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_cache)
-        )
-
-    def part_B_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_plus_U_cache = eps_m_minus_eps_l(l=l, m=m) + ham.U
-        return (1 / eps_m_minus_eps_l_plus_U_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_plus_U_cache)
-        )
-
-    def part_C_lambda_callback(l: int, m: int) -> np.complex128:
-        eps_m_minus_eps_l_minus_U_cache = eps_m_minus_eps_l(l=l, m=m) - ham.U
-        return (1 / eps_m_minus_eps_l_minus_U_cache) * (
-            np.expm1(1j * time * eps_m_minus_eps_l_minus_U_cache)
-        )
-
-    return part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback
-
-
 class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
     def __init__(
         self,
@@ -785,11 +739,9 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         ]
 
         part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
-            get_lambda_functions(
-                ham=self,
-                before_swap_system_state=before_swap_system_state,
-                time=time,
-            )
+            1,
+            2,
+            3,
         )
 
         unscaled_H_n_difference = np.complex128(0)
@@ -948,11 +900,9 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
         ]
 
         part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
-            get_lambda_functions(
-                ham=self,
-                before_swap_system_state=before_swap_system_state,
-                time=time,
-            )
+            1,
+            2,
+            3,
         )
 
         flipping_neighbor_indices = (
