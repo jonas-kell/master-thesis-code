@@ -128,7 +128,7 @@ def generateHelperFile(inputMappings):
 
 mappingsDict = {
     "A": (
-        "(np.expm1(1j * (epsl - epsm) * t) / (epsm-epsl))",
+        "(np.expm1(1j * (epsl - epsm) * t) / (epsl-epsm))",
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * (1 + 2 * Ld * Md - Md - Ld)
             + Ld * (1 - Md) * (1 + 2 * Lc * Mc - Mc - Lc),
@@ -137,14 +137,14 @@ mappingsDict = {
         ],
     ),
     "B": (
-        "(np.expm1(1j * (epsl - epsm+U) * t) / (epsm-epsl+U))",
+        "(np.expm1(1j * (epsl - epsm+U) * t) / (epsl-epsm+U))",
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Ld * (1 - Md)
             + Ld * (1 - Md) * Lc * (1 - Mc)
         ],
     ),
     "C": (
-        "(np.expm1(1j * (epsl - epsm-U) * t) / (epsm-epsl-U))",
+        "(np.expm1(1j * (epsl - epsm-U) * t) / (epsl-epsm-U))",
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Md * (1 - Ld)
             + Ld * (1 - Md) * Mc * (1 - Lc)

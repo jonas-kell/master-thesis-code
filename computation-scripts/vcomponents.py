@@ -28,15 +28,15 @@ def v(
                         res += 0
                     else:
                         # Lc:True, Mc:True, Ld:True, Md:False
-                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsm - epsl))
+                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
                 else:
                     if occ_m_down:
                         # Lc:True, Mc:False, Ld:True, Md:True
-                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsm - epsl))
+                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
                     else:
                         # Lc:True, Mc:False, Ld:True, Md:False
                         res += 0 + 2 * (
-                            np.expm1(1j * (epsl - epsm + U) * t) / (epsm - epsl + U)
+                            np.expm1(1j * (epsl - epsm + U) * t) / (epsl - epsm + U)
                         )
             else:
                 if occ_m_up:
@@ -50,11 +50,11 @@ def v(
                     if occ_m_down:
                         # Lc:True, Mc:False, Ld:False, Md:True
                         res += 0 + (
-                            np.expm1(1j * (epsl - epsm - U) * t) / (epsm - epsl - U)
+                            np.expm1(1j * (epsl - epsm - U) * t) / (epsl - epsm - U)
                         )
                     else:
                         # Lc:True, Mc:False, Ld:False, Md:False
-                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsm - epsl))
+                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
         else:
             if occ_l_down:
                 if occ_m_up:
@@ -64,7 +64,7 @@ def v(
                     else:
                         # Lc:False, Mc:True, Ld:True, Md:False
                         res += 0 + (
-                            np.expm1(1j * (epsl - epsm - U) * t) / (epsm - epsl - U)
+                            np.expm1(1j * (epsl - epsm - U) * t) / (epsl - epsm - U)
                         )
                 else:
                     if occ_m_down:
@@ -72,7 +72,7 @@ def v(
                         res += 0
                     else:
                         # Lc:False, Mc:False, Ld:True, Md:False
-                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsm - epsl))
+                        res += 0 + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
             else:
                 if occ_m_up:
                     if occ_m_down:
