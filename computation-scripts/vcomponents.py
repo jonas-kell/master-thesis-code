@@ -89,3 +89,464 @@ def v(
                         # Lc:False, Mc:False, Ld:False, Md:False
                         res += 0
     return res
+
+
+def v_flip(
+    flip_l: bool,
+    flip_up: bool,
+    U: float,
+    t: float,
+    epsl: float,
+    occ_l_up: int,
+    occ_l_down: int,
+    neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    for (
+        epsm,
+        occ_m_up,
+        occ_m_down,
+    ) in neighbors_eps_occupation_tuples:
+        if flip_l:
+            if flip_up:
+                if occ_l_up:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:True, Mc:True, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:True, Lc:True, Mc:True, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -1
+                                    * (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:True, Mc:False, Ld:True, Md:True
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:True, flipUp:True, Lc:True, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + 2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:True, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:True, Lc:True, Mc:True, Ld:False, Md:False
+                                res += 0
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:True, Mc:False, Ld:False, Md:True
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                            else:
+                                # flipL:True, flipUp:True, Lc:True, Mc:False, Ld:False, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                else:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:False, Mc:True, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:True, Lc:False, Mc:True, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:False, Mc:False, Ld:True, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:True, flipUp:True, Lc:False, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:False, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:True, Lc:False, Mc:True, Ld:False, Md:False
+                                res += 0
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:True, Lc:False, Mc:False, Ld:False, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                            else:
+                                # flipL:True, flipUp:True, Lc:False, Mc:False, Ld:False, Md:False
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+            else:
+                if occ_l_up:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:True, Mc:True, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:True, Mc:True, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:True, Mc:False, Ld:True, Md:True
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -1
+                                    * (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                            else:
+                                # flipL:True, flipUp:False, Lc:True, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + 2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:True, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:True, Mc:True, Ld:False, Md:False
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:True, Mc:False, Ld:False, Md:True
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                            else:
+                                # flipL:True, flipUp:False, Lc:True, Mc:False, Ld:False, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                else:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:False, Mc:True, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:False, Mc:True, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:False, Mc:False, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:False, Mc:False, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:False, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:False, Mc:True, Ld:False, Md:False
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:True, flipUp:False, Lc:False, Mc:False, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:True, flipUp:False, Lc:False, Mc:False, Ld:False, Md:False
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+        else:
+            if flip_up:
+                if occ_l_up:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:True, Mc:True, Ld:True, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:False, flipUp:True, Lc:True, Mc:True, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:True, Mc:False, Ld:True, Md:True
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:False, flipUp:True, Lc:True, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + 2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:True, Mc:True, Ld:False, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                            else:
+                                # flipL:False, flipUp:True, Lc:True, Mc:True, Ld:False, Md:False
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:True, Mc:False, Ld:False, Md:True
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                            else:
+                                # flipL:False, flipUp:True, Lc:True, Mc:False, Ld:False, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                else:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:False, Mc:True, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:True, Lc:False, Mc:True, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:False, Mc:False, Ld:True, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:True, Lc:False, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -1
+                                    * (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:False, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:True, Lc:False, Mc:True, Ld:False, Md:False
+                                res += 0
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:True, Lc:False, Mc:False, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:True, Lc:False, Mc:False, Ld:False, Md:False
+                                res += 0
+            else:
+                if occ_l_up:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:True, Mc:True, Ld:True, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:False, flipUp:False, Lc:True, Mc:True, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:True, Mc:False, Ld:True, Md:True
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                            else:
+                                # flipL:False, flipUp:False, Lc:True, Mc:False, Ld:True, Md:False
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + 2
+                                    * (
+                                        np.expm1(1j * (epsl - epsm + U) * t)
+                                        / (epsl - epsm + U)
+                                    )
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:True, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:False, Lc:True, Mc:True, Ld:False, Md:False
+                                res += 0
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:True, Mc:False, Ld:False, Md:True
+                                res += (
+                                    0
+                                    + -1
+                                    * (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                            else:
+                                # flipL:False, flipUp:False, Lc:True, Mc:False, Ld:False, Md:False
+                                res += (
+                                    0
+                                    + (np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm))
+                                    + -1
+                                    * (
+                                        np.expm1(1j * (epsl - epsm - U) * t)
+                                        / (epsl - epsm - U)
+                                    )
+                                )
+                else:
+                    if occ_l_down:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:False, Mc:True, Ld:True, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                            else:
+                                # flipL:False, flipUp:False, Lc:False, Mc:True, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm - U) * t)
+                                    / (epsl - epsm - U)
+                                )
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:False, Mc:False, Ld:True, Md:True
+                                res += 0 + -1 * (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                            else:
+                                # flipL:False, flipUp:False, Lc:False, Mc:False, Ld:True, Md:False
+                                res += 0 + (
+                                    np.expm1(1j * (epsl - epsm) * t) / (epsl - epsm)
+                                )
+                    else:
+                        if occ_m_up:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:False, Mc:True, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:False, Lc:False, Mc:True, Ld:False, Md:False
+                                res += 0
+                        else:
+                            if occ_m_down:
+                                # flipL:False, flipUp:False, Lc:False, Mc:False, Ld:False, Md:True
+                                res += 0
+                            else:
+                                # flipL:False, flipUp:False, Lc:False, Mc:False, Ld:False, Md:False
+                                res += 0
+    return res

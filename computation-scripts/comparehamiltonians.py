@@ -85,22 +85,22 @@ for _ in range(10000):
     #     print(res_a[0])
     #     print(res_b[0])
 
-    # res_flip_a = ham_canonical.get_H_eff_difference_flipping(
-    #     time=measurement_time,
-    #     flipping_up=sw1_up,
-    #     flipping_index=sw1_index,
-    #     before_swap_system_state=use_state,
-    # )
-    # res_flip_b = ham_flip_optimized.get_H_eff_difference_flipping(
-    #     time=measurement_time,
-    #     flipping_up=sw1_up,
-    #     flipping_index=sw1_index,
-    #     before_swap_system_state=use_state,
-    # )
-    # if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
-    #     print("Difference for Flipping")
-    #     print(res_flip_a[0])
-    #     print(res_flip_b[0])
+    res_flip_a = ham_canonical.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    res_flip_b = ham_flip_optimized.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
+        print("Difference for Flipping")
+        print(res_flip_a[0])
+        print(res_flip_b[0])
 
 print("new ms:", total_time_new)
 print("legacy ms:", total_time_legacy)

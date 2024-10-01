@@ -3,8 +3,6 @@ from typing import List
 
 def checkOptimizations(inputMappings):
     for key, mappings in inputMappings.items():
-        print("\n\n\n" + key)
-
         compLambda = mappings[1][0]
         for mappingLambda in mappings[1]:
             for Lc in range(2):
@@ -120,6 +118,53 @@ def generateHelperFile(inputMappings):
     write_file(
         generateIfTree(
             2, ["occ_l_up", "occ_l_down", "occ_m_up", "occ_m_down"], endCallback
+        )
+    )
+
+    write_file(indent(1) + "return res\n\n\n")
+
+    # V, flipping
+    write_file(
+        "def v_flip(flip_l: bool, flip_up: bool, U: float, t: float, epsl: float, occ_l_up: int, occ_l_down: int,neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],) -> np.complex128:\n"
+    )
+    write_file(indent(1) + "res: np.complex128 = np.complex128(0)\n")
+    write_file(
+        indent(1)
+        + "for (epsm, occ_m_up, occ_m_down,) in neighbors_eps_occupation_tuples:\n"
+    )
+
+    def endCallbackFlip(lineStart: str, currentTruthinesses: List[bool]):
+        flipL, flipUp, Lc, Ld, Mc, Md = currentTruthinesses
+
+        res = ""
+        res += (
+            lineStart
+            + f"# flipL:{flipL}, flipUp:{flipUp}, Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}"
+            + "\n"
+        )
+        res += lineStart + "res += 0 "
+        for meta, mappings in inputMappings.values():
+            LcPrime = (1 - Lc) if (flipL and flipUp) else Lc
+            McPrime = (1 - Mc) if (not flipL and flipUp) else Mc
+            LdPrime = (1 - Ld) if (flipL and not flipUp) else Ld
+            MdPrime = (1 - Md) if (not flipL and not flipUp) else Md
+
+            mult = mappings[0](Lc, Mc, Ld, Md) - mappings[0](
+                LcPrime, McPrime, LdPrime, MdPrime
+            )
+            if mult != 0:
+                if mult == 1:
+                    res += "+" + meta
+                else:
+                    res += "+ " + str(mult) + " * " + meta
+        res += "\n"
+        return res
+
+    write_file(
+        generateIfTree(
+            2,
+            ["flip_l", "flip_up", "occ_l_up", "occ_l_down", "occ_m_up", "occ_m_down"],
+            endCallbackFlip,
         )
     )
 

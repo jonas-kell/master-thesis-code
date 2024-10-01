@@ -3,7 +3,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-from vcomponents import v as calculate_v_plain
+from vcomponents import v as calculate_v_plain, v_flip as calculate_v_flip
 
 
 class Hamiltonian(ABC):
@@ -816,19 +816,25 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
         flipping_occupation_before_flip_os = before_swap_system_state.get_state_array()[
             before_swap_system_state.get_opposite_spin_index(flipping_index)
         ]
-
-        part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
-            1,
-            2,
-            3,
+        flipping_eps = self.E * before_swap_system_state.get_eps_multiplier(
+            index=flipping_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
         )
 
         flipping_neighbor_indices = (
             before_swap_system_state.get_nearest_neighbor_indices(flipping_index)
         )
-        flipping_neighbors_index_occupation_tuples = [
+        flipping_neighbors_eps_occupation_tuples = [
             (
-                nb,
+                self.E
+                * before_swap_system_state.get_eps_multiplier(
+                    index=nb,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                ),
                 before_swap_system_state.get_state_array()[nb],
                 before_swap_system_state.get_state_array()[
                     before_swap_system_state.get_opposite_spin_index(nb)
@@ -837,33 +843,40 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             for nb in flipping_neighbor_indices
         ]
 
-        unscaled_H_n_difference = np.complex128(0)
-        for i, sum_map in enumerate(sum_map_controller):
-            for map_key, factor in sum_map:
-                callback: Callable[[int, int], np.complex128] = (
-                    lambda a, b: np.complex128(a + b)
-                )
-                if i == 0:
-                    # A part of the first order
-                    callback = part_A_lambda_callback
-                elif i == 1:
-                    # B part of the first order
-                    callback = part_B_lambda_callback
-                elif i == 2:
-                    # C part of the first orderFlippingOptimization
-                    callback = part_C_lambda_callback
-
-                analytical_calculation = analytical_calculation_mapper_flipping[
-                    map_key
-                ](
-                    flipping_up,
-                    flipping_index,
-                    flipping_occupation_before_flip,
-                    flipping_occupation_before_flip_os,
-                    callback,
-                    flipping_neighbors_index_occupation_tuples,
-                )
-                unscaled_H_n_difference += factor * analytical_calculation
+        # treat all cases with l flipped
+        unscaled_H_n_difference = calculate_v_flip(
+            flip_l=True,
+            flip_up=flipping_up,
+            U=self.U,
+            t=time,
+            epsl=flipping_eps,
+            occ_l_up=flipping_occupation_before_flip,
+            occ_l_down=flipping_occupation_before_flip_os,
+            neighbors_eps_occupation_tuples=flipping_neighbors_eps_occupation_tuples,
+        )
+        # treat all cases with the flipped being the neighbor
+        singular_important_neighbor = [
+            (
+                flipping_eps,
+                flipping_occupation_before_flip,
+                flipping_occupation_before_flip_os,
+            )
+        ]
+        for (
+            neighbor_as_l_eps,
+            neighbor_as_l_occ,
+            neighbor_as_l_occ_os,
+        ) in flipping_neighbors_eps_occupation_tuples:
+            unscaled_H_n_difference += calculate_v_flip(
+                flip_l=False,
+                flip_up=flipping_up,
+                U=self.U,
+                t=time,
+                epsl=neighbor_as_l_eps,
+                occ_l_up=neighbor_as_l_occ,
+                occ_l_down=neighbor_as_l_occ_os,
+                neighbors_eps_occupation_tuples=singular_important_neighbor,
+            )
 
         return (
             self.J * unscaled_H_n_difference
