@@ -4,16 +4,16 @@ import systemgeometry
 import numpy as np
 import hamiltonian
 from randomgenerator import RandomGenerator
-import datetime
+from time import time as measure
 
-U = 0
-E = -0.4
-J = 1
+U = 0.3
+E = -0.5
+J = 1.1
 phi = np.pi / 3
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.LinearChainNonPeriodicState(2)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -35,7 +35,7 @@ use_state = state.SystemState(system_geometry, initial_system_state)
 total_time_new = 0
 total_time_legacy = 0
 
-for _ in range(1):
+for _ in range(10000):
     use_state.init_random_filling(random)
 
     measurement_time = 1.5
@@ -45,19 +45,19 @@ for _ in range(1):
     sw2_up: bool = random.randbool()
     sw2_index: int = 1
 
-    a = datetime.datetime.now()
+    a = int(measure() * 1000)
     res_new = ham_canonical.get_H_eff(
         time=measurement_time,
         system_state=use_state,
     )
-    b = datetime.datetime.now()
+    b = int(measure() * 1000)
     res_legacy = ham_canonical_legacy.get_H_eff(
         time=measurement_time,
         system_state=use_state,
     )
-    c = datetime.datetime.now()
-    total_time_new += int((b - a).total_seconds() * 1000)
-    total_time_legacy += int((c - b).total_seconds() * 1000)
+    c = int(measure() * 1000)
+    total_time_new += b - a
+    total_time_legacy += c - b
     if np.abs(res_new - res_legacy) > 1e-6:
         print("Difference for New implementation")
         print(use_state.get_state_array())

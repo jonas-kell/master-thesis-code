@@ -157,51 +157,17 @@ class Hamiltonian(ABC):
 
 
 class VPartsMapping(Enum):
-    ClCHm = "a"  # red
-    DlDHm = "b"  # red
-    ClCmCHlCHmDlDHm = "c"  # green
-    ClCHmDlDmDHlDHm = "d"  # green
-    ClCHlDlDHm = "e"  # violet
-    ClCHmDlDHl = "f"  # violet
-    CmCHmDlDHm = "g"  # yellow
-    ClCHmDmDHm = "h"  # yellow
-
-
-sum_map_controller: List[List[Tuple[VPartsMapping, float]]] = [
-    [
-        (VPartsMapping.ClCHm, 5),
-        (VPartsMapping.DlDHm, 5),
-        (VPartsMapping.ClCmCHlCHmDlDHm, 2),
-        (VPartsMapping.ClCHmDlDmDHlDHm, 2),
-        (VPartsMapping.ClCHlDlDHm, -3),
-        (VPartsMapping.ClCHmDlDHl, -3),
-        (VPartsMapping.CmCHmDlDHm, -3),
-        (VPartsMapping.ClCHmDmDHm, -3),
-    ],
-    [
-        (VPartsMapping.ClCHm, -2),
-        (VPartsMapping.DlDHm, -2),
-        (VPartsMapping.ClCmCHlCHmDlDHm, -1),
-        (VPartsMapping.ClCHmDlDmDHlDHm, -1),
-        (VPartsMapping.ClCHlDlDHm, 1),
-        (VPartsMapping.ClCHmDlDHl, 1),
-        (VPartsMapping.CmCHmDlDHm, 2),
-        (VPartsMapping.ClCHmDmDHm, 2),
-    ],
-    [
-        (VPartsMapping.ClCHm, -2),
-        (VPartsMapping.DlDHm, -2),
-        (VPartsMapping.ClCmCHlCHmDlDHm, -1),
-        (VPartsMapping.ClCHmDlDmDHlDHm, -1),
-        (VPartsMapping.ClCHlDlDHm, 2),
-        (VPartsMapping.ClCHmDlDHl, 2),
-        (VPartsMapping.CmCHmDlDHm, 1),
-        (VPartsMapping.ClCHmDmDHm, 1),
-    ],
-]
+    A = "a"
+    B = "b"
+    C = "c"
 
 
 class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
+    """This is implemented EXTREMELY inefficient.
+    This used to make more sense in the past, when there would be 3*8 operator-strings with different factors that later would have been required to be re-assembled.
+    In this form it is ONLY used for checking later and more streamlined implementations for correctness.
+    """
+
     def __init__(
         self,
         U: float,
@@ -250,23 +216,9 @@ class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
 
         psi_N = system_state.get_Psi_of_N()
 
-        # see above comments, what these Tuple elements are
-        cache: Dict[
-            VPartsMapping,
-            List[
-                Tuple[
-                    float,  # one_over_epsm_minus_epsl
-                    float,  # one_over_epsm_minus_epsl_plus_U
-                    float,  # one_over_epsm_minus_epsl_minus_U
-                    np.complex128,  # e_to_the_t_epsm_minus_epsl
-                    np.complex128,  # e_to_the_t_epsm_minus_epsl_plus_U
-                    np.complex128,  # e_to_the_t_epsm_minus_epsl_minus_U
-                    float,  # psi_K_over_psi_N
-                ]
-            ],
-        ] = {}
+        total_sum = np.complex128(0)
+
         for val in VPartsMapping:
-            cache[val] = []
             for l, m, K in operator_evaluations[val]:
                 psi_K = K.get_Psi_of_N()
 
@@ -285,77 +237,51 @@ class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
                     )
                 )
 
-                one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l
-                one_over_epsm_minus_epsl_plus_U = 1 / (eps_m_minus_eps_l + self.U)
-                one_over_epsm_minus_epsl_minus_U = 1 / (eps_m_minus_eps_l - self.U)
-                e_to_the_t_epsm_minus_epsl_minus_one = np.expm1(
-                    1j * time * eps_m_minus_eps_l
-                )
-                e_to_the_t_epsm_minus_epsl_plus_U_minus_one = np.expm1(
-                    1j * time * (eps_m_minus_eps_l + self.U)
-                )
-                e_to_the_t_epsm_minus_epsl_minus_U_minus_one = np.expm1(
-                    1j * time * (eps_m_minus_eps_l - self.U)
-                )
-
                 # probably inefficient and is always 1 but wanted to do it properly
                 # properly configured mc sampling doesn't touch this function and assumes homogenous psi_N, so this is not major efficiency problem
                 psi_K_over_psi_N = psi_K / psi_N
 
-                cache[val].append(
-                    (
-                        one_over_epsm_minus_epsl,
-                        one_over_epsm_minus_epsl_plus_U,
-                        one_over_epsm_minus_epsl_minus_U,
-                        e_to_the_t_epsm_minus_epsl_minus_one,
-                        e_to_the_t_epsm_minus_epsl_plus_U_minus_one,
-                        e_to_the_t_epsm_minus_epsl_minus_U_minus_one,
-                        psi_K_over_psi_N,
+                product = np.complex128(1)
+                product *= psi_K_over_psi_N
+
+                if val == VPartsMapping.A:
+                    # A part of the first order
+                    one_over_epsm_minus_epsl = 1 / eps_m_minus_eps_l
+                    e_to_the_t_epsm_minus_epsl_minus_one = np.expm1(
+                        1j * time * eps_m_minus_eps_l
                     )
-                )
+                    product *= (
+                        one_over_epsm_minus_epsl * e_to_the_t_epsm_minus_epsl_minus_one
+                    )
+                elif val == VPartsMapping.B:
+                    # B part of the first order
+                    one_over_epsm_minus_epsl_plus_U = 1 / (eps_m_minus_eps_l + self.U)
+                    e_to_the_t_epsm_minus_epsl_plus_U_minus_one = np.expm1(
+                        1j * time * (eps_m_minus_eps_l + self.U)
+                    )
+                    product *= (
+                        one_over_epsm_minus_epsl_plus_U
+                        * e_to_the_t_epsm_minus_epsl_plus_U_minus_one
+                    )
+                elif val == VPartsMapping.C:
+                    # C part of the first order
+                    one_over_epsm_minus_epsl_minus_U = 1 / (eps_m_minus_eps_l - self.U)
+                    e_to_the_t_epsm_minus_epsl_minus_U_minus_one = np.expm1(
+                        1j * time * (eps_m_minus_eps_l - self.U)
+                    )
+                    product *= (
+                        one_over_epsm_minus_epsl_minus_U
+                        * e_to_the_t_epsm_minus_epsl_minus_U_minus_one
+                    )
 
-        total_sum = np.complex128(0)
-        for i, sum_map in enumerate(sum_map_controller):
-            for map_key, factor in sum_map:
-                for (
-                    one_over_epsm_minus_epsl,
-                    one_over_epsm_minus_epsl_plus_U,
-                    one_over_epsm_minus_epsl_minus_U,
-                    e_to_the_t_epsm_minus_epsl_minus_one,
-                    e_to_the_t_epsm_minus_epsl_plus_U_minus_one,
-                    e_to_the_t_epsm_minus_epsl_minus_U_minus_one,
-                    psi_K_over_psi_N,
-                ) in cache[map_key]:
-                    product = np.complex128(1)
-                    product *= factor * psi_K_over_psi_N
-
-                    if i == 0:
-                        # A part of the first order
-                        product *= (
-                            one_over_epsm_minus_epsl
-                            * e_to_the_t_epsm_minus_epsl_minus_one
-                        )
-                    elif i == 1:
-                        # B part of the first order
-                        product *= (
-                            one_over_epsm_minus_epsl_plus_U
-                            * e_to_the_t_epsm_minus_epsl_plus_U_minus_one
-                        )
-                    elif i == 2:
-                        # C part of the first order
-                        product *= (
-                            one_over_epsm_minus_epsl_minus_U
-                            * e_to_the_t_epsm_minus_epsl_minus_U_minus_one
-                        )
-
-                    total_sum += product
+                total_sum += product
 
         return total_sum * self.J
 
     def V_parts(
         self,
         system_state: state.SystemState,
-    ) -> Dict[VPartsMapping, List[Tuple[int, int, state.SystemState]]]:
+    ) -> Dict[VPartsMapping, List[Tuple[int, int, int, state.SystemState]]]:
         """
         returns Tuple[l,m,K] The neighbor summation indices l&m and the resulting state K where a match was made
         """
@@ -399,78 +325,82 @@ class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
 
                 system_state_array = system_state.get_state_array()
 
-                # ClCHm: c_l * c#_m
-                if system_state_array[l] == 0 and system_state_array[m] == 1:
-                    result[VPartsMapping.ClCHm].append(
+                # A: c_l * c#_m (1 + 2 nd_l nd_m - nd_l - nd_m)
+                if (
+                    (system_state_array[l] == 0)
+                    and (system_state_array[m] == 1)
+                    and (
+                        1
+                        + 2
+                        * (system_state_array[l_os] == 1)
+                        * (system_state_array[m_os] == 1)
+                        - (system_state_array[m_os] == 1)
+                        - (system_state_array[l_os] == 1)
+                    )
+                ):
+                    result[VPartsMapping.A].append(
                         (l, m, get_m_to_l_hopped_state_array())
                     )
 
-                # DlDHm: d_l * d#_m
-                if system_state_array[l_os] == 0 and system_state_array[m_os] == 1:
-                    result[VPartsMapping.DlDHm].append(
+                # A: d_l * d#_m (1 + 2 nc_l nc_m - nc_l - nc_m)
+                if (
+                    (system_state_array[l_os] == 0)
+                    and (system_state_array[m_os] == 1)
+                    and (
+                        1
+                        + 2
+                        * (system_state_array[l] == 1)
+                        * (system_state_array[m] == 1)
+                        - (system_state_array[m] == 1)
+                        - (system_state_array[l] == 1)
+                    )
+                ):
+                    result[VPartsMapping.A].append(
                         (l, m, get_os_m_to_l_hopped_state_array())
                     )
 
-                # ClCmCHlCHmDlDHm: c_l * c_m * c#_l * c#_m * d_l * d#_m
+                # B: c_l * c#_m * nd_m (1 - nd_l)
                 if (
-                    system_state_array[l] == 0
-                    and system_state_array[m] == 0
-                    and system_state_array[l_os] == 0
-                    and system_state_array[m_os] == 1
+                    (system_state_array[l] == 0)
+                    and (system_state_array[m] == 1)
+                    and (system_state_array[m_os] == 1)
+                    and (1 - (system_state_array[l_os] == 1))
                 ):
-                    result[VPartsMapping.ClCmCHlCHmDlDHm].append(
-                        (l, m, get_os_m_to_l_hopped_state_array())
-                    )
-
-                # ClCHmDlDmDHlDHm: c_l * c#_m * d_l * d_m * d#_l * d#_m
-                if (
-                    system_state_array[l_os] == 0
-                    and system_state_array[m_os] == 0
-                    and system_state_array[l] == 0
-                    and system_state_array[m] == 1
-                ):
-                    result[VPartsMapping.ClCHmDlDmDHlDHm].append(
+                    result[VPartsMapping.B].append(
                         (l, m, get_m_to_l_hopped_state_array())
                     )
 
-                # ClCHlDlDHm: c_l * c#_l * d_l * d#_m
+                # B: d_l * d#_m * nc_m (1 - nc_l)
                 if (
-                    system_state_array[l] == 0
-                    and system_state_array[l_os] == 0
-                    and system_state_array[m_os] == 1
+                    (system_state_array[l_os] == 0)
+                    and (system_state_array[m_os] == 1)
+                    and (system_state_array[m] == 1)
+                    and (1 - (system_state_array[l] == 1))
                 ):
-                    result[VPartsMapping.ClCHlDlDHm].append(
+                    result[VPartsMapping.B].append(
                         (l, m, get_os_m_to_l_hopped_state_array())
                     )
 
-                # ClCHmDlDHl: c_l * c#_m * d_l * d#_l
+                # C: c_l * c#_m * nd_l (1 - nd_m)
                 if (
-                    system_state_array[l_os] == 0
-                    and system_state_array[l] == 0
-                    and system_state_array[m] == 1
+                    (system_state_array[l] == 0)
+                    and (system_state_array[m] == 1)
+                    and (system_state_array[l_os] == 1)
+                    and (1 - (system_state_array[m_os] == 1))
                 ):
-                    result[VPartsMapping.ClCHmDlDHl].append(
+                    result[VPartsMapping.C].append(
                         (l, m, get_m_to_l_hopped_state_array())
                     )
 
-                # CmCHmDlDHm: c_m * c#_m * d_l * d#_m
+                # B: d_l * d#_m * nc_l (1 - nc_m)
                 if (
-                    system_state_array[m] == 0
-                    and system_state_array[l_os] == 0
-                    and system_state_array[m_os] == 1
+                    (system_state_array[l_os] == 0)
+                    and (system_state_array[m_os] == 1)
+                    and (system_state_array[l] == 1)
+                    and (1 - (system_state_array[m] == 1))
                 ):
-                    result[VPartsMapping.CmCHmDlDHm].append(
+                    result[VPartsMapping.C].append(
                         (l, m, get_os_m_to_l_hopped_state_array())
-                    )
-
-                # ClCHmDmDHm: c_l * c#_m * d_m * d#_m
-                if (
-                    system_state_array[m_os] == 0
-                    and system_state_array[l] == 0
-                    and system_state_array[m] == 1
-                ):
-                    result[VPartsMapping.ClCHmDmDHm].append(
-                        (l, m, get_m_to_l_hopped_state_array())
                     )
 
         return result
@@ -550,7 +480,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
 
             neighbors_occupation_tuples = [
                 (
-                    system_state.get_eps_multiplier(
+                    self.E
+                    * system_state.get_eps_multiplier(
                         index=nb,
                         phi=self.phi,
                         sin_phi=self.sin_phi,
@@ -567,7 +498,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
             total_sum += calculate_v_plain(
                 U=self.U,
                 t=time,
-                epsl=system_state.get_eps_multiplier(
+                epsl=self.E
+                * system_state.get_eps_multiplier(
                     index=l, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
                 ),
                 occ_l_up=system_state.get_state_array()[l],
@@ -607,14 +539,7 @@ analytical_calculation_mapper_hopping: Dict[
         np.complex128,
     ],
 ] = {
-    VPartsMapping.ClCHm: lambda a: a,  # TODO
-    VPartsMapping.DlDHm: lambda a: a,
-    VPartsMapping.ClCmCHlCHmDlDHm: lambda a: a,
-    VPartsMapping.ClCHmDlDmDHlDHm: lambda a: a,
-    VPartsMapping.ClCHmDlDHl: lambda a: a,
-    VPartsMapping.ClCHlDlDHm: lambda a: a,
-    VPartsMapping.ClCHmDmDHm: lambda a: a,
-    VPartsMapping.CmCHmDlDHm: lambda a: a,
+    VPartsMapping.A: lambda a: a,  # TODO
 }
 
 
@@ -820,14 +745,7 @@ analytical_calculation_mapper_flipping: Dict[
         np.complex128,
     ],
 ] = {
-    VPartsMapping.ClCHm: lambda a: a,  # TODO
-    VPartsMapping.DlDHm: lambda a: a,  # TODO
-    VPartsMapping.ClCmCHlCHmDlDHm: lambda a: a,  # TODO
-    VPartsMapping.ClCHmDlDmDHlDHm: lambda a: a,  # TODO
-    VPartsMapping.ClCHmDlDHl: lambda a: a,  # TODO
-    VPartsMapping.ClCHlDlDHm: lambda a: a,  # TODO
-    VPartsMapping.ClCHmDmDHm: lambda a: a,  # TODO
-    VPartsMapping.CmCHmDlDHm: lambda a: a,  # TODO
+    VPartsMapping.A: lambda a: a,  # TODO
 }
 
 
