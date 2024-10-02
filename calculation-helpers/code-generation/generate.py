@@ -1,6 +1,10 @@
 from typing import List
 
 
+def isBasicallyOne(num) -> bool:
+    return abs(1 - num) < 1e-6
+
+
 def checkOptimizations(inputMappings):
     for key, mappings in inputMappings.items():
         compLambda = mappings[1][0]
@@ -108,10 +112,12 @@ def generateHelperFile(inputMappings):
         for meta, mappings in inputMappings.values():
             mult = mappings[0](Lc, Mc, Ld, Md)
             if mult != 0:
-                if mult == 1:
-                    res += "+" + meta
+                if isBasicallyOne(mult):
+                    res += "+" + meta[0]
+                elif isBasicallyOne(-mult):
+                    res += "-" + meta[0]
                 else:
-                    res += "+ " + str(mult) + " * " + meta
+                    res += "+ " + str(mult) + " * " + meta[0]
         res += "\n"
         return res
 
@@ -125,7 +131,7 @@ def generateHelperFile(inputMappings):
 
     # V, flipping
     write_file(
-        "def v_flip(flip_l: bool, flip_up: bool, U: float, t: float, epsl: float, occ_l_up: int, occ_l_down: int,neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],) -> np.complex128:\n"
+        "def v_flip(flip_up: bool, U: float, t: float, epsl: float, occ_l_up: int, occ_l_down: int,neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],) -> np.complex128:\n"
     )
     write_file(indent(1) + "res: np.complex128 = np.complex128(0)\n")
     write_file(
@@ -134,36 +140,49 @@ def generateHelperFile(inputMappings):
     )
 
     def endCallbackFlip(lineStart: str, currentTruthinesses: List[bool]):
-        flipL, flipUp, Lc, Ld, Mc, Md = currentTruthinesses
+        flipUp, Lc, Ld, Mc, Md = currentTruthinesses
 
         res = ""
         res += (
-            lineStart
-            + f"# flipL:{flipL}, flipUp:{flipUp}, Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}"
-            + "\n"
+            lineStart + f"# flipUp:{flipUp}, Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}" + "\n"
         )
         res += lineStart + "res += 0 "
         for meta, mappings in inputMappings.values():
-            LcPrime = (1 - Lc) if (flipL and flipUp) else Lc
-            McPrime = (1 - Mc) if (not flipL and flipUp) else Mc
-            LdPrime = (1 - Ld) if (flipL and not flipUp) else Ld
-            MdPrime = (1 - Md) if (not flipL and not flipUp) else Md
+            LcPrime = (1 - Lc) if flipUp else Lc
+            McPrime = Mc
+            LdPrime = (1 - Ld) if not flipUp else Ld
+            MdPrime = Md
 
+            # first meta entry - normal
             mult = mappings[0](Lc, Mc, Ld, Md) - mappings[0](
                 LcPrime, McPrime, LdPrime, MdPrime
             )
             if mult != 0:
-                if mult == 1:
-                    res += "+" + meta
+                if isBasicallyOne(mult):
+                    res += "+" + meta[0]
+                elif isBasicallyOne(-mult):
+                    res += "-" + meta[0]
                 else:
-                    res += "+ " + str(mult) + " * " + meta
+                    res += "+ " + str(mult) + " * " + meta[0]
+            # second meta entry - l<->m swapped
+            mult = mappings[0](Mc, Lc, Md, Ld) - mappings[0](
+                McPrime, LcPrime, MdPrime, LdPrime
+            )
+            if mult != 0:
+                if isBasicallyOne(mult):
+                    res += "+" + meta[1]
+                elif isBasicallyOne(-mult):
+                    res += "-" + meta[1]
+                else:
+                    res += "+ " + str(mult) + " * " + meta[1]
+
         res += "\n"
         return res
 
     write_file(
         generateIfTree(
             2,
-            ["flip_l", "flip_up", "occ_l_up", "occ_l_down", "occ_m_up", "occ_m_down"],
+            ["flip_up", "occ_l_up", "occ_l_down", "occ_m_up", "occ_m_down"],
             endCallbackFlip,
         )
     )
@@ -208,10 +227,12 @@ def generateHelperFile(inputMappings):
                 LcPrime, McPrime, LdPrime, MdPrime
             )
             if mult != 0:
-                if mult == 1:
-                    res += "+" + meta
+                if isBasicallyOne(mult):
+                    res += "+" + meta[0]
+                elif isBasicallyOne(-mult):
+                    res += "-" + meta[0]
                 else:
-                    res += "+ " + str(mult) + " * " + meta
+                    res += "+ " + str(mult) + " * " + meta[0]
 
         res = res.replace("epsl", "eps_sw1")
         res = res.replace("epsm", "eps_nb")
@@ -242,7 +263,10 @@ def generateHelperFile(inputMappings):
 
 mappingsDict = {
     "A": (
-        "(np.expm1(1j * (epsl - epsm) * t) / (epsl-epsm))",
+        (
+            "(np.expm1(1j * (epsl - epsm) * t) / (epsl-epsm))",
+            "(np.expm1(1j * (epsm - epsl) * t) / (epsm-epsl))",
+        ),
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * (1 + 2 * Ld * Md - Md - Ld)
             + Ld * (1 - Md) * (1 + 2 * Lc * Mc - Mc - Lc),
@@ -251,14 +275,20 @@ mappingsDict = {
         ],
     ),
     "B": (
-        "(np.expm1(1j * (epsl - epsm+U) * t) / (epsl-epsm+U))",
+        (
+            "(np.expm1(1j * (epsl - epsm+U) * t) / (epsl-epsm+U))",
+            "(np.expm1(1j * (epsm - epsl+U) * t) / (epsm-epsl+U))",
+        ),
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Ld * (1 - Md)
             + Ld * (1 - Md) * Lc * (1 - Mc)
         ],
     ),
     "C": (
-        "(np.expm1(1j * (epsl - epsm-U) * t) / (epsl-epsm-U))",
+        (
+            "(np.expm1(1j * (epsl - epsm-U) * t) / (epsl-epsm-U))",
+            "(np.expm1(1j * (epsm - epsl-U) * t) / (epsm-epsl-U))",
+        ),
         [
             lambda Lc, Mc, Ld, Md: Lc * (1 - Mc) * Md * (1 - Ld)
             + Ld * (1 - Md) * Mc * (1 - Lc)

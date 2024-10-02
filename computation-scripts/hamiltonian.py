@@ -866,7 +866,6 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
 
         # treat all cases with l flipped
         unscaled_H_n_difference = calculate_v_flip(
-            flip_l=True,
             flip_up=flipping_up,
             U=self.U,
             t=time,
@@ -875,29 +874,6 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             occ_l_down=flipping_occupation_before_flip_os,
             neighbors_eps_occupation_tuples=flipping_neighbors_eps_occupation_tuples,
         )
-        # treat all cases with the flipped being the neighbor
-        singular_important_neighbor = [
-            (
-                flipping_eps,
-                flipping_occupation_before_flip,
-                flipping_occupation_before_flip_os,
-            )
-        ]
-        for (
-            neighbor_as_l_eps,
-            neighbor_as_l_occ,
-            neighbor_as_l_occ_os,
-        ) in flipping_neighbors_eps_occupation_tuples:
-            unscaled_H_n_difference += calculate_v_flip(
-                flip_l=False,
-                flip_up=flipping_up,
-                U=self.U,
-                t=time,
-                epsl=neighbor_as_l_eps,
-                occ_l_up=neighbor_as_l_occ,
-                occ_l_down=neighbor_as_l_occ_os,
-                neighbors_eps_occupation_tuples=singular_important_neighbor,
-            )
 
         return (
             self.J * unscaled_H_n_difference
