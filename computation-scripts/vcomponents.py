@@ -550,3 +550,3662 @@ def v_flip(
                                 # flipL:False, flipUp:False, Lc:False, Mc:False, Ld:False, Md:False
                                 res += 0
     return res
+
+
+def v_hop(
+    hop_sw1_up: bool,
+    hop_sw2_up: bool,
+    U: float,
+    t: float,
+    eps_sw1: float,
+    occ_sw1_up: int,
+    occ_sw1_down: int,
+    occ_sw2_up: int,
+    occ_sw2_down: int,
+    neighbors_eps_occupation_tuples: List[Tuple[float, int, int, bool]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    for eps_nb, occ_nb_up, occ_nb_down, direct_swap in neighbors_eps_occupation_tuples:
+        if direct_swap:
+            if hop_sw1_up:
+                if hop_sw2_up:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                else:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+            else:
+                if hop_sw2_up:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                else:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + 2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -2 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb + U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb + U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:True, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+        else:
+            if hop_sw1_up:
+                if hop_sw2_up:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                else:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+            else:
+                if hop_sw2_up:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                else:
+                    if occ_sw1_up:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += (
+                                                0
+                                                + -1
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                            )
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb + U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb + U)
+                                                )
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                    else:
+                        if occ_sw1_down:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0 + (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                        else:
+                            if occ_sw2_up:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+                            else:
+                                if occ_sw2_down:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(
+                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                                )
+                                                / (eps_sw1 - eps_nb - U)
+                                            )
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
+                                            res += 0 + -1 * (
+                                                np.expm1(1j * (eps_sw1 - eps_nb) * t)
+                                                / (eps_sw1 - eps_nb)
+                                            )
+                                else:
+                                    if occ_nb_up:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
+                                            res += 0
+                                    else:
+                                        if occ_nb_down:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
+                                            res += 0
+                                        else:
+                                            # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
+                                            res += 0
+    return res

@@ -170,6 +170,75 @@ def generateHelperFile(inputMappings):
 
     write_file(indent(1) + "return res\n\n\n")
 
+    # V, hopping
+    write_file(
+        "def v_hop(hop_sw1_up: bool, hop_sw2_up: bool, U: float, t: float, eps_sw1: float, occ_sw1_up: int, occ_sw1_down: int, occ_sw2_up: int, occ_sw2_down: int, neighbors_eps_occupation_tuples: List[Tuple[float, int, int, bool]],) -> np.complex128:\n"
+    )
+    write_file(indent(1) + "res: np.complex128 = np.complex128(0)\n")
+    write_file(
+        indent(1)
+        + "for (eps_nb, occ_nb_up, occ_nb_down, direct_swap) in neighbors_eps_occupation_tuples:\n"
+    )
+
+    def endCallbackHop(lineStart: str, currentTruthinesses: List[bool]):
+        DirectSwap, HopLUp, HopMUp, sw1C, sw1D, sw2C, sw2D, nbC, nbD = (
+            currentTruthinesses
+        )
+
+        res = ""
+        res += (
+            lineStart
+            + f"# DirectSwap:{DirectSwap}, HopLUp:{HopLUp}, HopMUp:{HopMUp}, sw1C:{sw1C}, sw1D:{sw1D}, sw2C:{sw2C}, sw2D:{sw2D}, nbC:{nbC}, nbD:{nbD}"
+            + "\n"
+        )
+        res += lineStart + "res += 0 "
+        for meta, mappings in inputMappings.values():
+            if DirectSwap:
+                LcPrime = (sw2C if HopMUp else sw2D) if HopLUp else sw1C
+                McPrime = (sw1C if HopLUp else sw1D) if HopMUp else sw2C
+                LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
+                MdPrime = (sw1D if not HopLUp else sw1C) if not HopMUp else sw2D
+            else:
+                LcPrime = (sw2C if HopMUp else sw2D) if HopLUp else sw1C
+                McPrime = nbC
+                LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
+                MdPrime = nbD
+
+            mult = mappings[0](sw1C, nbC, sw1D, nbD) - mappings[0](
+                LcPrime, McPrime, LdPrime, MdPrime
+            )
+            if mult != 0:
+                if mult == 1:
+                    res += "+" + meta
+                else:
+                    res += "+ " + str(mult) + " * " + meta
+
+        res = res.replace("epsl", "eps_sw1")
+        res = res.replace("epsm", "eps_nb")
+
+        res += "\n"
+        return res
+
+    write_file(
+        generateIfTree(
+            2,
+            [
+                "direct_swap",
+                "hop_sw1_up",
+                "hop_sw2_up",
+                "occ_sw1_up",
+                "occ_sw1_down",
+                "occ_sw2_up",
+                "occ_sw2_down",
+                "occ_nb_up",
+                "occ_nb_down",
+            ],
+            endCallbackHop,
+        )
+    )
+
+    write_file(indent(1) + "return res\n\n\n")
+
 
 mappingsDict = {
     "A": (

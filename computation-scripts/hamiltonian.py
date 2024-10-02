@@ -3,7 +3,11 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import state
 import numpy as np
-from vcomponents import v as calculate_v_plain, v_flip as calculate_v_flip
+from vcomponents import (
+    v as calculate_v_plain,
+    v_flip as calculate_v_flip,
+    v_hop as calculate_v_hop,
+)
 
 
 class Hamiltonian(ABC):
@@ -520,29 +524,6 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         )
 
 
-analytical_calculation_mapper_hopping: Dict[
-    VPartsMapping,
-    Callable[
-        [
-            bool,  # sw1_up
-            int,  # sw1_index
-            int,  # sw1_occupation
-            int,  # sw1_occupation_os
-            bool,  # sw2_up
-            int,  # sw2_index
-            int,  # sw2_occupation
-            int,  # sw2_occupation_os
-            Callable[[int, int], np.complex128],  # lam
-            List[Tuple[int, int, int]],  # sw1_neighbors_index_occupation_tuples
-            List[Tuple[int, int, int]],  # sw2_neighbors_index_occupation_tuples
-        ],
-        np.complex128,
-    ],
-] = {
-    VPartsMapping.A: lambda a: a,  # TODO
-}
-
-
 class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian):
     def __init__(
         self,
@@ -629,76 +610,134 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         if sw1_occupation * sw1_up + sw1_occupation_os * (
             not sw1_up
         ) == sw2_occupation * sw2_up + sw2_occupation_os * (not sw2_up):
-            # The swapped indices are equal. We know the result
+            # The swapped occupations are equal. We know the result
             return (np.complex128(0), 1.0)
 
-        sw1_neighbor_indices_without_sw2 = (
-            before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
+        sw1_eps = before_swap_system_state.get_eps_multiplier(
+            index=sw1_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
         )
-        # this errors if sw2 is not contained in the list, however the function derivation requires this as a prerequisite
-        sw1_neighbor_indices_without_sw2.remove(sw2_index)
-        sw1_neighbors_index_occupation_tuples = [
+        sw2_eps = before_swap_system_state.get_eps_multiplier(
+            index=sw2_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+        sw1_neighbor_eps_occupation_direct_tuples = [
             (
-                nb,
+                before_swap_system_state.get_eps_multiplier(
+                    index=nb,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                ),
                 before_swap_system_state.get_state_array()[nb],
                 before_swap_system_state.get_state_array()[
                     before_swap_system_state.get_opposite_spin_index(nb)
                 ],
+                nb == sw2_index,
             )
-            for nb in sw1_neighbor_indices_without_sw2
+            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw1_index)
         ]
-        sw2_neighbor_indices_without_sw1 = (
-            before_swap_system_state.get_nearest_neighbor_indices(sw2_index)
-        )
-        # this errors if sw1 is not contained in the list, however the function derivation requires this as a prerequisite
-        sw2_neighbor_indices_without_sw1.remove(sw1_index)
-        sw2_neighbors_index_occupation_tuples = [
+        sw2_neighbor_eps_occupation_direct_tuples = [
             (
-                nb,
+                before_swap_system_state.get_eps_multiplier(
+                    index=nb,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                ),
                 before_swap_system_state.get_state_array()[nb],
                 before_swap_system_state.get_state_array()[
                     before_swap_system_state.get_opposite_spin_index(nb)
                 ],
+                nb == sw1_index,
             )
-            for nb in sw2_neighbor_indices_without_sw1
+            for nb in before_swap_system_state.get_nearest_neighbor_indices(sw2_index)
         ]
-
-        part_A_lambda_callback, part_B_lambda_callback, part_C_lambda_callback = (
-            1,
-            2,
-            3,
-        )
 
         unscaled_H_n_difference = np.complex128(0)
-        for i, sum_map in enumerate(sum_map_controller):
-            for map_key, factor in sum_map:
-                callback: Callable[[int, int], np.complex128] = (
-                    lambda a, b: np.complex128(a + b)
-                )
-                if i == 0:
-                    # A part of the first order
-                    callback = part_A_lambda_callback
-                elif i == 1:
-                    # B part of the first order
-                    callback = part_B_lambda_callback
-                elif i == 2:
-                    # C part of the first order
-                    callback = part_C_lambda_callback
 
-                analytical_calculation = analytical_calculation_mapper_hopping[map_key](
-                    sw1_up,
-                    sw1_index,
+        unscaled_H_n_difference += calculate_v_hop(
+            hop_sw1_up=sw1_up,
+            hop_sw2_up=sw2_up,
+            U=self.U,
+            t=time,
+            eps_sw1=sw1_eps,
+            occ_sw1_up=sw1_occupation,
+            occ_sw1_down=sw1_occupation_os,
+            occ_sw2_up=sw2_occupation,
+            occ_sw2_down=sw2_occupation_os,
+            neighbors_eps_occupation_tuples=sw1_neighbor_eps_occupation_direct_tuples,
+        )
+        unscaled_H_n_difference += calculate_v_hop(
+            hop_sw1_up=sw2_up,
+            hop_sw2_up=sw1_up,
+            U=self.U,
+            t=time,
+            eps_sw1=sw2_eps,
+            occ_sw1_up=sw2_occupation,
+            occ_sw1_down=sw2_occupation_os,
+            occ_sw2_up=sw1_occupation,
+            occ_sw2_down=sw1_occupation_os,
+            neighbors_eps_occupation_tuples=sw2_neighbor_eps_occupation_direct_tuples,
+        )
+
+        for (
+            neighbor_as_center_eps,
+            neighbor_as_center_occ,
+            neighbor_as_center_occ_os,
+            same,
+        ) in sw1_neighbor_eps_occupation_direct_tuples:
+            singular_important_neighbor = [
+                (
+                    sw1_eps,
                     sw1_occupation,
                     sw1_occupation_os,
-                    sw2_up,
-                    sw2_index,
+                    same,
+                )
+            ]
+            unscaled_H_n_difference += calculate_v_hop(
+                hop_sw1_up=sw1_up,
+                hop_sw2_up=sw2_up,
+                U=self.U,
+                t=time,
+                eps_sw1=neighbor_as_center_eps,
+                occ_sw1_up=neighbor_as_center_occ,
+                occ_sw1_down=neighbor_as_center_occ_os,
+                occ_sw2_up=sw2_occupation,
+                occ_sw2_down=sw2_occupation_os,
+                neighbors_eps_occupation_tuples=singular_important_neighbor,
+            )
+
+        for (
+            neighbor_as_center_eps,
+            neighbor_as_center_occ,
+            neighbor_as_center_occ_os,
+            same,
+        ) in sw2_neighbor_eps_occupation_direct_tuples:
+            singular_important_neighbor = [
+                (
+                    sw2_eps,
                     sw2_occupation,
                     sw2_occupation_os,
-                    callback,
-                    sw1_neighbors_index_occupation_tuples,
-                    sw2_neighbors_index_occupation_tuples,
+                    same,
                 )
-                unscaled_H_n_difference += factor * analytical_calculation
+            ]
+            unscaled_H_n_difference += calculate_v_hop(
+                hop_sw1_up=sw2_up,
+                hop_sw2_up=sw1_up,
+                U=self.U,
+                t=time,
+                eps_sw1=neighbor_as_center_eps,
+                occ_sw1_up=neighbor_as_center_occ,
+                occ_sw1_down=neighbor_as_center_occ_os,
+                occ_sw2_up=sw1_occupation,
+                occ_sw2_down=sw1_occupation_os,
+                neighbors_eps_occupation_tuples=singular_important_neighbor,
+            )
 
         return (
             self.J * unscaled_H_n_difference
@@ -729,24 +768,6 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
                 **additional_info,
             }
         )
-
-
-analytical_calculation_mapper_flipping: Dict[
-    VPartsMapping,
-    Callable[
-        [
-            bool,  # flipping_up
-            int,  # flipping_index
-            int,  # flipping_occupation_before_flip
-            int,  # flipping_occupation_before_flip_os
-            Callable[[int, int], np.complex128],  # lam
-            List[Tuple[int, int, int]],  # flipping_neighbors_index_occupation_tuples
-        ],
-        np.complex128,
-    ],
-] = {
-    VPartsMapping.A: lambda a: a,  # TODO
-}
 
 
 class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian):

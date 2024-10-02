@@ -13,7 +13,7 @@ phi = np.pi / 3
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(2)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(4)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -35,7 +35,7 @@ use_state = state.SystemState(system_geometry, initial_system_state)
 total_time_new = 0
 total_time_legacy = 0
 
-for _ in range(10000):
+for _ in range(1):
     use_state.init_random_filling(random)
 
     measurement_time = 1.5
@@ -44,6 +44,9 @@ for _ in range(10000):
     sw1_index: int = 2
     sw2_up: bool = random.randbool()
     sw2_index: int = 1
+
+    if sw2_index not in system_geometry.get_nearest_neighbor_indices(sw1_index):
+        raise Exception("Expect to be neighbor")
 
     a = int(measure() * 1000)
     res_new = ham_canonical.get_H_eff(
@@ -64,26 +67,26 @@ for _ in range(10000):
         print(res_new)
         print(res_legacy)
 
-    # res_a = ham_canonical.get_H_eff_difference_swapping(
-    #     time=measurement_time,
-    #     sw1_up=sw1_up,
-    #     sw1_index=sw1_index,
-    #     sw2_up=sw2_up,
-    #     sw2_index=sw2_index,
-    #     before_swap_system_state=use_state,
-    # )
-    # res_b = ham_swap_optimized.get_H_eff_difference_swapping(
-    #     time=measurement_time,
-    #     sw1_up=sw1_up,
-    #     sw1_index=sw1_index,
-    #     sw2_up=sw2_up,
-    #     sw2_index=sw2_index,
-    #     before_swap_system_state=use_state,
-    # )
-    # if np.abs(res_a[0] - res_b[0]) > 1e-6:
-    #     print("Difference for Hopping")
-    #     print(res_a[0])
-    #     print(res_b[0])
+    res_a = ham_canonical.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    res_b = ham_swap_optimized.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    if np.abs(res_a[0] - res_b[0]) > 1e-6:
+        print("Difference for Hopping")
+        print(res_a[0])
+        print(res_b[0])
 
     res_flip_a = ham_canonical.get_H_eff_difference_flipping(
         time=measurement_time,
