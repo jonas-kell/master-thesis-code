@@ -13,7 +13,7 @@ phi = np.pi / 3
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(4)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(3)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -35,37 +35,37 @@ use_state = state.SystemState(system_geometry, initial_system_state)
 total_time_new = 0
 total_time_legacy = 0
 
-for _ in range(1):
+for _ in range(10000):
     use_state.init_random_filling(random)
 
     measurement_time = 1.5
 
     sw1_up: bool = random.randbool()
-    sw1_index: int = 2
+    sw1_index: int = 4
     sw2_up: bool = random.randbool()
-    sw2_index: int = 1
+    sw2_index: int = 5
 
     if sw2_index not in system_geometry.get_nearest_neighbor_indices(sw1_index):
         raise Exception("Expect to be neighbor")
 
-    a = int(measure() * 1000)
+    a = measure() * 1000
     res_new = ham_canonical.get_H_eff(
         time=measurement_time,
         system_state=use_state,
     )
-    b = int(measure() * 1000)
+    b = measure() * 1000
     res_legacy = ham_canonical_legacy.get_H_eff(
         time=measurement_time,
         system_state=use_state,
     )
-    c = int(measure() * 1000)
+    c = measure() * 1000
     total_time_new += b - a
     total_time_legacy += c - b
     if np.abs(res_new - res_legacy) > 1e-6:
         print("Difference for New implementation")
         print(use_state.get_state_array())
-        print(res_new)
-        print(res_legacy)
+        print(int(res_new))
+        print(int(res_legacy))
 
     res_a = ham_canonical.get_H_eff_difference_swapping(
         time=measurement_time,

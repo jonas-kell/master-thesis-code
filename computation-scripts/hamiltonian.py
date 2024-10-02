@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Callable, Union, Any
+from typing import Dict, List, Tuple,  Union, Any
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
@@ -613,13 +613,13 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             # The swapped occupations are equal. We know the result
             return (np.complex128(0), 1.0)
 
-        sw1_eps = before_swap_system_state.get_eps_multiplier(
+        sw1_eps = self.E * before_swap_system_state.get_eps_multiplier(
             index=sw1_index,
             phi=self.phi,
             sin_phi=self.sin_phi,
             cos_phi=self.cos_phi,
         )
-        sw2_eps = before_swap_system_state.get_eps_multiplier(
+        sw2_eps = self.E * before_swap_system_state.get_eps_multiplier(
             index=sw2_index,
             phi=self.phi,
             sin_phi=self.sin_phi,
@@ -627,7 +627,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         )
         sw1_neighbor_eps_occupation_direct_tuples = [
             (
-                before_swap_system_state.get_eps_multiplier(
+                self.E * before_swap_system_state.get_eps_multiplier(
                     index=nb,
                     phi=self.phi,
                     sin_phi=self.sin_phi,
@@ -643,7 +643,7 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         ]
         sw2_neighbor_eps_occupation_direct_tuples = [
             (
-                before_swap_system_state.get_eps_multiplier(
+                self.E * before_swap_system_state.get_eps_multiplier(
                     index=nb,
                     phi=self.phi,
                     sin_phi=self.sin_phi,
