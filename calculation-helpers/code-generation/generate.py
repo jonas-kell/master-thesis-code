@@ -223,6 +223,7 @@ def generateHelperFile(inputMappings):
                 LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
                 MdPrime = nbD
 
+            # first meta entry - normal
             mult = mappings[0](sw1C, nbC, sw1D, nbD) - mappings[0](
                 LcPrime, McPrime, LdPrime, MdPrime
             )
@@ -233,6 +234,18 @@ def generateHelperFile(inputMappings):
                     res += "-" + meta[0]
                 else:
                     res += "+ " + str(mult) + " * " + meta[0]
+            if not DirectSwap:  # would otherwise doubly apply this one as one is reverse of other and vice-versa
+                # second meta entry - l<->m swapped
+                mult = mappings[0](nbC, sw1C, nbD, sw1D) - mappings[0](
+                    McPrime, LcPrime, MdPrime, LdPrime
+                )
+                if mult != 0:
+                    if isBasicallyOne(mult):
+                        res += "+" + meta[1]
+                    elif isBasicallyOne(-mult):
+                        res += "-" + meta[1]
+                    else:
+                        res += "+ " + str(mult) + " * " + meta[1]
 
         res = res.replace("epsl", "eps_sw1")
         res = res.replace("epsm", "eps_nb")

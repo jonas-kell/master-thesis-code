@@ -2407,7 +2407,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
                                             res += (
@@ -2423,6 +2426,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2454,7 +2463,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
                                             res += (
@@ -2470,6 +2482,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2534,18 +2552,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
@@ -2557,18 +2608,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
@@ -2583,7 +2667,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
                                             res += (
@@ -2599,6 +2686,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2630,7 +2723,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
                                             res += (
@@ -2646,6 +2742,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2710,18 +2812,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
@@ -2733,18 +2868,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
@@ -2806,7 +2974,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
                                             res += (
@@ -2822,6 +2993,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2869,7 +3046,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
                                             res += (
@@ -2885,6 +3065,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -2933,18 +3119,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
@@ -2972,18 +3191,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:True
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
@@ -2998,7 +3250,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:True, nbC:True, nbD:False
                                             res += (
@@ -3014,6 +3269,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -3061,7 +3322,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
                                             res += (
@@ -3077,6 +3341,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                     else:
@@ -3125,18 +3395,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
@@ -3164,18 +3467,51 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                         else:
                                             # DirectSwap:False, HopLUp:True, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
@@ -3238,7 +3574,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
                                             res += 0 + (
@@ -3261,6 +3600,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3285,7 +3630,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
                                             res += 0 + (
@@ -3308,6 +3656,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3334,7 +3688,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
                                             res += 0 - (
@@ -3357,6 +3714,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3381,7 +3744,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:True, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
                                             res += 0 - (
@@ -3404,6 +3770,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3493,19 +3865,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:True, nbD:False
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:True, nbC:False, nbD:False
                                             res += 0 + (
@@ -3516,19 +3921,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
                                             res += 0 + (
@@ -3541,19 +3979,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
                                             res += 0 - (
@@ -3564,19 +4035,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:True, nbD:False
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:True, sw1C:False, sw1D:False, sw2C:True, sw2D:False, nbC:False, nbD:False
                                             res += 0 - (
@@ -3637,7 +4141,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
                                             res += 0 + (
@@ -3660,6 +4167,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3700,7 +4213,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
                                             res += 0 + (
@@ -3723,6 +4239,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3749,7 +4271,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
                                             res += 0 - (
@@ -3772,6 +4297,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3812,7 +4343,10 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:True, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
                                             res += 0 - (
@@ -3835,6 +4369,12 @@ def v_hop(
                                                         1j * (eps_sw1 - eps_nb - U) * t
                                                     )
                                                     / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
                                                 )
                                             )
                                         else:
@@ -3892,19 +4432,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:True, nbD:False
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:True, sw2D:False, nbC:False, nbD:False
                                             res += 0 + (
@@ -3931,19 +4504,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + -2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:True, nbD:False
-                                            res += 0 + (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 - (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:True, sw2C:False, sw2D:False, nbC:False, nbD:False
                                             res += 0 + (
@@ -3956,19 +4562,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:True, nbD:False
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:True, sw2D:True, nbC:False, nbD:False
                                             res += 0 - (
@@ -3995,19 +4634,52 @@ def v_hop(
                                     if occ_nb_up:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:True
-                                            res += 0
+                                            res += (
+                                                0
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
+                                                )
+                                                + 2
+                                                * (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 + U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 + U)
+                                                )
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:True, nbD:False
-                                            res += 0 - (
-                                                np.expm1(
-                                                    1j * (eps_sw1 - eps_nb - U) * t
+                                            res += (
+                                                0
+                                                + (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1)
                                                 )
-                                                / (eps_sw1 - eps_nb - U)
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_sw1 - eps_nb - U) * t
+                                                    )
+                                                    / (eps_sw1 - eps_nb - U)
+                                                )
+                                                - (
+                                                    np.expm1(
+                                                        1j * (eps_nb - eps_sw1 - U) * t
+                                                    )
+                                                    / (eps_nb - eps_sw1 - U)
+                                                )
                                             )
                                     else:
                                         if occ_nb_down:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:True
-                                            res += 0
+                                            res += 0 + (
+                                                np.expm1(1j * (eps_nb - eps_sw1) * t)
+                                                / (eps_nb - eps_sw1)
+                                            )
                                         else:
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:True, nbC:False, nbD:False
                                             res += 0 - (

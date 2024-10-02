@@ -685,60 +685,6 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
             neighbors_eps_occupation_tuples=sw2_neighbor_eps_occupation_direct_tuples,
         )
 
-        for (
-            neighbor_as_center_eps,
-            neighbor_as_center_occ,
-            neighbor_as_center_occ_os,
-            same,
-        ) in sw1_neighbor_eps_occupation_direct_tuples:
-            singular_important_neighbor = [
-                (
-                    sw1_eps,
-                    sw1_occupation,
-                    sw1_occupation_os,
-                    same,
-                )
-            ]
-            unscaled_H_n_difference += calculate_v_hop(
-                hop_sw1_up=sw1_up,
-                hop_sw2_up=sw2_up,
-                U=self.U,
-                t=time,
-                eps_sw1=neighbor_as_center_eps,
-                occ_sw1_up=neighbor_as_center_occ,
-                occ_sw1_down=neighbor_as_center_occ_os,
-                occ_sw2_up=sw2_occupation,
-                occ_sw2_down=sw2_occupation_os,
-                neighbors_eps_occupation_tuples=singular_important_neighbor,
-            )
-
-        for (
-            neighbor_as_center_eps,
-            neighbor_as_center_occ,
-            neighbor_as_center_occ_os,
-            same,
-        ) in sw2_neighbor_eps_occupation_direct_tuples:
-            singular_important_neighbor = [
-                (
-                    sw2_eps,
-                    sw2_occupation,
-                    sw2_occupation_os,
-                    same,
-                )
-            ]
-            unscaled_H_n_difference += calculate_v_hop(
-                hop_sw1_up=sw2_up,
-                hop_sw2_up=sw1_up,
-                U=self.U,
-                t=time,
-                eps_sw1=neighbor_as_center_eps,
-                occ_sw1_up=neighbor_as_center_occ,
-                occ_sw1_down=neighbor_as_center_occ_os,
-                occ_sw2_up=sw1_occupation,
-                occ_sw2_down=sw1_occupation_os,
-                neighbors_eps_occupation_tuples=singular_important_neighbor,
-            )
-
         return (
             self.J * unscaled_H_n_difference
             - (
@@ -864,7 +810,6 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             for nb in flipping_neighbor_indices
         ]
 
-        # treat all cases with l flipped
         unscaled_H_n_difference = calculate_v_flip(
             flip_up=flipping_up,
             U=self.U,
