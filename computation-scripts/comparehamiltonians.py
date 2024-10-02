@@ -35,7 +35,8 @@ use_state = state.SystemState(system_geometry, initial_system_state)
 total_time_new = 0
 total_time_legacy = 0
 
-for _ in range(10000):
+iterations = 10000
+for _ in range(iterations):
     use_state.init_random_filling(random)
 
     measurement_time = 1.5
@@ -107,3 +108,7 @@ for _ in range(10000):
 
 print("new ms:", total_time_new)
 print("legacy ms:", total_time_legacy)
+
+print(
+    "Verified the correctness for the timing optimizations for:", iterations, " cases"
+)
