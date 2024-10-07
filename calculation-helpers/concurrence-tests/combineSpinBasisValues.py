@@ -107,7 +107,8 @@ densityMatrixBuilderArray = np.array(
                 [0j, 0j, 0j, (1 + 0j)],
             ],
         ],
-    ]
+    ],
+    dtype=np.complex64,
 )
 
 
@@ -117,13 +118,26 @@ def combineValues(values) -> np.array:
     )
 
 
-testValues = np.array(
-    [
-        [0, 0, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-    ]
-)
+def isHermitian(test):
+    print(np.abs(test - np.matrix(test).H) < 1e-4)
 
-print(combineValues(testValues))
+
+def printPurity(test):
+    purity = np.trace(test @ test)
+    print(purity)
+    print("pure" if np.abs(purity - 1) < 1e-4 else "not pure")
+
+
+if __name__ == "__main__":
+    testValues = np.array(
+        [
+            [0, 0, 1, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+    )
+
+    print(combineValues(testValues))
+    isHermitian(combineValues(testValues))
+    printPurity(combineValues(testValues))
