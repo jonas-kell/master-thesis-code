@@ -85,18 +85,18 @@ if __name__ == "__main__":
     av, bv, cv, dv, ev, fv, gv, hv = coeff
 
     print(coeff)
+    spin_basis_factors = compile_in_spin_basis_form_averaged(
+        np.array([av, cv, ev, fv, gv])
+    )
+    print(spin_basis_factors)
     print(
-        np.abs(
-            matrix_obvious(av, bv, cv, dv, ev, fv, gv, hv)
-            - compile_in_spin_basis_form_averaged(np.array([av, cv, ev, fv, gv]))
-        )
+        np.abs(matrix_obvious(av, bv, cv, dv, ev, fv, gv, hv) - spin_basis_factors)
         < 1e-4
     )
 
-    # THIS MUST BE HERMITIAN
-    z_basis_mat = combineValues(
-        compile_in_spin_basis_form_averaged(np.array([av, cv, ev, fv, gv]))
-    )
+    # This is not necissarily hermitian, as the inputs are not real observables (missing scaling by the e^(E-E) that makes the imaginary parts vanish)
+    print("Hermiticity and purity check")
+    z_basis_mat = combineValues(spin_basis_factors)
     print(z_basis_mat)
     isHermitian(z_basis_mat)
     printPurity(z_basis_mat)

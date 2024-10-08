@@ -72,6 +72,7 @@ class DoubleOccupationAtSite(Observable):
             raise Exception(f"Site must be smaller than {domain_size} to fit")
 
         self.site = site
+        self.site_os = system_geometry.get_opposite_spin_index(self.site)
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
@@ -80,8 +81,7 @@ class DoubleOccupationAtSite(Observable):
         system_state_array = system_state.get_state_array()
 
         return np.complex128(
-            system_state_array[self.site]
-            * system_state_array[system_state.get_opposite_spin_index(self.site)]
+            system_state_array[self.site] * system_state_array[self.site_os]
         )
 
     def get_label(self) -> str:
