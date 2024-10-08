@@ -4702,3 +4702,1164 @@ def v_hop(
                                             # DirectSwap:False, HopLUp:False, HopMUp:False, sw1C:False, sw1D:False, sw2C:False, sw2D:False, nbC:False, nbD:False
                                             res += 0
     return res
+
+
+def v_double_flip(
+    flip1_up: bool,
+    flip2_up: bool,
+    U: float,
+    t: float,
+    flip1_eps: float,
+    flip1_occ_up: int,
+    flip1_occ_down: int,
+    neighbors_eps_occupation_tuples: List[Tuple[float, int, int, bool]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    for nb_eps, nb_occ_up, nb_occ_down, direct in neighbors_eps_occupation_tuples:
+        if direct:
+            if flip1_up:
+                if flip2_up:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0
+                else:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += 0 + 2 * (
+                                        np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                        / (flip1_eps - nb_eps + U)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0 + -2 * (
+                                        np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                        / (flip1_eps - nb_eps + U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+            else:
+                if flip2_up:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += 0 + 2 * (
+                                        np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                        / (flip1_eps - nb_eps + U)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0 + -2 * (
+                                        np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                        / (flip1_eps - nb_eps + U)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                else:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                        / (flip1_eps - nb_eps - U)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0
+                            else:
+                                if nb_occ_down:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:True, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0
+        else:
+            if flip1_up:
+                if flip2_up:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                else:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:True, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+            else:
+                if flip2_up:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:True, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                else:
+                    if flip1_occ_up:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:True, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:True, Mc:False, Ld:False, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                            / (flip1_eps - nb_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (flip1_eps - nb_eps + U) * t)
+                                            / (flip1_eps - nb_eps + U)
+                                        )
+                                    )
+                    else:
+                        if flip1_occ_down:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:True
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + -2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:True, Md:False
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:True
+                                    res += 0 - (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:True, Md:False
+                                    res += 0 + (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+                        else:
+                            if nb_occ_up:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:True
+                                    res += (
+                                        0
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        + 2
+                                        * (
+                                            np.expm1(1j * (nb_eps - flip1_eps + U) * t)
+                                            / (nb_eps - flip1_eps + U)
+                                        )
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:True, Ld:False, Md:False
+                                    res += (
+                                        0
+                                        + (
+                                            np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                            / (nb_eps - flip1_eps)
+                                        )
+                                        - (
+                                            np.expm1(1j * (flip1_eps - nb_eps - U) * t)
+                                            / (flip1_eps - nb_eps - U)
+                                        )
+                                        - (
+                                            np.expm1(1j * (nb_eps - flip1_eps - U) * t)
+                                            / (nb_eps - flip1_eps - U)
+                                        )
+                                    )
+                            else:
+                                if nb_occ_down:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:True
+                                    res += 0 + (
+                                        np.expm1(1j * (nb_eps - flip1_eps) * t)
+                                        / (nb_eps - flip1_eps)
+                                    )
+                                else:
+                                    # Direct:False, flip1Up:False, flip2Up:False, Lc:False, Mc:False, Ld:False, Md:False
+                                    res += 0 - (
+                                        np.expm1(1j * (flip1_eps - nb_eps) * t)
+                                        / (flip1_eps - nb_eps)
+                                    )
+    return res

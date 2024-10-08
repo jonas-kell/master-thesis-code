@@ -212,15 +212,13 @@ def generateHelperFile(inputMappings):
         )
         res += lineStart + "res += 0 "
         for meta, mappings in inputMappings.values():
+            LcPrime = (sw2C if HopMUp else sw2D) if HopLUp else sw1C
+            LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
             if DirectSwap:
-                LcPrime = (sw2C if HopMUp else sw2D) if HopLUp else sw1C
                 McPrime = (sw1C if HopLUp else sw1D) if HopMUp else sw2C
-                LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
                 MdPrime = (sw1D if not HopLUp else sw1C) if not HopMUp else sw2D
             else:
-                LcPrime = (sw2C if HopMUp else sw2D) if HopLUp else sw1C
                 McPrime = nbC
-                LdPrime = (sw2D if not HopMUp else sw2C) if not HopLUp else sw1D
                 MdPrime = nbD
 
             # first meta entry - normal
@@ -234,7 +232,8 @@ def generateHelperFile(inputMappings):
                     res += "-" + meta[0]
                 else:
                     res += "+ " + str(mult) + " * " + meta[0]
-            if not DirectSwap:  # would otherwise doubly apply this one as one is reverse of other and vice-versa
+            if not DirectSwap:
+                # would otherwise doubly apply this one as one is reverse of other and vice-versa
                 # second meta entry - l<->m swapped
                 mult = mappings[0](nbC, sw1C, nbD, sw1D) - mappings[0](
                     McPrime, LcPrime, MdPrime, LdPrime
@@ -268,6 +267,85 @@ def generateHelperFile(inputMappings):
                 "occ_nb_down",
             ],
             endCallbackHop,
+        )
+    )
+
+    write_file(indent(1) + "return res\n\n\n")
+
+    # V, double flipping
+    write_file(
+        "def v_double_flip(flip1_up: bool, flip2_up: bool, U: float, t: float, flip1_eps: float, flip1_occ_up: int, flip1_occ_down: int, neighbors_eps_occupation_tuples: List[Tuple[float, int, int, bool]]) -> np.complex128:\n"
+    )
+    write_file(indent(1) + "res: np.complex128 = np.complex128(0)\n")
+    write_file(
+        indent(1)
+        + "for (nb_eps, nb_occ_up, nb_occ_down,direct) in neighbors_eps_occupation_tuples:\n"
+    )
+
+    def endCallbackDoubleFlip(lineStart: str, currentTruthinesses: List[bool]):
+        Direct, flip1Up, flip2Up, Lc, Ld, Mc, Md = currentTruthinesses
+
+        res = ""
+        res += (
+            lineStart
+            + f"# Direct:{Direct}, flip1Up:{flip1Up}, flip2Up:{flip2Up}, Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}"
+            + "\n"
+        )
+        res += lineStart + "res += 0 "
+        for meta, mappings in inputMappings.values():
+            LcPrime = (1 - Lc) if flip1Up else Lc
+            LdPrime = (1 - Ld) if not flip1Up else Ld
+            if Direct:
+                McPrime = (1 - Mc) if flip2Up else Mc
+                MdPrime = (1 - Md) if not flip2Up else Md
+            else:
+                McPrime = Mc
+                MdPrime = Md
+
+            # first meta entry - normal
+            mult = mappings[0](Lc, Mc, Ld, Md) - mappings[0](
+                LcPrime, McPrime, LdPrime, MdPrime
+            )
+            if mult != 0:
+                if isBasicallyOne(mult):
+                    res += "+" + meta[0]
+                elif isBasicallyOne(-mult):
+                    res += "-" + meta[0]
+                else:
+                    res += "+ " + str(mult) + " * " + meta[0]
+            if not Direct:
+                # would otherwise doubly apply this one as one is reverse of other and vice-versa
+                # second meta entry - l<->m swapped
+                mult = mappings[0](Mc, Lc, Md, Ld) - mappings[0](
+                    McPrime, LcPrime, MdPrime, LdPrime
+                )
+                if mult != 0:
+                    if isBasicallyOne(mult):
+                        res += "+" + meta[1]
+                    elif isBasicallyOne(-mult):
+                        res += "-" + meta[1]
+                    else:
+                        res += "+ " + str(mult) + " * " + meta[1]
+
+        res = res.replace("epsl", "flip1_eps")
+        res = res.replace("epsm", "nb_eps")
+
+        res += "\n"
+        return res
+
+    write_file(
+        generateIfTree(
+            2,
+            [
+                "direct",
+                "flip1_up",
+                "flip2_up",
+                "flip1_occ_up",
+                "flip1_occ_down",
+                "nb_occ_up",
+                "nb_occ_down",
+            ],
+            endCallbackDoubleFlip,
         )
     )
 

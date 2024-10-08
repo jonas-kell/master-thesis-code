@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple,  Union, Any
+from typing import Dict, List, Tuple, Union, Any
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
@@ -7,6 +7,7 @@ from vcomponents import (
     v as calculate_v_plain,
     v_flip as calculate_v_flip,
     v_hop as calculate_v_hop,
+    v_double_flip as calculate_v_double_flip,
 )
 
 
@@ -69,6 +70,10 @@ class Hamiltonian(ABC):
         sw2_index: int,
         before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
     ) -> Tuple[np.complex128, float]:
+        if sw1_index == sw2_index:
+            # assume swapping on the same site is forbidden, because that edge case is not handled in the mathematics properly
+            raise Exception("Not allowed to request swapping from and to the same site")
+
         sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
         sw1_occupation_os = before_swap_system_state.get_state_array()[
             before_swap_system_state.get_opposite_spin_index(sw1_index)
@@ -123,6 +128,50 @@ class Hamiltonian(ABC):
             flipping_up=flipping_up,
             flipping_index=flipping_index,
         )
+
+        original_state_psi = before_swap_system_state.get_Psi_of_N()
+        proposed_state_psi = after_swap_system_state.get_Psi_of_N()
+        psi_factor = float(
+            np.real(proposed_state_psi * np.conjugate(proposed_state_psi))
+            / np.real(original_state_psi * np.conjugate(original_state_psi))
+        )
+
+        # return un-optimized default
+        return (
+            self.get_H_eff_difference(
+                time=time,
+                system_state_a=before_swap_system_state,
+                system_state_b=after_swap_system_state,
+            ),
+            psi_factor,
+        )
+
+    def get_H_eff_difference_double_flipping(
+        self,
+        time: float,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
+    ) -> Tuple[np.complex128, float]:
+        # allocate swapped state
+        after_swap_system_state = before_swap_system_state.get_editable_copy()
+        after_swap_system_state.flip_in_place(
+            flipping_up=flipping1_up,
+            flipping_index=flipping1_index,
+        )
+        after_swap_system_state.flip_in_place(
+            flipping_up=flipping2_up,
+            flipping_index=flipping2_index,
+        )
+
+        if flipping1_index == flipping2_index:
+            # also trigger this if the spin directions are not the same.
+            # That would make sense, but external mathematics performed on this do not take on-site possibilities into consideration
+            raise Exception(
+                "Not allowed to request double flipping on the same site as it is not clear what this means"
+            )
 
         original_state_psi = before_swap_system_state.get_Psi_of_N()
         proposed_state_psi = after_swap_system_state.get_Psi_of_N()
@@ -598,6 +647,10 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         sw2_index: int,
         before_swap_system_state: state.SystemState,
     ) -> Tuple[np.complex128, float]:
+        if sw1_index == sw2_index:
+            # assume swapping on the same site is forbidden, because that edge case is not handled in the mathematics properly
+            raise Exception("Not allowed to request swapping from and to the same site")
+
         sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
         sw1_occupation_os = before_swap_system_state.get_state_array()[
             before_swap_system_state.get_opposite_spin_index(sw1_index)
@@ -627,7 +680,8 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         )
         sw1_neighbor_eps_occupation_direct_tuples = [
             (
-                self.E * before_swap_system_state.get_eps_multiplier(
+                self.E
+                * before_swap_system_state.get_eps_multiplier(
                     index=nb,
                     phi=self.phi,
                     sin_phi=self.sin_phi,
@@ -643,7 +697,8 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
         ]
         sw2_neighbor_eps_occupation_direct_tuples = [
             (
-                self.E * before_swap_system_state.get_eps_multiplier(
+                self.E
+                * before_swap_system_state.get_eps_multiplier(
                     index=nb,
                     phi=self.phi,
                     sin_phi=self.sin_phi,
@@ -835,6 +890,203 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
             ),
             1.0,  # this being 1.0 is a required assumption for this simplification
         )
+
+    def get_H_eff_difference_double_flipping(
+        self,
+        time: float,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        if flipping1_index == flipping2_index:
+            # also trigger this if the spin directions are not the same.
+            # That would make sense, but external mathematics performed on this do not take on-site possibilities into consideration
+            raise Exception(
+                "Not allowed to request double flipping on the same site as it is not clear what this means"
+            )
+
+        flipping1_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping1_index
+        ]
+        flipping1_occupation_before_flip_os = (
+            before_swap_system_state.get_state_array()[
+                before_swap_system_state.get_opposite_spin_index(flipping1_index)
+            ]
+        )
+        flipping1_eps = self.E * before_swap_system_state.get_eps_multiplier(
+            index=flipping1_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+        flipping2_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping2_index
+        ]
+        flipping2_occupation_before_flip_os = (
+            before_swap_system_state.get_state_array()[
+                before_swap_system_state.get_opposite_spin_index(flipping2_index)
+            ]
+        )
+        flipping2_eps = self.E * before_swap_system_state.get_eps_multiplier(
+            index=flipping2_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+
+        flipping1_neighbor_indices = (
+            before_swap_system_state.get_nearest_neighbor_indices(flipping1_index)
+        )
+        flipping1_neighbors_eps_occupation_direct_tuples = [
+            (
+                self.E
+                * before_swap_system_state.get_eps_multiplier(
+                    index=nb,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                ),
+                before_swap_system_state.get_state_array()[nb],
+                before_swap_system_state.get_state_array()[
+                    before_swap_system_state.get_opposite_spin_index(nb)
+                ],
+                nb == flipping2_index,
+            )
+            for nb in flipping1_neighbor_indices
+        ]
+        flipping2_neighbor_indices = (
+            before_swap_system_state.get_nearest_neighbor_indices(flipping2_index)
+        )
+        flipping2_neighbors_eps_occupation_direct_tuples = [
+            (
+                self.E
+                * before_swap_system_state.get_eps_multiplier(
+                    index=nb,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                ),
+                before_swap_system_state.get_state_array()[nb],
+                before_swap_system_state.get_state_array()[
+                    before_swap_system_state.get_opposite_spin_index(nb)
+                ],
+                nb == flipping1_index,
+            )
+            for nb in flipping2_neighbor_indices
+        ]
+
+        unscaled_H_n_difference = np.complex128(0)
+
+        unscaled_H_n_difference += calculate_v_double_flip(
+            flip1_up=flipping1_up,
+            flip2_up=flipping2_up,
+            U=self.U,
+            t=time,
+            flip1_eps=flipping1_eps,
+            flip1_occ_up=flipping1_occupation_before_flip,
+            flip1_occ_down=flipping1_occupation_before_flip_os,
+            neighbors_eps_occupation_tuples=flipping1_neighbors_eps_occupation_direct_tuples,
+        )
+        unscaled_H_n_difference += calculate_v_double_flip(
+            flip1_up=flipping2_up,
+            flip2_up=flipping1_up,
+            U=self.U,
+            t=time,
+            flip1_eps=flipping2_eps,
+            flip1_occ_up=flipping2_occupation_before_flip,
+            flip1_occ_down=flipping2_occupation_before_flip_os,
+            neighbors_eps_occupation_tuples=flipping2_neighbors_eps_occupation_direct_tuples,
+        )
+
+        return (
+            self.J * unscaled_H_n_difference
+            - (
+                1j
+                * self.get_base_energy_difference_double_flipping(
+                    flipping1_up=flipping1_up,
+                    flipping1_index=flipping1_index,
+                    flipping1_occupation_before_flip=flipping1_occupation_before_flip,
+                    flipping1_occupation_before_flip_os=flipping1_occupation_before_flip_os,
+                    flipping2_up=flipping2_up,
+                    flipping2_index=flipping2_index,
+                    flipping2_occupation_before_flip=flipping2_occupation_before_flip,
+                    flipping2_occupation_before_flip_os=flipping2_occupation_before_flip_os,
+                    before_swap_system_state=before_swap_system_state,
+                )
+                * time
+            ),
+            1.0,  # this being 1.0 is a required assumption for this simplification
+        )
+
+    def get_base_energy_difference_double_flipping(
+        self,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping1_occupation_before_flip: int,
+        flipping1_occupation_before_flip_os: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        flipping2_occupation_before_flip: int,
+        flipping2_occupation_before_flip_os: int,
+        before_swap_system_state: state.SystemState,
+    ) -> float:
+        if flipping1_index == flipping2_index:
+            # also trigger this if the spin directions are not the same.
+            # That would make sense, but external mathematics performed on this do not take on-site possibilities into consideration
+            raise Exception(
+                "Not allowed to request double flipping on the same site as it is not clear what this means"
+            )
+        res = 0
+
+        # double occupations
+        if flipping1_up:
+            res += self.U * (
+                flipping1_occupation_before_flip_os
+                * (2 * flipping1_occupation_before_flip - 1)
+            )
+        else:
+            res += self.U * (
+                flipping1_occupation_before_flip
+                * (2 * flipping1_occupation_before_flip_os - 1)
+            )
+
+        if flipping2_up:
+            res += self.U * (
+                flipping2_occupation_before_flip_os
+                * (2 * flipping2_occupation_before_flip - 1)
+            )
+        else:
+            res += self.U * (
+                flipping2_occupation_before_flip
+                * (2 * flipping2_occupation_before_flip_os - 1)
+            )
+
+        # electrical field
+        eps_i1 = before_swap_system_state.get_eps_multiplier(
+            index=flipping1_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+        i1_occupation = flipping1_occupation_before_flip
+        if not flipping1_up:
+            i1_occupation = flipping1_occupation_before_flip_os
+
+        res += self.E * eps_i1 * (2 * i1_occupation - 1)
+        eps_i2 = before_swap_system_state.get_eps_multiplier(
+            index=flipping2_index,
+            phi=self.phi,
+            sin_phi=self.sin_phi,
+            cos_phi=self.cos_phi,
+        )
+        i2_occupation = flipping2_occupation_before_flip
+        if not flipping2_up:
+            i2_occupation = flipping2_occupation_before_flip_os
+        res += self.E * eps_i2 * (2 * i2_occupation - 1)
+
+        return res
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
