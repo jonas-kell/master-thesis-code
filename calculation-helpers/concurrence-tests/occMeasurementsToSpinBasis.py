@@ -11,7 +11,7 @@ def assemble_coefficients(a, c):
     return np.array([a, b, c, d, a * c, a * d, b * c, b * d])
 
 
-def matrix_obvious(a, b, c, d, e, f, g, h) -> np.array:
+def matrix_obvious(a, b, c, d, e, f, g, h) -> np.ndarray:
 
     return (
         np.array(
@@ -63,7 +63,7 @@ factor_to_spin_basis_conversion_helper = (
 )
 
 
-def compile_in_spin_basis_form_averaged(acefg: np.array) -> np.array:
+def compile_in_spin_basis_form_averaged(acefg: np.ndarray) -> np.ndarray:
 
     oacefg = np.insert(acefg, 0, 1)
 

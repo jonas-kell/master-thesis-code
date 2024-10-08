@@ -76,7 +76,9 @@ def main_measurement_function(
         step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
 
-        total_sums_complex: List[np.complex128] = [np.complex128(0.0)] * num_observables
+        total_sums_complex: List[np.complex128 | np.ndarray] = [
+            np.complex128(0.0)
+        ] * num_observables
 
         # ! Branch out jobs into worker-functions
 
@@ -121,17 +123,21 @@ def main_measurement_function(
 
         # scale and convert observables
         total_sums: List[float] = [0.0] * num_observables
-        for i in range(num_observables):
+        for i, observable in enumerate(observables):
+            measurement = total_sums_complex[i]
+
+            if observable.post_process_necessary():
+                # in this case, the handled values in an ndarray that needs post processing (e.g. a density matrix or other factors that need to be sampled)
+                measurement = observable.post_process(measurement)
+
             imag_part_of_observable = float(
-                np.imag(total_sums_complex[i]) * inverse_normalization_factor
+                np.imag(measurement) * inverse_normalization_factor
             )
             if np.abs(imag_part_of_observable) > 1e-2:
                 print(
                     f"Warning observable had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )
-            total_sums[i] = float(
-                np.real(total_sums_complex[i]) * inverse_normalization_factor
-            )
+            total_sums[i] = float(np.real(measurement) * inverse_normalization_factor)
 
         if default_prints:
             print(
@@ -199,12 +205,15 @@ def run_worker_chain(
     total_needed_sample_count: int,
     function_start_time: float,
     default_prints: bool,
-) -> Tuple[int, float, List[np.complex128]]:
+) -> Tuple[int, float, List[np.complex128 | np.ndarray]]:
     """
     returns: (worker_sample_count, worker_sums)
     """
     num_observables = len(observables)
-    worker_sums: List[np.complex128] = [np.complex128(0.0)] * num_observables
+    # when one observable outputs a np.ndarray in get_expectation_value(), this will be correctly handled
+    worker_sums: List[np.complex128 | np.ndarray] = [
+        np.complex128(0.0)
+    ] * num_observables
 
     worker_sample_count = 0
     normalization_factor = 0.0
@@ -250,6 +259,7 @@ def run_worker_chain(
                 observed_quantity = observable.get_expectation_value(
                     time=time, system_state=sampled_state_n
                 )
+                # this operation is correctly handled if the return type is an array (thanks python for once)
                 worker_sums[i] += state_probability * observed_quantity
 
             ## end generate measurements using sampled state

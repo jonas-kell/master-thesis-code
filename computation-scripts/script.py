@@ -52,8 +52,8 @@ if __name__ == "__main__":
     # ? !! Default values for Parameters:
 
     # ! General Hamiltonian properties
-    U = cast(float, get_argument(args, "U", float, 0.5))
-    E = cast(float, get_argument(args, "E", float, -0.5))
+    U = cast(float, get_argument(args, "U", float, 0.7))
+    E = cast(float, get_argument(args, "E", float, -0.3))
     J = cast(float, get_argument(args, "J", float, 0.001))
 
     n = cast(int, get_argument(args, "n", int, 2))
@@ -164,34 +164,46 @@ if __name__ == "__main__":
 
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
-    obs_generated: List[observables.Observable] = [
-        observables.DoubleOccupationAtSite(i, system_geometry)
-        for i in range(num_of_sites)
-    ]  # Measure the occupation at ALL sites
+    check_concurrence = True
+    obs = []
+    for up1, up2 in [(True, True), (True, False), (False, True), (False, False)]:
+        obs_generated: List[observables.Observable] = [
+            observables.Concurrence(
+                site_index_from=0,
+                site_index_to=i,
+                spin_up_from=up1,
+                spin_up_to=up2,
+                system_hamiltonian=ham,
+                system_geometry=system_geometry,
+                perform_checks=check_concurrence,
+            )
+            for i in range(num_of_sites)
+        ]  # Measure the occupation at ALL sites
 
-    # current_from = 0
-    # current_to = 2
-    # direction_dependent = True
-    obs_hard_coded: List[observables.Observable] = [
-        observables.DoubleOccupationFraction(),
-        # observables.SpinCurrent(
-        #     direction_dependent=direction_dependent,
-        #     site_index_from=current_from,
-        #     site_index_to=current_to,
-        #     spin_up=True,
-        #     system_geometry=system_geometry,
-        #     system_hamiltonian=ham,
-        # ),
-        # observables.SpinCurrent(
-        #     direction_dependent=direction_dependent,
-        #     site_index_from=current_from,
-        #     site_index_to=current_to,
-        #     spin_up=False,
-        #     system_geometry=system_geometry,
-        #     system_hamiltonian=ham,
-        # ),
-    ]
-    obs = obs_generated + obs_hard_coded
+        obs += obs_generated
+
+    # # current_from = 0
+    # # current_to = 2
+    # # direction_dependent = True
+    # obs_hard_coded: List[observables.Observable] = [
+    #     observables.DoubleOccupationFraction(),
+    #     # observables.SpinCurrent(
+    #     #     direction_dependent=direction_dependent,
+    #     #     site_index_from=current_from,
+    #     #     site_index_to=current_to,
+    #     #     spin_up=True,
+    #     #     system_geometry=system_geometry,
+    #     #     system_hamiltonian=ham,
+    #     # ),
+    #     # observables.SpinCurrent(
+    #     #     direction_dependent=direction_dependent,
+    #     #     site_index_from=current_from,
+    #     #     site_index_to=current_to,
+    #     #     spin_up=False,
+    #     #     system_geometry=system_geometry,
+    #     #     system_hamiltonian=ham,
+    #     # ),
+    # ]
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.

@@ -21,7 +21,7 @@ def printMatrixSubvector(sv: MATRIX_SUBVECTOR_SPACE):
 
 def getMatrixInZBasis(
     sva: MATRIX_SUBVECTOR_SPACE, svb: MATRIX_SUBVECTOR_SPACE
-) -> np.array:
+) -> np.ndarray:
     indexTranslationMap = {"uu": 0, "ud": 1, "du": 2, "dd": 3}
 
     res = np.zeros((4, 4), dtype=np.complex64)

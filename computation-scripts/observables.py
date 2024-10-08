@@ -4,6 +4,7 @@ import state
 import systemgeometry
 import hamiltonian
 import numpy as np
+from concurrence import calculate_concurrence
 
 
 class Observable(ABC):
@@ -17,8 +18,16 @@ class Observable(ABC):
     @abstractmethod
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
-    ) -> np.complex128:
-        pass
+    ) -> np.complex128 | np.ndarray:
+        """If the post_process_necessary() returns False, this returns numbers directly.
+        If it returns True, this will return an array that will be converted to a number by applying post_process()
+        """
+
+    def post_process_necessary(self) -> bool:
+        return False
+
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        return value[0]
 
     @abstractmethod
     def get_label(self) -> str:
@@ -179,4 +188,86 @@ class SpinCurrent(Observable):
             "site_index_to": self.site_index_to,
             "spin_up": self.spin_up,
             "direction_dependent": self.direction_dependent,
+        }
+
+
+class Concurrence(Observable):
+
+    def __init__(
+        self,
+        site_index_from: int,
+        spin_up_from: bool,
+        site_index_to: int,
+        spin_up_to: bool,
+        system_hamiltonian: hamiltonian.Hamiltonian,
+        system_geometry: systemgeometry.SystemGeometry,
+        perform_checks: bool = False,
+    ):
+        super().__init__()
+
+        if site_index_from < 0 or site_index_to < 0:
+            raise Exception("Site must be at least 0")
+
+        domain_size = system_geometry.get_number_sites_wo_spin_degree()
+        if site_index_from >= domain_size or site_index_to >= domain_size:
+            raise Exception(f"Site must be smaller than {domain_size} to fit")
+
+        # makes sense to check this also further than nearest neighbors
+
+        self.name_from = str(site_index_from) + (" up" if spin_up_from else " down")
+        self.name_to = str(site_index_to) + (" up" if spin_up_to else " down")
+
+        self.use_index_from = site_index_from  # l
+        if not spin_up_from:
+            self.use_index_from = system_geometry.get_opposite_spin_index(
+                site_index_from
+            )
+        self.use_index_to = site_index_to  # m
+        if not spin_up_to:
+            self.use_index_to = system_geometry.get_opposite_spin_index(site_index_to)
+
+        self.system_hamiltonian = system_hamiltonian
+
+        self.perform_checks = perform_checks
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        system_state_array = system_state.get_state_array()
+
+        anti_site_occ_l_sigma = 1 - system_state_array[self.use_index_from]
+        anti_site_occ_m_sigma_prime = 1 - system_state_array[self.use_index_to]
+
+        # a: c_l,sigma (to left: (1-n_l,sigma) )
+        # c: c_m,sigma' (to left: (1-n_m,sigma') )
+        # e: c_l,sigma*c_m,sigma' (to left: ((1-n_l,sigma) * (1-n_m,sigma')) )
+        # f: c_l,sigma*c#_m,sigma' (to left: ((1-n_l,sigma) * n_m,sigma') )
+        # g: c#_l,sigma*c_m,sigma' (to left: (n_l,sigma * (1-n_m,sigma')) )
+        return np.array(
+            [
+                anti_site_occ_l_sigma,
+                anti_site_occ_m_sigma_prime,
+                anti_site_occ_l_sigma * anti_site_occ_m_sigma_prime,
+                anti_site_occ_l_sigma * (1 - anti_site_occ_m_sigma_prime),
+                (1 - anti_site_occ_l_sigma) * anti_site_occ_m_sigma_prime,
+            ]
+        )
+
+    def post_process_necessary(self) -> bool:
+        # this must store the multiplied and non multiplied occupations seperately, because the averaging of products is not equal the products of averages
+        return True
+
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        return calculate_concurrence(value, do_checks=self.perform_checks)
+
+    def get_label(self) -> str:
+        return f"Concurrence between {self.name_from} and {self.name_to}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "SpinCurrent",
+            "label": self.get_label(),
+            "use_index_from": self.use_index_from,
+            "use_index_to": self.use_index_to,
+            "perform_checks": self.perform_checks,
         }

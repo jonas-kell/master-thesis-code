@@ -40,7 +40,7 @@ def generateRandomTwoSpinPureDensityMatrix() -> Tuple[np.ndarray, np.ndarray]:
     return (densityMatrix, normalized_coefficients)
 
 
-def checkFactors(fact: np.array):
+def checkFactors(fact: np.ndarray):
     if np.abs(np.sum(np.abs(fact) ** 2) - 1.0) > 1e-6:
         raise Exception("Not normalized", np.sum(np.abs(fact) ** 2))
 

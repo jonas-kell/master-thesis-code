@@ -112,7 +112,7 @@ densityMatrixBuilderArray = np.array(
 )
 
 
-def combineValues(values: np.array) -> np.array:
+def combineValues(values: np.ndarray) -> np.ndarray:
     """values must be the factors in the spin basis sigma_alpha sigma_beta (alpha, beta in 0,x,y,z)"""
     return np.sum(
         densityMatrixBuilderArray * values[:, :, np.newaxis, np.newaxis], axis=(0, 1)
