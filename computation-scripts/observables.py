@@ -217,6 +217,11 @@ class Concurrence(Observable):
         self.name_from = str(site_index_from) + (" up" if spin_up_from else " down")
         self.name_to = str(site_index_to) + (" up" if spin_up_to else " down")
 
+        self.index_l = site_index_from
+        self.up_sigma = spin_up_from
+        self.index_m = site_index_to
+        self.up_sigma_prime = spin_up_to
+
         self.use_index_from = site_index_from  # l
         if not spin_up_from:
             self.use_index_from = system_geometry.get_opposite_spin_index(
@@ -235,22 +240,84 @@ class Concurrence(Observable):
     ) -> np.complex128:
         system_state_array = system_state.get_state_array()
 
-        anti_site_occ_l_sigma = 1 - system_state_array[self.use_index_from]
-        anti_site_occ_m_sigma_prime = 1 - system_state_array[self.use_index_to]
+        site_occ_l_sigma_sign = 2 * system_state_array[self.use_index_from] - 1
+        site_occ_m_sigma_prime_sign = 2 * system_state_array[self.use_index_to] - 1
+        # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (flipped - original)
+        e_to_diff_l_sigma = np.eps(
+            -self.system_hamiltonian.get_H_eff_difference_flipping(
+                time=time,
+                flipping_up=self.up_sigma,
+                flipping_index=self.index_l,
+                before_swap_system_state=system_state,
+            )
+        )
+        e_to_diff_m_sigma_prime = np.eps(
+            -self.system_hamiltonian.get_H_eff_difference_flipping(
+                time=time,
+                flipping_up=self.up_sigma_prime,
+                flipping_index=self.index_m,
+                before_swap_system_state=system_state,
+            )
+        )
+        e_to_diff_both = np.eps(
+            -self.system_hamiltonian.get_H_eff_difference_double_flipping(
+                time=time,
+                flipping1_up=self.up_sigma,
+                flipping1_index=self.index_l,
+                flipping2_up=self.up_sigma_prime,
+                flipping2_index=self.index_m,
+                before_swap_system_state=system_state,
+            )
+        )
 
-        # a: c_l,sigma (to left: (1-n_l,sigma) )
-        # c: c_m,sigma' (to left: (1-n_m,sigma') )
-        # e: c_l,sigma*c_m,sigma' (to left: ((1-n_l,sigma) * (1-n_m,sigma')) )
-        # f: c_l,sigma*c#_m,sigma' (to left: ((1-n_l,sigma) * n_m,sigma') )
-        # g: c#_l,sigma*c_m,sigma' (to left: (n_l,sigma * (1-n_m,sigma')) )
         return np.array(
             [
-                anti_site_occ_l_sigma,
-                anti_site_occ_m_sigma_prime,
-                anti_site_occ_l_sigma * anti_site_occ_m_sigma_prime,
-                anti_site_occ_l_sigma * (1 - anti_site_occ_m_sigma_prime),
-                (1 - anti_site_occ_l_sigma) * anti_site_occ_m_sigma_prime,
-            ]
+                [
+                    1,  # 0(l,sigma) 0(m,sigma_p)
+                    e_to_diff_m_sigma_prime,  # 0(l,sigma) x(m,sigma_p)
+                    e_to_diff_m_sigma_prime
+                    * -1j
+                    * site_occ_m_sigma_prime_sign,  # 0(l,sigma) y(m,sigma_p)
+                    site_occ_m_sigma_prime_sign,  # 0(l,sigma) z(m,sigma_p)
+                ],
+                [
+                    e_to_diff_l_sigma,  # x(l,sigma) 0(m,sigma_p)
+                    e_to_diff_both,  # x(l,sigma) x(m,sigma_p)
+                    e_to_diff_both
+                    * site_occ_m_sigma_prime_sign
+                    * 1j,  # x(l,sigma) y(m,sigma_p)
+                    e_to_diff_l_sigma
+                    * site_occ_m_sigma_prime_sign,  # x(l,sigma) z(m,sigma_p)
+                ],
+                [
+                    e_to_diff_l_sigma
+                    * -1j
+                    * site_occ_l_sigma_sign,  # y(l,sigma) 0(m,sigma_p)
+                    e_to_diff_both
+                    * site_occ_l_sigma_sign
+                    * 1j,  # y(l,sigma) x(m,sigma_p)
+                    e_to_diff_both
+                    * (
+                        -1 * site_occ_l_sigma_sign * site_occ_m_sigma_prime_sign
+                    ),  # y(l,sigma) y(m,sigma_p)
+                    e_to_diff_l_sigma
+                    * -1j
+                    * site_occ_l_sigma_sign
+                    * site_occ_m_sigma_prime_sign,  # y(l,sigma) z(m,sigma_p)
+                ],
+                [
+                    site_occ_l_sigma_sign,  # z(l,sigma) 0(m,sigma_p)
+                    site_occ_l_sigma_sign
+                    * e_to_diff_m_sigma_prime,  # z(l,sigma) x(m,sigma_p)
+                    site_occ_l_sigma_sign
+                    * e_to_diff_m_sigma_prime
+                    * -1j
+                    * site_occ_m_sigma_prime_sign,  # z(l,sigma) y(m,sigma_p)
+                    site_occ_l_sigma_sign
+                    * site_occ_m_sigma_prime_sign,  # z(l,sigma) z(m,sigma_p)
+                ],
+            ],
+            dtype=np.complex128,
         )
 
     def post_process_necessary(self) -> bool:

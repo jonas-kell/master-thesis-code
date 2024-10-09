@@ -108,7 +108,7 @@ densityMatrixBuilderArray = np.array(
             ],
         ],
     ],
-    dtype=np.complex64,
+    dtype=np.complex128,
 )
 
 

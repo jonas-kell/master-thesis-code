@@ -31,7 +31,7 @@ def matrix_obvious(a, b, c, d, e, f, g, h) -> np.ndarray:
                     4 * h - b - d + 1,
                 ],
             ],
-            dtype=np.complex64,
+            dtype=np.complex128,
         )
         / 4
     )
@@ -57,7 +57,7 @@ factor_to_spin_basis_conversion_helper = (
             [-1j, 0, -2j, 2j, 2j, 4j],  # zy
             [3, 1, 1, -4, -4, -4],  # zz
         ],
-        dtype=np.complex64,
+        dtype=np.complex128,
     )
     / 4
 )

@@ -108,7 +108,7 @@ density_matrix_builder_helper = np.array(
             ],
         ],
     ],
-    dtype=np.complex64,
+    dtype=np.complex128,
 )
 
 
@@ -118,51 +118,6 @@ def spin_basis_to_z_basis(values: np.ndarray) -> np.ndarray:
         density_matrix_builder_helper * values[:, :, np.newaxis, np.newaxis],
         axis=(0, 1),
     )
-
-
-measurement_to_spin_basis_conversion_helper = (
-    np.array(
-        [  # 1  a  c  e  f  g
-            [1, 0, 0, 0, 0, 0],  # 00 == 1
-            [1, 0, 0, 0, 0, 0],  # 0x == 1
-            [-1j, 0, 2j, 0, 0, 0],  # 0y
-            [1, 0, -2, 0, 0, 0],  # 0z
-            [1, 0, 0, 0, 0, 0],  # x0 == 1
-            [1, 0, 0, 0, 0, 0],  # xx == 1
-            [-1j, 0, 0, 2j, 0, 2j],  # xy
-            [1, 0, 0, -2, 0, -2],  # xz
-            [-1j, 2j, 0, 0, 0, 0],  # y0
-            [-1j, 0, 0, 2j, 2j, 0],  # yx
-            [-1, 0, 0, 0, 2, 2],  # yy
-            [-1j, -2j, 0, 2j, 4j, 2j],  # yz
-            [1, -2, 0, 0, 0, 0],  # z0
-            [1, 0, 0, -2, -2, 0],  # zx
-            [-1j, 0, -2j, 2j, 2j, 4j],  # zy
-            [3, 1, 1, -4, -4, -4],  # zz
-        ],
-        dtype=np.complex64,
-    )
-    / 4
-)
-
-
-def measurements_to_spin_basis(acefg: np.ndarray) -> np.ndarray:
-    """acefg are the averaged measurements of observables:
-
-    a: c_l,sigma (to left: (1-n_l,sigma) )
-
-    c: c_m,sigma' (to left: (1-n_m,sigma') )
-
-    e: c_l,sigma*c_m,sigma' (to left: ((1-n_l,sigma) * (1-n_m,sigma')) )
-
-    f: c_l,sigma*c#_m,sigma' (to left: ((1-n_l,sigma) * n_m,sigma') )
-
-    g: c#_l,sigma*c_m,sigma' (to left: (n_l,sigma * (1-n_m,sigma')) )
-    """
-
-    oacefg = np.insert(acefg, 0, 1)
-
-    return (measurement_to_spin_basis_conversion_helper @ oacefg).reshape((4, 4))
 
 
 sigma_y_sigma_y = np.array(
@@ -210,32 +165,21 @@ def trace_is_one(test: np.ndarray) -> bool:
     return np.abs(purity - 1) < 1e-4
 
 
-def calculate_concurrence(acefg: np.ndarray, do_checks: bool = False) -> float:
-    """acefg are the averaged measurements of observables:
-
-    a: c_l,sigma (to left: (1-n_l,sigma) )
-
-    c: c_m,sigma' (to left: (1-n_m,sigma') )
-
-    e: c_l,sigma*c_m,sigma' (to left: ((1-n_l,sigma) * (1-n_m,sigma')) )
-
-    f: c_l,sigma*c#_m,sigma' (to left: ((1-n_l,sigma) * n_m,sigma') )
-
-    g: c#_l,sigma*c_m,sigma' (to left: (n_l,sigma * (1-n_m,sigma')) )
-    """
-    acefg_real = np.real(acefg)
-    imag_error = np.sum(np.abs(acefg_real - acefg))
+def calculate_concurrence(
+    spin_basis_measurements: np.ndarray, do_checks: bool = False
+) -> float:
+    spin_basis_measurements_real = np.real(spin_basis_measurements)
+    imag_error = np.sum(np.abs(spin_basis_measurements_real - spin_basis_measurements))
     if imag_error > 1e-4:
         if do_checks:
-            print(acefg)
+            print(spin_basis_measurements)
             raise Exception("A complex part in the measurements was ommitted")
         else:
             print(
                 f"Warning intermediate observables had imaginary part of {imag_error:.6f} that was omitted"
             )
 
-    spin_basis_values = measurements_to_spin_basis(acefg_real)
-    z_basis_values = spin_basis_to_z_basis(spin_basis_values)
+    z_basis_values = spin_basis_to_z_basis(spin_basis_measurements / 4.0)
     if do_checks:
         if not is_hermitian(z_basis_values):
             print(z_basis_values)
