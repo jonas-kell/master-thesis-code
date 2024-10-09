@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # ! Simulation Scope Settings
     start_time: float = 0
     time_step: float = 0.125
-    number_of_time_steps: int = int(20 * 16)
+    number_of_time_steps: int = int(20)
 
     # ! Hardware Settings
     cpu_core_count = (

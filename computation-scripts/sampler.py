@@ -274,7 +274,8 @@ class MonteCarloSampler(GeneralSampler):
                 if self.accepts_modification(
                     energy_difference=-energy_difference,  # notice minus: difference is wrong way round from function. need (proposed - original)
                     random_generator=random_generator,
-                    psi_factor=psi_factor,
+                    psi_factor=1
+                    / psi_factor,  # same reason as above also inverts this factor
                 ):
                     state_to_modify.flip_in_place(
                         flipping_up=flipping_up, flipping_index=flipping_index
@@ -302,7 +303,8 @@ class MonteCarloSampler(GeneralSampler):
                 if self.accepts_modification(
                     energy_difference=-energy_difference,  # notice minus: difference is wrong way round from function. need (proposed - original)
                     random_generator=random_generator,
-                    psi_factor=psi_factor,
+                    psi_factor=1
+                    / psi_factor,  # same reason as above also inverts this factor
                 ):
                     state_to_modify.swap_in_place(
                         sw1_up=sw1_up,
