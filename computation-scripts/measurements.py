@@ -124,20 +124,18 @@ def main_measurement_function(
         # scale and convert observables
         total_sums: List[float] = [0.0] * num_observables
         for i, observable in enumerate(observables):
-            measurement = total_sums_complex[i]
+            measurement = total_sums_complex[i] * inverse_normalization_factor
 
             if observable.post_process_necessary():
                 # in this case, the handled values in an ndarray that needs post processing (e.g. a density matrix or other factors that need to be sampled)
                 measurement = observable.post_process(measurement)
 
-            imag_part_of_observable = float(
-                np.imag(measurement) * inverse_normalization_factor
-            )
+            imag_part_of_observable = float(np.imag(measurement))
             if np.abs(imag_part_of_observable) > 1e-2:
                 print(
                     f"Warning observable had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )
-            total_sums[i] = float(np.real(measurement) * inverse_normalization_factor)
+            total_sums[i] = float(np.real(measurement))
 
         if default_prints:
             print(
