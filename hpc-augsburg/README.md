@@ -2,7 +2,7 @@
 
 ## Connection to `LiCCA` or `ALCC`
 
-```cmd
+```shell
 ssh -i ~/.ssh/hpcaugsburg kelljona@licca-li-01.rz.uni-augsburg.de
 
 ssh -i ~/.ssh/hpcaugsburg kelljona@alcc129.rz.uni-augsburg.de
@@ -12,7 +12,7 @@ ssh -i ~/.ssh/hpcaugsburg kelljona@alcc129.rz.uni-augsburg.de
 
 Copy all the stuff to the login-node or git-clone the repo.
 
-```cmd
+```shell
 # ONCE (or if scratch-disk is erased)
 module load anaconda/2024.02
 conda create --channel conda-forge -n myenv python=3.12.4 numpy
@@ -27,7 +27,7 @@ sbatch job.slurm
 
 Copy all the stuff to the login-node or git-clone the repo.
 
-```cmd
+```shell
 # ONCE (or if scratch-disk is erased)
 module load anaconda/2024.02
 conda create --channel conda-forge -n experimentenv python=3.12.4 numpy
@@ -44,12 +44,12 @@ rm *.out
 
 ## Check the Job Status
 
-```cmd
+```shell
 squeue -u $USER
 ```
 
 Cancel all your jobs
 
-```cmd
+```shell
 scancel -u $USER
 ```

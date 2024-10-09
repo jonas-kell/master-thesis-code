@@ -156,21 +156,21 @@ def concurrence_of_density_matrix(matr: np.ndarray) -> float:
     return directConcurrence
 
 
-def is_hermitian(test: np.ndarray) -> bool:
-    return np.all(np.abs(test - np.matrix(test).H) < 1e-4)
+def is_hermitian(test: np.ndarray, threshold: float) -> bool:
+    return np.all(np.abs(test - np.matrix(test).H) < threshold)
 
 
-def trace_is_one(test: np.ndarray) -> bool:
-    purity = np.trace(test)
-    return np.abs(purity - 1) < 1e-4
+def trace_is_one(test: np.ndarray, threshold: float) -> bool:
+    trace = np.trace(test)
+    return np.abs(trace - 1) < threshold
 
 
 def calculate_concurrence(
-    spin_basis_measurements: np.ndarray, do_checks: bool = False
+    spin_basis_measurements: np.ndarray, do_checks: bool = False, threshold = 1e-4
 ) -> float:
     spin_basis_measurements_real = np.real(spin_basis_measurements)
     imag_error = np.sum(np.abs(spin_basis_measurements_real - spin_basis_measurements))
-    if imag_error > 1e-4:
+    if imag_error > threshold:
         if do_checks:
             print(spin_basis_measurements)
             raise Exception("A complex part in the measurements was ommitted")
@@ -181,11 +181,12 @@ def calculate_concurrence(
 
     z_basis_values = spin_basis_to_z_basis(spin_basis_measurements / 4.0)
     if do_checks:
-        if not is_hermitian(z_basis_values):
+        if not is_hermitian(z_basis_values, threshold):
             print(z_basis_values)
             raise Exception("The density-matrix is not hermitian")
-        if not trace_is_one(z_basis_values):
+        if not trace_is_one(z_basis_values, threshold):
             print(z_basis_values)
+            print(np.trace(z_basis_values))
             raise Exception("The trace of the density matrix is not one")
 
     concurrence = concurrence_of_density_matrix(z_basis_values)

@@ -59,12 +59,12 @@ if __name__ == "__main__":
     n = cast(int, get_argument(args, "n", int, 2))
 
     # must NOT be integer-multiples of np.pi/2 or you get division by zero
-    phi = cast(float, get_argument(args, "phi", float, np.pi / 100))
+    phi = cast(float, get_argument(args, "phi", float, np.pi / 10))
 
     # ! Simulation Scope Settings
     start_time: float = 0
-    time_step: float = 2
-    number_of_time_steps: int = int(20)
+    time_step: float = 0.125
+    number_of_time_steps: int = int(20 * 16)
 
     # ! Hardware Settings
     cpu_core_count = (
@@ -165,19 +165,24 @@ if __name__ == "__main__":
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
     check_concurrence = True
+    check_concurrence_threshold = 1e-2
     obs = []
+    center_of_concurrence_index = 0
     for up1, up2 in [(True, True), (True, False), (False, True), (False, False)]:
         obs_generated: List[observables.Observable] = [
             observables.Concurrence(
-                site_index_from=0,
+                site_index_from=center_of_concurrence_index,
                 site_index_to=i,
                 spin_up_from=up1,
                 spin_up_to=up2,
                 system_hamiltonian=ham,
                 system_geometry=system_geometry,
                 perform_checks=check_concurrence,
+                check_threshold=check_concurrence_threshold,
             )
             for i in range(num_of_sites)
+            if i != center_of_concurrence_index
+            # TODO make it possible to obtain entanglement between same site, but different spin (requires checking and rework of double flipping to allow on-site flipping of both spin degrees)
         ]  # Measure the occupation at ALL sites
 
         obs += obs_generated
@@ -288,7 +293,7 @@ if __name__ == "__main__":
         state_sampler=state_sampler,
         number_workers=number_workers,
         job_array_index=job_array_index,
-        plot=False,  # do not plot on the HPC-Server!
+        plot=True,  # do not plot on the HPC-Server!
         plot_title=f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
         write_to_file=True,
     )

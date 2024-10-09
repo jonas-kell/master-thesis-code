@@ -202,6 +202,7 @@ class Concurrence(Observable):
         system_hamiltonian: hamiltonian.Hamiltonian,
         system_geometry: systemgeometry.SystemGeometry,
         perform_checks: bool = False,
+        check_threshold: float = 1e-4,
     ):
         super().__init__()
 
@@ -234,6 +235,7 @@ class Concurrence(Observable):
         self.system_hamiltonian = system_hamiltonian
 
         self.perform_checks = perform_checks
+        self.check_threshold = check_threshold
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
@@ -243,24 +245,27 @@ class Concurrence(Observable):
         site_occ_l_sigma_sign = 2 * system_state_array[self.use_index_from] - 1
         site_occ_m_sigma_prime_sign = 2 * system_state_array[self.use_index_to] - 1
         # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (flipped - original)
-        e_to_diff_l_sigma = np.eps(
-            -self.system_hamiltonian.get_H_eff_difference_flipping(
+        # therefore also /psi not * psi
+        l_sigma_diff, l_sigma_psi = (
+            self.system_hamiltonian.get_H_eff_difference_flipping(
                 time=time,
                 flipping_up=self.up_sigma,
                 flipping_index=self.index_l,
                 before_swap_system_state=system_state,
             )
         )
-        e_to_diff_m_sigma_prime = np.eps(
-            -self.system_hamiltonian.get_H_eff_difference_flipping(
+        e_to_diff_l_sigma = np.exp(-l_sigma_diff) / l_sigma_psi
+        m_sigma_prime_diff, m_sigma_prime_psi = (
+            self.system_hamiltonian.get_H_eff_difference_flipping(
                 time=time,
                 flipping_up=self.up_sigma_prime,
                 flipping_index=self.index_m,
                 before_swap_system_state=system_state,
             )
         )
-        e_to_diff_both = np.eps(
-            -self.system_hamiltonian.get_H_eff_difference_double_flipping(
+        e_to_diff_m_sigma_prime = np.exp(-m_sigma_prime_diff) / m_sigma_prime_psi
+        both_diff, both_psi = (
+            self.system_hamiltonian.get_H_eff_difference_double_flipping(
                 time=time,
                 flipping1_up=self.up_sigma,
                 flipping1_index=self.index_l,
@@ -269,6 +274,7 @@ class Concurrence(Observable):
                 before_swap_system_state=system_state,
             )
         )
+        e_to_diff_both = np.exp(-both_diff) / both_psi
 
         return np.array(
             [
@@ -325,7 +331,7 @@ class Concurrence(Observable):
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        return calculate_concurrence(value, do_checks=self.perform_checks)
+        return calculate_concurrence(value, do_checks=self.perform_checks, threshold=self.check_threshold)
 
     def get_label(self) -> str:
         return f"Concurrence between {self.name_from} and {self.name_to}"
