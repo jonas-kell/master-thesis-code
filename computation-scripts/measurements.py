@@ -25,6 +25,8 @@ def main_measurement_function(
     plot_title: str = "Calculations on Spin System",
     plot_x_label: str = "time t",
     write_to_file: bool = True,
+    check_obs_imag: bool = False,
+    check_obs_imag_threshold: float = 1e-2,
 ) -> Tuple[List[float], List[List[float]]]:
     time_list: List[float] = []
     values_list: List[List[float]] = []
@@ -131,7 +133,10 @@ def main_measurement_function(
                 measurement = observable.post_process(measurement)
 
             imag_part_of_observable = float(np.imag(measurement))
-            if np.abs(imag_part_of_observable) > 1e-2:
+            if (
+                np.abs(imag_part_of_observable) > check_obs_imag_threshold
+                and check_obs_imag
+            ):
                 print(
                     f"Warning observable had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )

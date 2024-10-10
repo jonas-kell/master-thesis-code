@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # ! General Hamiltonian properties
     U = cast(float, get_argument(args, "U", float, 0.7))
     E = cast(float, get_argument(args, "E", float, -0.3))
-    J = cast(float, get_argument(args, "J", float, U / 6))
+    J = cast(float, get_argument(args, "J", float, U / 10))
 
     n = cast(int, get_argument(args, "n", int, 2))
 
@@ -65,6 +65,10 @@ if __name__ == "__main__":
     start_time: float = 0
     time_step: float = 0.125
     number_of_time_steps: int = int(20 * 9)
+
+    # ! verification settings
+    check_observable_imag = True
+    check_observable_imag_threshold = 1e-2
 
     # ! Hardware Settings
     cpu_core_count = (
@@ -164,8 +168,6 @@ if __name__ == "__main__":
 
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
-    check_concurrence = True
-    check_concurrence_threshold = 1e-2
     obs = []
 
     current_from = 0
@@ -201,8 +203,8 @@ if __name__ == "__main__":
                 spin_up_to=up2,
                 system_hamiltonian=ham,
                 system_geometry=system_geometry,
-                perform_checks=check_concurrence,
-                check_threshold=check_concurrence_threshold,
+                perform_checks=check_observable_imag,
+                check_threshold=check_observable_imag_threshold,
             )
             for i in range(num_of_sites)
             if i != center_of_concurrence_index
@@ -297,4 +299,6 @@ if __name__ == "__main__":
         plot=True,  # do not plot on the HPC-Server!
         plot_title=f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
         write_to_file=True,
+        check_obs_imag=check_observable_imag,
+        check_obs_imag_threshold=check_observable_imag_threshold,
     )
