@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # ! General Hamiltonian properties
     U = cast(float, get_argument(args, "U", float, 0.7))
     E = cast(float, get_argument(args, "E", float, -0.3))
-    J = cast(float, get_argument(args, "J", float, 0.001))
+    J = cast(float, get_argument(args, "J", float, U / 6))
 
     n = cast(int, get_argument(args, "n", int, 2))
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # ! Simulation Scope Settings
     start_time: float = 0
     time_step: float = 0.125
-    number_of_time_steps: int = int(20)
+    number_of_time_steps: int = int(20 * 9)
 
     # ! Hardware Settings
     cpu_core_count = (
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
     mc_thermalization_mode: Literal["flipping", "hopping"] = "hopping"
-    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
+    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
     num_samples_per_chain: int = 20  # arbitrary at the moment
     mc_pre_therm_strategy: Literal[
         "vacuum",
@@ -167,6 +167,30 @@ if __name__ == "__main__":
     check_concurrence = True
     check_concurrence_threshold = 1e-2
     obs = []
+
+    current_from = 0
+    current_to = 1
+    direction_dependent = True
+    obs_hard_coded: List[observables.Observable] = [
+        observables.SpinCurrent(
+            direction_dependent=direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=True,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+        observables.SpinCurrent(
+            direction_dependent=direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=False,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+    ]
+    obs += obs_hard_coded
+
     center_of_concurrence_index = 0
     for up1, up2 in [(True, True), (True, False), (False, True), (False, False)]:
         obs_generated: List[observables.Observable] = [
@@ -186,29 +210,6 @@ if __name__ == "__main__":
         ]  # Measure the occupation at ALL sites
 
         obs += obs_generated
-
-    # # current_from = 0
-    # # current_to = 2
-    # # direction_dependent = True
-    # obs_hard_coded: List[observables.Observable] = [
-    #     observables.DoubleOccupationFraction(),
-    #     # observables.SpinCurrent(
-    #     #     direction_dependent=direction_dependent,
-    #     #     site_index_from=current_from,
-    #     #     site_index_to=current_to,
-    #     #     spin_up=True,
-    #     #     system_geometry=system_geometry,
-    #     #     system_hamiltonian=ham,
-    #     # ),
-    #     # observables.SpinCurrent(
-    #     #     direction_dependent=direction_dependent,
-    #     #     site_index_from=current_from,
-    #     #     site_index_to=current_to,
-    #     #     spin_up=False,
-    #     #     system_geometry=system_geometry,
-    #     #     system_hamiltonian=ham,
-    #     # ),
-    # ]
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
