@@ -63,8 +63,11 @@ if __name__ == "__main__":
 
     # ! Simulation Scope Settings
     start_time: float = 0
-    time_step: float = 0.125
-    number_of_time_steps: int = int(20 * 9)
+
+    target_time: float = (1 / J) * 8
+
+    number_of_time_steps: int = int(60)
+    time_step: float = (target_time - start_time) / number_of_time_steps
 
     # ! verification settings
     check_observable_imag = True
