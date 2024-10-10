@@ -6,6 +6,7 @@ pip3 install numpy
 pip3 install sympy
 pip3 install PyQt6
 pip3 install Pillow
+pip3 install scipy
 ```
 
 ## Extra stuff that may be required

@@ -47,10 +47,15 @@ if __name__ == "__main__":
     parser.add_argument("--n", required=False)
     parser.add_argument("--number_workers", required=False)
     parser.add_argument("--job_array_index", required=False)
+    parser.add_argument("--start_time", required=False)
+    parser.add_argument("--target_time_in_one_over_j", required=False)
+    parser.add_argument("--number_of_time_steps", required=False)
 
     args = vars(parser.parse_args())
 
     # ? !! Default values for Parameters:
+
+    plot = True  # do not plot on the HPC-Server!
 
     # ! General Hamiltonian properties
     U = cast(float, get_argument(args, "U", float, 0.7))
@@ -63,11 +68,14 @@ if __name__ == "__main__":
     phi = cast(float, get_argument(args, "phi", float, np.pi / 10))
 
     # ! Simulation Scope Settings
-    start_time: float = 0
-
-    target_time: float = (1 / J) * 8
-
-    number_of_time_steps: int = int(60)
+    start_time: float = cast(float, get_argument(args, "start_time", float, 0))
+    target_time_in_one_over_j: float = cast(
+        float, get_argument(args, "target_time_in_one_over_j", float, 8)
+    )
+    target_time: float = (1 / J) * target_time_in_one_over_j
+    number_of_time_steps: int = cast(
+        int, get_argument(args, "number_of_time_steps", int, 60)
+    )
     time_step: float = (target_time - start_time) / number_of_time_steps
 
     # ! verification settings
@@ -99,7 +107,7 @@ if __name__ == "__main__":
     )
 
     # ! Control behavioral settings here ----------------------------------------------------
-    system_geometry_type: Literal["square_np", "chain"] = "square_np"
+    system_geometry_type: Literal["square_np", "chain"] = "chain"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
     hamiltonian_type: Literal[
         "canonical",
@@ -215,7 +223,7 @@ if __name__ == "__main__":
             # TODO make it possible to obtain entanglement between same site, but different spin (requires checking and rework of double flipping to allow on-site flipping of both spin degrees)
         ]  # Measure the occupation at ALL sites
 
-        obs += obs_generated
+        # obs += obs_generated # TODO reactivate
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
@@ -306,11 +314,10 @@ if __name__ == "__main__":
     )
 
     # ! Plotting
-    plot = (True,)  # do not plot on the HPC-Server!
     plot_title = (
         f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
     )
-    plot_x_label: str = ("time t",)
+    plot_x_label: str = "time t"
 
     if plot:
         plot_measurements(
