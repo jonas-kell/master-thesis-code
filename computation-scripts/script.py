@@ -5,6 +5,7 @@ from typing import List, Literal, Union, Type, Dict, cast
 import multiprocessing
 import argparse
 import numpy as np
+from plot import plot_measurements
 from randomgenerator import RandomGenerator
 import state
 import sampler
@@ -289,7 +290,7 @@ if __name__ == "__main__":
         )
 
     # ! Simulation
-    measurements.main_measurement_function(
+    (time_list, values_list) = measurements.main_measurement_function(
         start_time=start_time,
         time_step=time_step,
         number_of_time_steps=number_of_time_steps,
@@ -299,9 +300,29 @@ if __name__ == "__main__":
         state_sampler=state_sampler,
         number_workers=number_workers,
         job_array_index=job_array_index,
-        plot=True,  # do not plot on the HPC-Server!
-        plot_title=f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
         write_to_file=True,
         check_obs_imag=check_observable_imag,
         check_obs_imag_threshold=check_observable_imag_threshold,
     )
+
+    # ! Plotting
+    plot = (True,)  # do not plot on the HPC-Server!
+    plot_title = (
+        f"O for phi={phi/(2*np.pi) * 360:.1f}°, U={U:.2f}, E={E:.2f}, J={J:.5f}",
+    )
+    plot_x_label: str = ("time t",)
+
+    if plot:
+        plot_measurements(
+            times=time_list,
+            values=values_list,
+            observable_labels=[observable.get_label() for observable in obs],
+            title=plot_title,
+            x_label=plot_x_label,
+            params=(
+                U,
+                E,
+                J,
+            ),
+            time_unit_type="one_over_J",
+        )
