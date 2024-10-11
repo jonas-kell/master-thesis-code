@@ -139,9 +139,25 @@ def numerically_calculate_time_evolution(
         ]
     )
     # print(current_operator)
+    at_site = 0
+    doube_occupation_first_site_operator = np.array(
+        [
+            [
+                (
+                    compare_bra_ket(bra_state, ket_state)
+                    * ket_state[at_site]
+                    * ket_state[at_site + chain_length]
+                )
+                for ket_state in basis
+            ]
+            for bra_state in basis
+        ]
+    )
+    # print(doube_occupation_first_site_operator)
 
     time_values = []
-    expectation_values = []
+    expectation_values_current = []
+    expectation_values_occupation = []
     for step_index in range(number_of_time_steps):
         t = start_time + step_index * time_step
 
@@ -154,12 +170,16 @@ def numerically_calculate_time_evolution(
             print("No longer normalized time evolved state")
 
         # expectation value
-        expectation_value = np.vdot(psi_t, np.dot(current_operator, psi_t))
+        expectation_value_current = np.vdot(psi_t, np.dot(current_operator, psi_t))
+        expectation_value_occupation = np.vdot(
+            psi_t, np.dot(doube_occupation_first_site_operator, psi_t)
+        )
 
         time_values.append(t)
-        expectation_values.append(expectation_value)
+        expectation_values_current.append(expectation_value_current)
+        expectation_values_occupation.append(expectation_value_occupation)
 
-    return (time_values, expectation_values)
+    return (time_values, expectation_values_current, expectation_values_occupation)
 
 
 def run_main_program(
@@ -180,10 +200,17 @@ def run_main_program(
 
 
 def plot_experiment(
-    times, values, scaler_factor: float, scaler_factor_label: str = "J"
+    times,
+    values_current,
+    values_occupation,
+    scaler_factor: float,
+    scaler_factor_label: str = "J",
 ):
     # Plotting
-    plt.plot(np.array(times) * scaler_factor, values, label="Numerical val")
+    plt.plot(np.array(times) * scaler_factor, values_current, label="Current")
+    plt.plot(
+        np.array(times) * scaler_factor, values_occupation, label="Double Occupation 0"
+    )
 
     # Adding labels and title
     plt.xlabel("Time in 1/" + scaler_factor_label)
@@ -197,13 +224,13 @@ def plot_experiment(
 def main():
 
     U: float = 1
-    E: float = -1
-    J: float = U / 10
+    E: float = 0.5
+    J: float = 0.1
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 10
-    target_time_in_one_over_j: float = 8
+    number_of_time_steps: int = 400
+    target_time_in_one_over_j: float = 4
 
     chain_length = 2
 
@@ -218,17 +245,19 @@ def main():
     target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
     time_step: float = (target_time - start_time) / number_of_time_steps
 
-    (numerical_time_values, numerical_expectation_values) = (
-        numerically_calculate_time_evolution(
-            U=U,
-            E=E,
-            J=J,
-            phi=phi,
-            start_time=start_time,
-            number_of_time_steps=number_of_time_steps,
-            time_step=time_step,
-            chain_length=chain_length,
-        )
+    (
+        numerical_time_values,
+        numerical_expectation_values_current,
+        numerical_expectation_values_occupation,
+    ) = numerically_calculate_time_evolution(
+        U=U,
+        E=E,
+        J=J,
+        phi=phi,
+        start_time=start_time,
+        number_of_time_steps=number_of_time_steps,
+        time_step=time_step,
+        chain_length=chain_length,
     )
 
     external_thread = threading.Thread(
@@ -246,10 +275,12 @@ def main():
     )
     external_thread.start()
 
-    print(numerical_expectation_values)
+    print(numerical_expectation_values_current)
+    print(numerical_expectation_values_occupation)
     plot_experiment(
         numerical_time_values,
-        numerical_expectation_values,
+        numerical_expectation_values_current,
+        numerical_expectation_values_occupation,
         np.abs(scaler_factor),
         scaler_factor_label,
     )

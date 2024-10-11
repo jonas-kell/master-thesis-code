@@ -207,6 +207,10 @@ if __name__ == "__main__":
             system_geometry=system_geometry,
             system_hamiltonian=ham,
         ),
+        observables.DoubleOccupationAtSite(
+            site=0,
+            system_geometry=system_geometry,
+        ),
     ]
     obs += obs_hard_coded
 
