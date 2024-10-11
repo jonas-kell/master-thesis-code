@@ -225,7 +225,7 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.1
+    J: float = 0.05
     phi: float = np.pi / 10
 
     start_time: float = 0
