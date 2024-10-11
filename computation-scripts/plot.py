@@ -28,8 +28,13 @@ def plot_measurements(
         time_scaler = float(np.abs(params[1]))
         label_explanation = "1/E"
     elif time_unit_type == "one_over_J":  # type: ignore - switch is hard-coded.
-        time_scaler = float(np.abs(params[2]))
-        label_explanation = "1/J"
+        if float(np.abs(params[2])) < 1e-5:
+            # backup chose U if interaction with J is 0
+            time_scaler = float(np.abs(params[0]))
+            label_explanation = "1/U"
+        else:
+            time_scaler = float(np.abs(params[2]))
+            label_explanation = "1/J"
     else:
         time_scaler = 1.0
         label_explanation = "unscaled units"

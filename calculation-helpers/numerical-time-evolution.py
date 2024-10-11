@@ -179,12 +179,14 @@ def run_main_program(
     )
 
 
-def plot_experiment(times, values, J: float):
+def plot_experiment(
+    times, values, scaler_factor: float, scaler_factor_label: str = "J"
+):
     # Plotting
-    plt.plot(np.array(times) * J, values, label="Numerical val")
+    plt.plot(np.array(times) * scaler_factor, values, label="Numerical val")
 
     # Adding labels and title
-    plt.xlabel("Time in 1/J")
+    plt.xlabel("Time in 1/" + scaler_factor_label)
     plt.ylabel("Values")
     plt.legend()
 
@@ -206,7 +208,14 @@ def main():
     chain_length = 2
 
     # computed
-    target_time: float = (1 / J) * target_time_in_one_over_j
+    if np.abs(J) < 1e-5:
+        # if J interaction deactivated, scale with U
+        scaler_factor = U
+        scaler_factor_label = "U"
+    else:
+        scaler_factor = J
+        scaler_factor_label = "J"
+    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
     time_step: float = (target_time - start_time) / number_of_time_steps
 
     (numerical_time_values, numerical_expectation_values) = (
@@ -237,8 +246,13 @@ def main():
     )
     external_thread.start()
 
-    plot_experiment(numerical_time_values, numerical_expectation_values, J)
     print(numerical_expectation_values)
+    plot_experiment(
+        numerical_time_values,
+        numerical_expectation_values,
+        np.abs(scaler_factor),
+        scaler_factor_label,
+    )
 
 
 if __name__ == "__main__":

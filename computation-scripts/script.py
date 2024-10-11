@@ -72,7 +72,12 @@ if __name__ == "__main__":
     target_time_in_one_over_j: float = cast(
         float, get_argument(args, "target_time_in_one_over_j", float, 8)
     )
-    target_time: float = (1 / J) * target_time_in_one_over_j
+    if np.abs(J) < 1e-5:
+        # if J interaction deactivated, scale with U
+        scaler_factor = U
+    else:
+        scaler_factor = J
+    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
     number_of_time_steps: int = cast(
         int, get_argument(args, "number_of_time_steps", int, 60)
     )
