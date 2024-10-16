@@ -192,7 +192,7 @@ def run_main_program(
     target_time_in_one_over_j: float = 8,
     chain_length: int = 2,
 ):
-    python_executable = "python"
+    python_executable = "/bin/python3"
     arguments_string = f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length}"
     os.system(
         f"{python_executable} ./../computation-scripts/script.py {arguments_string}"
