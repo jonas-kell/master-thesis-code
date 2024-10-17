@@ -159,16 +159,19 @@ class SpinCurrent(Observable):
                 )
             )
 
+            # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (swapped - original)
+            # therefore also /psi not * psi
+
             if forward_swap_condition:
-                res += np.exp(H_eff_difference) * psi_factor
+                res += np.exp(-H_eff_difference) / psi_factor
 
             if backward_swap_condition:
                 if self.direction_dependent:
                     # other direction = other sign
-                    res -= np.exp(H_eff_difference) * psi_factor
+                    res -= np.exp(-H_eff_difference) / psi_factor
                 else:
                     # both directions contribute with same sign
-                    res += np.exp(H_eff_difference) * psi_factor
+                    res += np.exp(-H_eff_difference) / psi_factor
 
             if self.direction_dependent:
                 # required that the direction dependent operation is hermitian
@@ -331,7 +334,9 @@ class Concurrence(Observable):
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        return calculate_concurrence(value, do_checks=self.perform_checks, threshold=self.check_threshold)
+        return calculate_concurrence(
+            value, do_checks=self.perform_checks, threshold=self.check_threshold
+        )
 
     def get_label(self) -> str:
         return f"Concurrence between {self.name_from} and {self.name_to}"
