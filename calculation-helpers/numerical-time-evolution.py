@@ -120,7 +120,7 @@ def numerically_calculate_time_evolution(
     # Observable current operator from site 0 to 1 on spin up
     current_op_from = 0
     current_op_to = 1
-    current_operator = np.array(
+    current_operator = J * np.array(
         [
             [
                 (
