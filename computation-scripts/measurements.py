@@ -127,19 +127,20 @@ def main_measurement_function(
                 # in this case, the handled values in an ndarray that needs post processing (e.g. a density matrix or other factors that need to be sampled)
                 measurement = observable.post_process(measurement)
 
+            real_part_of_observable = float(np.real(measurement))
             imag_part_of_observable = float(np.imag(measurement))
             if (
                 np.abs(imag_part_of_observable) > check_obs_imag_threshold
                 and check_obs_imag
             ):
                 print(
-                    f"Warning observable had imaginary part of {imag_part_of_observable:.6f} that was omitted"
+                    f"Warning observable with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )
-            total_sums[i] = float(np.real(measurement))
+            total_sums[i] = real_part_of_observable
 
         if default_prints:
             print(
-                f"Time: {time:.3f} (step {time_step_nr+1}/{number_of_time_steps}) {total_sums[0]:2.5f} ({step_sample_count} samples, while exact needs {exact_sample_count})"
+                f"Time: {time:.3f} (step {time_step_nr+1}/{number_of_time_steps}) {total_sums} ({step_sample_count} samples, while exact needs {exact_sample_count})"
             )
         if write_to_file:  # write the base file information
             data: Dict[str, Union[float, str, Dict[Any, Any], List[Any]]] = {}

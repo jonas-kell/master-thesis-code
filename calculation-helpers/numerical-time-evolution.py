@@ -120,24 +120,35 @@ def numerically_calculate_time_evolution(
     # Observable current operator from site 0 to 1 on spin up
     current_op_from = 0
     current_op_to = 1
-    current_operator = -J * np.array(
-        [
+
+    def get_current_operator(from_index, to_index, up: bool = True):
+        return -J * np.array(
             [
-                (
-                    1j
-                    * compare_m_to_l_hopped_ket_to_bra(
-                        bra_state, ket_state, current_op_from, current_op_to
+                [
+                    (
+                        1j
+                        * compare_m_to_l_hopped_ket_to_bra(
+                            bra_state,
+                            ket_state,
+                            from_index + (0 if up else chain_length),
+                            to_index + (0 if up else chain_length),
+                        )
+                        - 1j
+                        * compare_m_to_l_hopped_ket_to_bra(
+                            bra_state,
+                            ket_state,
+                            to_index + (0 if up else chain_length),
+                            from_index + (0 if up else chain_length),
+                        )
                     )
-                    - 1j
-                    * compare_m_to_l_hopped_ket_to_bra(
-                        bra_state, ket_state, current_op_to, current_op_from
-                    )
-                )
-                for ket_state in basis
+                    for ket_state in basis
+                ]
+                for bra_state in basis
             ]
-            for bra_state in basis
-        ]
-    )
+        )
+
+    current_operator_up = get_current_operator(current_op_from, current_op_to, True)
+    current_operator_down = get_current_operator(current_op_from, current_op_to, False)
     # print(current_operator)
     at_site = 0
     doube_occupation_first_site_operator = np.array(
@@ -156,7 +167,8 @@ def numerically_calculate_time_evolution(
     # print(doube_occupation_first_site_operator)
 
     time_values = []
-    expectation_values_current = []
+    expectation_values_current_up = []
+    expectation_values_current_down = []
     expectation_values_occupation = []
     for step_index in range(number_of_time_steps):
         t = start_time + step_index * time_step
@@ -170,16 +182,27 @@ def numerically_calculate_time_evolution(
             print("No longer normalized time evolved state")
 
         # expectation value
-        expectation_value_current = np.vdot(psi_t, np.dot(current_operator, psi_t))
+        expectation_value_current_up = np.vdot(
+            psi_t, np.dot(current_operator_up, psi_t)
+        )
+        expectation_value_current_down = np.vdot(
+            psi_t, np.dot(current_operator_down, psi_t)
+        )
         expectation_value_occupation = np.vdot(
             psi_t, np.dot(doube_occupation_first_site_operator, psi_t)
         )
 
         time_values.append(t)
-        expectation_values_current.append(expectation_value_current)
+        expectation_values_current_up.append(expectation_value_current_up)
+        expectation_values_current_down.append(expectation_value_current_down)
         expectation_values_occupation.append(expectation_value_occupation)
 
-    return (time_values, expectation_values_current, expectation_values_occupation)
+    return (
+        time_values,
+        expectation_values_current_up,
+        expectation_values_current_down,
+        expectation_values_occupation,
+    )
 
 
 def run_main_program(
@@ -193,7 +216,7 @@ def run_main_program(
     chain_length: int = 2,
 ):
     python_executable = "/bin/python3"
-    arguments_string = f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length}"
+    arguments_string = f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} --number_workers 1"
     os.system(
         f"{python_executable} ./../computation-scripts/script.py {arguments_string}"
     )
@@ -201,13 +224,15 @@ def run_main_program(
 
 def plot_experiment(
     times,
-    values_current,
+    values_current_up,
+    values_current_down,
     values_occupation,
     scaler_factor: float,
     scaler_factor_label: str = "J",
 ):
     # Plotting
-    plt.plot(np.array(times) * scaler_factor, values_current, label="Current")
+    plt.plot(np.array(times) * scaler_factor, values_current_up, label="Current Up")
+    plt.plot(np.array(times) * scaler_factor, values_current_down, label="Current Down")
     plt.plot(
         np.array(times) * scaler_factor, values_occupation, label="Double Occupation 0"
     )
@@ -229,8 +254,8 @@ def main():
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 400
-    target_time_in_one_over_j: float = 4
+    number_of_time_steps: int = 100
+    target_time_in_one_over_j: float = 1
 
     chain_length = 2
 
@@ -247,7 +272,8 @@ def main():
 
     (
         numerical_time_values,
-        numerical_expectation_values_current,
+        numerical_expectation_values_current_up,
+        numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
     ) = numerically_calculate_time_evolution(
         U=U,
@@ -262,24 +288,26 @@ def main():
 
     external_thread = threading.Thread(
         target=run_main_program,
-        args={
-            U: U,
-            E: E,
-            J: J,
-            phi: phi,
-            start_time: start_time,
-            number_of_time_steps: number_of_time_steps,
-            target_time_in_one_over_j: target_time_in_one_over_j,
-            chain_length: chain_length,
+        kwargs={
+            "U": U,
+            "E": E,
+            "J": J,
+            "phi": phi,
+            "start_time": start_time,
+            "number_of_time_steps": number_of_time_steps,
+            "target_time_in_one_over_j": target_time_in_one_over_j,
+            "chain_length": chain_length,
         },
     )
     external_thread.start()
 
-    print(numerical_expectation_values_current)
+    print(numerical_expectation_values_current_up)
+    print(numerical_expectation_values_current_down)
     print(numerical_expectation_values_occupation)
     plot_experiment(
         numerical_time_values,
-        numerical_expectation_values_current,
+        numerical_expectation_values_current_up,
+        numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
         np.abs(scaler_factor),
         scaler_factor_label,

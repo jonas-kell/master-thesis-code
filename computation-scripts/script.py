@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # ! verification settings
     check_observable_imag = True
-    check_observable_imag_threshold = 1e-2
+    check_observable_imag_threshold = 1e-7
 
     # ! Hardware Settings
     cpu_core_count = (
@@ -201,6 +201,22 @@ if __name__ == "__main__":
         ),
         observables.SpinCurrent(
             direction_dependent=direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=False,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+        observables.SpinCurrent(
+            direction_dependent=not direction_dependent,
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up=True,
+            system_geometry=system_geometry,
+            system_hamiltonian=ham,
+        ),
+        observables.SpinCurrent(
+            direction_dependent=not direction_dependent,
             site_index_from=current_from,
             site_index_to=current_to,
             spin_up=False,

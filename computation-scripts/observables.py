@@ -144,10 +144,10 @@ class SpinCurrent(Observable):
         site_occ_l = system_state_array[self.site_index_from]
         site_occ_m = system_state_array[self.site_index_to]
         forward_swap_condition = site_occ_l == 1 and site_occ_m == 0
-        backward_swap_condition = site_occ_l == 0 and site_occ_m == 1
+        disjunct_condition = site_occ_l != site_occ_m
 
         res: np.complex128 = np.complex128(0)
-        if forward_swap_condition or backward_swap_condition:
+        if disjunct_condition:
             H_eff_difference, psi_factor = (
                 self.system_hamiltonian.get_H_eff_difference_swapping(
                     time=time,
@@ -160,12 +160,11 @@ class SpinCurrent(Observable):
             )
 
             # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (swapped - original)
-            # therefore also /psi not * psi
+            # therefore also (x/psi) not (x*psi)
 
             if forward_swap_condition:
                 res += np.exp(-H_eff_difference) / psi_factor
-
-            if backward_swap_condition:
+            else:
                 if self.direction_dependent:
                     # other direction = other sign
                     res -= np.exp(-H_eff_difference) / psi_factor
@@ -173,8 +172,9 @@ class SpinCurrent(Observable):
                     # both directions contribute with same sign
                     res += np.exp(-H_eff_difference) / psi_factor
 
+            # this can be indented to here, as if it was one more layer further out there would be only value = 0
             if self.direction_dependent:
-                # required that the direction dependent operation is hermitian
+                # required to make the direction dependent operation hermitian
                 res *= 1j
 
         # Upstream functions check that the imaginary part of this cancels
