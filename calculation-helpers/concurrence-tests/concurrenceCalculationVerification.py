@@ -248,6 +248,45 @@ if __name__ == "__main__":
     testDM, factors = generateRandomTwoSpinPureDensityMatrix()
     # factors = np.array([1, 0, 0, 0])  # / np.sqrt(2)
 
+    # ! Matrix, extracted out of the running simulation, that behaves differently than expected
+    # setting numerical-time-evolution to start_time: float = 6.2
+    testDM = np.array(
+        [
+            [
+                0.22201677 + 0.0j,
+                -0.22044246 - 0.05272602j,
+                0.20331076 + 0.01508854j,
+                -0.21327178 + 0.06052049j,
+            ],
+            [
+                -0.22044246 + 0.05272602j,
+                0.35683577 + 0.0j,
+                -0.18528349 - 0.0421239j,
+                0.22646301 + 0.00945595j,
+            ],
+            [
+                0.20331076 - 0.01508854j,
+                -0.18528349 + 0.0421239j,
+                0.19913069 + 0.0j,
+                -0.19970727 - 0.04098698j,
+            ],
+            [
+                -0.21327178 - 0.06052049j,
+                0.22646301 - 0.00945595j,
+                -0.19970727 + 0.04098698j,
+                0.22201677 + 0.0j,
+            ],
+        ]
+    )
+
+    # ! perform checks on the properties of the matrix
+
+    if np.abs(np.trace(testDM) - 1) > 1e-5:
+        raise Exception("Density matrix not trace 1")
+
+    if not np.all(np.abs((testDM - np.conj(testDM.T))) < 1e-5):
+        raise Exception("Density matrix not hermitian")
+
     print("Test density matrix")
     print(testDM)
     print()
@@ -255,6 +294,8 @@ if __name__ == "__main__":
     print("Test factors")
     print(factors)
     print()
+
+    # ! calculate concurrence
 
     print("With spin flip matrix")
     print(concurrenceOfDensityMatrix(testDM, True))

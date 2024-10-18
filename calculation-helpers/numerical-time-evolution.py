@@ -225,12 +225,12 @@ def numerically_calculate_time_evolution(
 
         # concurrence
         rho = np.outer(psi_t, np.conjugate(psi_t))  # Density matrix = |psi><psi|
-        if np.abs(np.trace(rho) - 1) > 1e-3:
+        if np.abs(np.trace(rho) - 1) > 1e-5:
             print(rho)
             print("Density matrix is no longer of trace 1")
 
         rho_reduced = partial_trace_out_b(rho, 2, chain_length * 2 - 2)
-        if np.abs(np.trace(rho_reduced) - 1) > 1e-3:
+        if np.abs(np.trace(rho_reduced) - 1) > 1e-5:
             print(rho_reduced)
             print("Reduced Density matrix is no longer of trace 1")
 
