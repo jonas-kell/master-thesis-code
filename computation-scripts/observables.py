@@ -350,12 +350,12 @@ class ReducedDensityMatrixMeasurement(Observable):
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
+        print(value)  # sigmas
         z_basis_density_matrix_from_measurements = (
             get_reduced_density_matrix_in_z_basis_from_observations(
                 value, do_checks=self.perform_checks, threshold=self.check_threshold
             )
         )
-
         print(z_basis_density_matrix_from_measurements)
         raise Exception(
             "This class should be extended to have more useful post-processing done on the density matrix"

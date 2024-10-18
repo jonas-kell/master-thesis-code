@@ -278,13 +278,42 @@ if __name__ == "__main__":
             ],
         ]
     )
+    # extraction from the numerical time evolution through diagonalization
+    # testDM = np.array(
+    #     [
+    #         [
+    #             0.25 + 0.0j,
+    #             -0.18959892 + 0.04716978j,  # wrong sign i
+    #             0.21783418 - 0.01935684j,  # wrong sign i
+    #             -0.24008819 + 0.06813023j,
+    #         ],
+    #         [
+    #             -0.18959892 - 0.04716978j,  # wrong sign i
+    #             0.17218176 + 0.0j,
+    #             -0.15196817 - 0.01717849j,
+    #             0.19527422 - 0.00638107j,  # wrong sign i
+    #         ],
+    #         [
+    #             0.21783418 + 0.01935684j,  # wrong sign i
+    #             -0.15196817 + 0.01717849j,
+    #             0.32781824 + 0.0j,
+    #             -0.21484426 + 0.0408456j,  # wrong sign i
+    #         ],
+    #         [
+    #             -0.24008819 - 0.06813023j,
+    #             0.19527422 + 0.00638107j,  # wrong sign i
+    #             -0.21484426 - 0.0408456j,  # wrong sign i
+    #             0.25 + 0.0j,
+    #         ],
+    #     ]
+    # )
 
     # ! perform checks on the properties of the matrix
 
-    if np.abs(np.trace(testDM) - 1) > 1e-5:
+    if np.abs(np.trace(testDM) - 1) > 1e-6:
         raise Exception("Density matrix not trace 1")
 
-    if not np.all(np.abs((testDM - np.conj(testDM.T))) < 1e-5):
+    if not np.all(np.abs((testDM - np.conj(testDM.T))) < 1e-6):
         raise Exception("Density matrix not hermitian")
 
     print("Test density matrix")

@@ -32,6 +32,38 @@ def calculate_concurrence(rho_reduced_in_occ_basis) -> np.complex128:
     return np.max([0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]])
 
 
+def get_rho_and_spin_measurements(rho_reduced):
+    # expectation values and parts that make up the density matrix
+
+    sigma_one = np.array([[1, 0], [0, 1]])
+    sigma_x = np.array([[0, 1], [1, 0]])
+    sigma_y = np.array([[0, -1j], [1j, 0]])
+    sigma_z = np.array([[1, 0], [0, -1]])
+
+    def combine_operators(op_a, op_b) -> np.ndarray:
+        return np.array(
+            [
+                [op_a[row // 2][col // 2] * op_b[row % 2][col % 2] for col in range(4)]
+                for row in range(4)
+            ],
+            dtype=np.complex64,
+        )
+
+    operators = [sigma_one, sigma_x, sigma_y, sigma_z]
+
+    sigma_measurements = [
+        [
+            np.trace(rho_reduced @ combine_operators(op_row, op_col))
+            for op_col in operators
+        ]
+        for op_row in operators
+    ]
+
+    print(sigma_measurements)
+    print(rho_reduced)
+    exit()
+
+
 def numerically_calculate_time_evolution(
     U: float = 1,
     E: float = -1,
@@ -233,6 +265,8 @@ def numerically_calculate_time_evolution(
         if np.abs(np.trace(rho_reduced) - 1) > 1e-5:
             print(rho_reduced)
             print("Reduced Density matrix is no longer of trace 1")
+
+        # get_rho_and_spin_measurements(rho_reduced)
 
         expectation_value_purity = np.trace(rho_reduced @ rho_reduced)
 
