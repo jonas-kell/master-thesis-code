@@ -83,10 +83,14 @@ class Hamiltonian(ABC):
             before_swap_system_state.get_opposite_spin_index(sw2_index)
         ]
 
-        if sw1_occupation * sw1_up + sw1_occupation_os * (
-            not sw1_up
-        ) == sw2_occupation * sw2_up + sw2_occupation_os * (not sw2_up):
-            # The swapped indices are equal. We know the result
+        # do it here in more easy to read but more expensive logic, as this is not used, but the optimaizations
+        if (
+            (sw1_up and sw2_up and sw1_occupation == sw2_occupation)
+            or (not sw1_up and sw2_up and sw1_occupation_os == sw2_occupation)
+            or (sw1_up and not sw2_up and sw1_occupation == sw2_occupation_os)
+            or (not sw1_up and not sw2_up and sw1_occupation_os == sw2_occupation_os)
+        ):
+            # The swapped occupations are equal. We know the result
             return (np.complex128(0), 1.0)
 
         # allocate swapped state
