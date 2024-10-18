@@ -124,10 +124,10 @@ if __name__ == "__main__":
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
-    mc_modification_mode: Literal["flipping", "hopping"] = "hopping"
-    mc_thermalization_mode: Literal["flipping", "hopping"] = "hopping"
-    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 20  # arbitrary at the moment
+    mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
+    mc_thermalization_mode: Literal["flipping", "hopping"] = "flipping"
+    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
+    num_samples_per_chain: int = 800  # arbitrary at the moment
     mc_pre_therm_strategy: Literal[
         "vacuum",
         "each_random",
@@ -211,46 +211,46 @@ if __name__ == "__main__":
             site=0,
             system_geometry=system_geometry,
         ),
-        observables.Concurrence(
-            site_index_from=0,
-            site_index_to=1,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        observables.ConcurrenceAssym(
-            site_index_from=0,
-            site_index_to=1,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        observables.Purity(
-            site_index_from=0,
-            site_index_to=1,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        observables.Purity(
-            site_index_from=0,
-            site_index_to=1,
-            spin_up_from=False,
-            spin_up_to=False,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
+        # observables.Concurrence(
+        #     site_index_from=0,
+        #     site_index_to=1,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
+        # observables.ConcurrenceAssym(
+        #     site_index_from=0,
+        #     site_index_to=1,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
+        # observables.Purity(
+        #     site_index_from=0,
+        #     site_index_to=1,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
+        # observables.Purity(
+        #     site_index_from=0,
+        #     site_index_to=1,
+        #     spin_up_from=False,
+        #     spin_up_to=False,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
     ]
     obs += obs_hard_coded
 
