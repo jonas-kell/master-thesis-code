@@ -261,8 +261,8 @@ class ReducedDensityMatrixMeasurement(Observable):
     ) -> np.complex128:
         system_state_array = system_state.get_state_array()
 
-        site_occ_l_sigma_sign = 2 * system_state_array[self.use_index_from] - 1
-        site_occ_m_sigma_prime_sign = 2 * system_state_array[self.use_index_to] - 1
+        site_occ_l_sigma_sign = -(2 * system_state_array[self.use_index_from] - 1)
+        site_occ_m_sigma_prime_sign = -(2 * system_state_array[self.use_index_to] - 1)
         # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (flipped - original)
         # therefore also /psi not * psi
         l_sigma_diff, l_sigma_psi = (
@@ -310,7 +310,7 @@ class ReducedDensityMatrixMeasurement(Observable):
                     e_to_diff_both,  # x(l,sigma) x(m,sigma_p)
                     e_to_diff_both
                     * site_occ_m_sigma_prime_sign
-                    * 1j,  # x(l,sigma) y(m,sigma_p)
+                    * -1j,  # x(l,sigma) y(m,sigma_p)
                     e_to_diff_l_sigma
                     * site_occ_m_sigma_prime_sign,  # x(l,sigma) z(m,sigma_p)
                 ],
@@ -320,7 +320,7 @@ class ReducedDensityMatrixMeasurement(Observable):
                     * site_occ_l_sigma_sign,  # y(l,sigma) 0(m,sigma_p)
                     e_to_diff_both
                     * site_occ_l_sigma_sign
-                    * 1j,  # y(l,sigma) x(m,sigma_p)
+                    * -1j,  # y(l,sigma) x(m,sigma_p)
                     e_to_diff_both
                     * (
                         -1 * site_occ_l_sigma_sign * site_occ_m_sigma_prime_sign

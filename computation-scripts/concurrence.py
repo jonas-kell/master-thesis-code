@@ -186,7 +186,7 @@ def get_reduced_density_matrix_in_z_basis_from_observations(
             raise Exception("A complex part in the measurements was ommitted")
         else:
             print(
-                f"Warning intermediate observables had imaginary part of {imag_error:.6f} that was omitted"
+                f"Warning intermediate observables {spin_basis_measurements} had imaginary part of {imag_error:.6f} that was omitted"
             )
 
     z_basis_values = spin_basis_to_z_basis(spin_basis_measurements / 4.0)

@@ -356,8 +356,8 @@ def main():
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 1000
-    target_time_in_one_over_j: float = 3
+    number_of_time_steps: int = 400
+    target_time_in_one_over_j: float = 4
 
     chain_length = 2
 

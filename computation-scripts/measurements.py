@@ -134,7 +134,7 @@ def main_measurement_function(
                 and check_obs_imag
             ):
                 print(
-                    f"Warning observable with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
+                    f"Warning observable {observable.get_label()} with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 )
             total_sums[i] = real_part_of_observable
 
