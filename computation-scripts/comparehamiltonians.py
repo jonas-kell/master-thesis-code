@@ -62,6 +62,51 @@ for _ in range(iterations):
     if sw3_index in system_geometry.get_nearest_neighbor_indices(sw1_index):
         raise Exception("Expected not to be a neighbor")
 
+    # check spin-symmetry by swapping the occupation array and with that checking symmetry between up and down
+    spin_inverted_copy = use_state.get_editable_copy()
+    size_of_system = use_state.get_number_sites_wo_spin_degree()
+    for site in range(size_of_system):
+        arr = spin_inverted_copy.get_state_array()
+        a = arr[site]
+        arr[site] = arr[site + size_of_system]
+        arr[site + size_of_system] = a
+    non_inv = ham_canonical.get_H_eff(
+        time=measurement_time,
+        system_state=use_state,
+    )
+    inv = ham_canonical.get_H_eff(
+        time=measurement_time,
+        system_state=spin_inverted_copy,
+    )
+    if np.abs(non_inv - inv) > 1e-6:
+        print("Difference after spin inversion")
+        print(use_state.get_state_array())
+        print(non_inv)
+        print(inv)
+    non_inv_sw = ham_canonical.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )[0]
+    inv_sw = ham_canonical.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=not sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=not sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=spin_inverted_copy,
+    )[0]
+    if np.abs(non_inv_sw - inv_sw) > 1e-6:
+        print("Difference of swapping after spin inversion")
+        print(use_state.get_state_array())
+        print(non_inv_sw)
+        print(inv_sw)
+
+    # check simplifications
+
     a = measure() * 1000
     res_new = ham_canonical.get_H_eff(
         time=measurement_time,
@@ -78,8 +123,8 @@ for _ in range(iterations):
     if np.abs(res_new - res_legacy) > 1e-6:
         print("Difference for New implementation")
         print(use_state.get_state_array())
-        print(int(res_new))
-        print(int(res_legacy))
+        print(res_new)
+        print(res_legacy)
 
     a = measure() * 1000
     res_a = ham_canonical.get_H_eff_difference_swapping(
