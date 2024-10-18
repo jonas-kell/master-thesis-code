@@ -3,6 +3,33 @@ from scipy.linalg import expm
 import os
 import matplotlib.pyplot as plt
 import threading
+from partialTrace import partial_trace_out_b
+
+
+def matrix_sqrt(matr: np.ndarray) -> np.ndarray:
+    evalues, evectors = np.linalg.eigh(matr)
+    sqrt_matrix = evectors * np.emath.sqrt(evalues) @ np.linalg.inv(evectors)
+    return sqrt_matrix
+
+
+sigmay = np.array([[0, -1j], [1j, 0]])
+sigmaysigmay = np.array(
+    [
+        [sigmay[row // 2][col // 2] * sigmay[row % 2][col % 2] for col in range(4)]
+        for row in range(4)
+    ]
+)
+
+
+def calculate_concurrence(rho_reduced_in_occ_basis) -> np.complex128:
+    spin_flipped = sigmaysigmay @ np.conjugate(rho_reduced_in_occ_basis) @ sigmaysigmay
+    sqrt_rho = matrix_sqrt(rho_reduced_in_occ_basis)
+    R_matrix = matrix_sqrt(sqrt_rho @ spin_flipped @ sqrt_rho)
+
+    # R was checked to be hermitian in a test run here
+
+    eigenvals = np.flip(np.linalg.eigvalsh(R_matrix))
+    return np.max([0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]])
 
 
 def numerically_calculate_time_evolution(
@@ -37,12 +64,13 @@ def numerically_calculate_time_evolution(
 
     def generate_basis(chain_length):
         basis = np.array(
-            [state for state in np.ndindex(*(2 for _ in range(chain_length * 2)))]
+            [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
         )
         return basis
 
-    # Example Hamiltonian for a linear chain of length n
-    basis = generate_basis(chain_length)
+    # Example Hamiltonian for a linear chain of length n with 2 spin degrees
+    basis = generate_basis(chain_length * 2)
+    print("done generating basis")
     H = np.array(
         [
             [
@@ -106,6 +134,7 @@ def numerically_calculate_time_evolution(
             for bra_state in basis
         ]
     )
+    print("done generating hamiltonian")
     if not np.all(np.conjugate(H.T) == H):
         print("H not hermetian")
     # print(H)
@@ -170,6 +199,7 @@ def numerically_calculate_time_evolution(
     expectation_values_current_up = []
     expectation_values_current_down = []
     expectation_values_occupation = []
+    expectation_values_concurrence = []
     for step_index in range(number_of_time_steps):
         t = start_time + step_index * time_step
 
@@ -192,16 +222,33 @@ def numerically_calculate_time_evolution(
             psi_t, np.dot(doube_occupation_first_site_operator, psi_t)
         )
 
+        # concurrence
+        rho = np.outer(psi_t, np.conjugate(psi_t))  # Density matrix = |psi><psi|
+        if np.abs(np.trace(rho) - 1) > 1e-3:
+            print(rho)
+            print("Density matrix is no longer of trace 1")
+
+        rho_reduced = partial_trace_out_b(rho, 2, chain_length * 2 - 2)
+        if np.abs(np.trace(rho_reduced) - 1) > 1e-3:
+            print(rho_reduced)
+            print("Reduced Density matrix is no longer of trace 1")
+
+        expectation_value_concurrence = calculate_concurrence(rho_reduced)
+
         time_values.append(t)
         expectation_values_current_up.append(expectation_value_current_up)
         expectation_values_current_down.append(expectation_value_current_down)
         expectation_values_occupation.append(expectation_value_occupation)
+        expectation_values_concurrence.append(expectation_value_concurrence)
+
+        print(f"Did time step {step_index+1} out of {number_of_time_steps}")
 
     return (
         time_values,
         expectation_values_current_up,
         expectation_values_current_down,
         expectation_values_occupation,
+        expectation_values_concurrence,
     )
 
 
@@ -227,6 +274,7 @@ def plot_experiment(
     values_current_up,
     values_current_down,
     values_occupation,
+    values_concurrence,
     scaler_factor: float,
     scaler_factor_label: str = "J",
 ):
@@ -235,6 +283,11 @@ def plot_experiment(
     plt.plot(np.array(times) * scaler_factor, values_current_down, label="Current Down")
     plt.plot(
         np.array(times) * scaler_factor, values_occupation, label="Double Occupation 0"
+    )
+    plt.plot(
+        np.array(times) * scaler_factor,
+        values_concurrence,
+        label="Concurrence (0->1 UP)",
     )
 
     # Adding labels and title
@@ -250,12 +303,12 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.05
+    J: float = 0.1
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 100
-    target_time_in_one_over_j: float = 1
+    number_of_time_steps: int = 1000
+    target_time_in_one_over_j: float = 3
 
     chain_length = 2
 
@@ -275,6 +328,7 @@ def main():
         numerical_expectation_values_current_up,
         numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
+        numerical_expectation_values_concurrence,
     ) = numerically_calculate_time_evolution(
         U=U,
         E=E,
@@ -304,11 +358,13 @@ def main():
     print(numerical_expectation_values_current_up)
     print(numerical_expectation_values_current_down)
     print(numerical_expectation_values_occupation)
+    print(numerical_expectation_values_concurrence)
     plot_experiment(
         numerical_time_values,
         numerical_expectation_values_current_up,
         numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
+        numerical_expectation_values_concurrence,
         np.abs(scaler_factor),
         scaler_factor_label,
     )

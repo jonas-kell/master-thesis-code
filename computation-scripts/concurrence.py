@@ -166,7 +166,7 @@ def trace_is_one(test: np.ndarray, threshold: float) -> bool:
 
 
 def calculate_concurrence(
-    spin_basis_measurements: np.ndarray, do_checks: bool = False, threshold = 1e-4
+    spin_basis_measurements: np.ndarray, do_checks: bool = False, threshold=1e-4
 ) -> float:
     spin_basis_measurements_real = np.real(spin_basis_measurements)
     imag_error = np.sum(np.abs(spin_basis_measurements_real - spin_basis_measurements))
