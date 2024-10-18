@@ -132,17 +132,29 @@ class SpinCurrent(Observable):
         self.site_index_from = site_index_from  # l
         self.site_index_to = site_index_to  # m
         self.spin_up = spin_up
+
+        self.site_index_from_save = site_index_from % domain_size
+        self.site_index_to_save = site_index_to % domain_size
+        self.occ_site_index_from = self.site_index_from_save
+        self.occ_site_index_to = self.site_index_to_save
+        if not self.spin_up:
+            self.occ_site_index_from = system_geometry.get_opposite_spin_index(
+                self.occ_site_index_from
+            )
+            self.occ_site_index_to = system_geometry.get_opposite_spin_index(
+                self.occ_site_index_to
+            )
+
         self.system_hamiltonian = system_hamiltonian
         self.direction_dependent = direction_dependent
-        self.mod_safe = domain_size
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
     ) -> np.complex128:
         system_state_array = system_state.get_state_array()
 
-        site_occ_l = system_state_array[self.site_index_from]
-        site_occ_m = system_state_array[self.site_index_to]
+        site_occ_l = system_state_array[self.occ_site_index_from]
+        site_occ_m = system_state_array[self.occ_site_index_to]
         forward_swap_condition = site_occ_l == 1 and site_occ_m == 0
         disjunct_condition = site_occ_l != site_occ_m
 
@@ -152,8 +164,8 @@ class SpinCurrent(Observable):
                 self.system_hamiltonian.get_H_eff_difference_swapping(
                     time=time,
                     before_swap_system_state=system_state,
-                    sw1_index=(self.site_index_from % self.mod_safe),
-                    sw2_index=(self.site_index_to % self.mod_safe),
+                    sw1_index=self.site_index_from_save,
+                    sw2_index=self.site_index_to_save,
                     sw1_up=self.spin_up,
                     sw2_up=self.spin_up,
                 )
