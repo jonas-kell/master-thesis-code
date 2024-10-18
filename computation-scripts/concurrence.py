@@ -165,9 +165,9 @@ def trace_is_one(test: np.ndarray, threshold: float) -> bool:
     return np.abs(trace - 1) < threshold
 
 
-def calculate_concurrence(
+def get_reduced_density_matrix_in_z_basis_from_observations(
     spin_basis_measurements: np.ndarray, do_checks: bool = False, threshold=1e-4
-) -> float:
+) -> np.ndarray:
     spin_basis_measurements_real = np.real(spin_basis_measurements)
     imag_error = np.sum(np.abs(spin_basis_measurements_real - spin_basis_measurements))
     if imag_error > threshold:
@@ -189,6 +189,4 @@ def calculate_concurrence(
             print(np.trace(z_basis_values))
             raise Exception("The trace of the density matrix is not one")
 
-    concurrence = concurrence_of_density_matrix(z_basis_values)
-
-    return concurrence
+    return z_basis_values

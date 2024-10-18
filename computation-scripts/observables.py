@@ -4,7 +4,10 @@ import state
 import systemgeometry
 import hamiltonian
 import numpy as np
-from concurrence import calculate_concurrence
+from concurrence import (
+    concurrence_of_density_matrix,
+    get_reduced_density_matrix_in_z_basis_from_observations,
+)
 
 
 class Observable(ABC):
@@ -206,7 +209,7 @@ class SpinCurrent(Observable):
         }
 
 
-class Concurrence(Observable):
+class ReducedDensityMatrixMeasurement(Observable):
 
     def __init__(
         self,
@@ -346,16 +349,72 @@ class Concurrence(Observable):
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        return calculate_concurrence(
-            value, do_checks=self.perform_checks, threshold=self.check_threshold
+        z_basis_density_matrix_from_measurements = (
+            get_reduced_density_matrix_in_z_basis_from_observations(
+                value, do_checks=self.perform_checks, threshold=self.check_threshold
+            )
         )
+
+        print(z_basis_density_matrix_from_measurements)
+        raise Exception(
+            "This class should be extended to have more useful post-processing done on the density matrix"
+        )
+
+    def get_label(self) -> str:
+        return f"Some Matrix Measurement between {self.name_from} and {self.name_to}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "ReducedDensityMatrixMeasurement",
+            "label": self.get_label(),
+            "use_index_from": self.use_index_from,
+            "use_index_to": self.use_index_to,
+            "perform_checks": self.perform_checks,
+        }
+
+
+class Concurrence(ReducedDensityMatrixMeasurement):
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        z_basis_density_matrix_from_measurements = (
+            get_reduced_density_matrix_in_z_basis_from_observations(
+                value, do_checks=self.perform_checks, threshold=self.check_threshold
+            )
+        )
+
+        return concurrence_of_density_matrix(z_basis_density_matrix_from_measurements)
 
     def get_label(self) -> str:
         return f"Concurrence between {self.name_from} and {self.name_to}"
 
     def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
         return {
-            "type": "SpinCurrent",
+            "type": "Concurrence",
+            "label": self.get_label(),
+            "use_index_from": self.use_index_from,
+            "use_index_to": self.use_index_to,
+            "perform_checks": self.perform_checks,
+        }
+
+
+class Purity(ReducedDensityMatrixMeasurement):
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        z_basis_density_matrix_from_measurements = (
+            get_reduced_density_matrix_in_z_basis_from_observations(
+                value, do_checks=self.perform_checks, threshold=self.check_threshold
+            )
+        )
+
+        return np.trace(
+            z_basis_density_matrix_from_measurements
+            @ z_basis_density_matrix_from_measurements
+        )
+
+    def get_label(self) -> str:
+        return f"Purity of red. density matrix of {self.name_from} and {self.name_to}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "Purity",
             "label": self.get_label(),
             "use_index_from": self.use_index_from,
             "use_index_to": self.use_index_to,

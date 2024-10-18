@@ -199,6 +199,7 @@ def numerically_calculate_time_evolution(
     expectation_values_current_up = []
     expectation_values_current_down = []
     expectation_values_occupation = []
+    expectation_values_purity = []
     expectation_values_concurrence = []
     for step_index in range(number_of_time_steps):
         t = start_time + step_index * time_step
@@ -233,12 +234,15 @@ def numerically_calculate_time_evolution(
             print(rho_reduced)
             print("Reduced Density matrix is no longer of trace 1")
 
+        expectation_value_purity = np.trace(rho_reduced @ rho_reduced)
+
         expectation_value_concurrence = calculate_concurrence(rho_reduced)
 
         time_values.append(t)
         expectation_values_current_up.append(expectation_value_current_up)
         expectation_values_current_down.append(expectation_value_current_down)
         expectation_values_occupation.append(expectation_value_occupation)
+        expectation_values_purity.append(expectation_value_purity)
         expectation_values_concurrence.append(expectation_value_concurrence)
 
         print(f"Did time step {step_index+1} out of {number_of_time_steps}")
@@ -248,6 +252,7 @@ def numerically_calculate_time_evolution(
         expectation_values_current_up,
         expectation_values_current_down,
         expectation_values_occupation,
+        expectation_values_purity,
         expectation_values_concurrence,
     )
 
@@ -274,6 +279,7 @@ def plot_experiment(
     values_current_up,
     values_current_down,
     values_occupation,
+    values_purity,
     values_concurrence,
     scaler_factor: float,
     scaler_factor_label: str = "J",
@@ -283,6 +289,11 @@ def plot_experiment(
     plt.plot(np.array(times) * scaler_factor, values_current_down, label="Current Down")
     plt.plot(
         np.array(times) * scaler_factor, values_occupation, label="Double Occupation 0"
+    )
+    plt.plot(
+        np.array(times) * scaler_factor,
+        values_purity,
+        label="Purity of subsystem 0up,1up",
     )
     plt.plot(
         np.array(times) * scaler_factor,
@@ -328,6 +339,7 @@ def main():
         numerical_expectation_values_current_up,
         numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
+        numerical_expectation_values_purity,
         numerical_expectation_values_concurrence,
     ) = numerically_calculate_time_evolution(
         U=U,
@@ -358,12 +370,14 @@ def main():
     print(numerical_expectation_values_current_up)
     print(numerical_expectation_values_current_down)
     print(numerical_expectation_values_occupation)
+    print(numerical_expectation_values_purity)
     print(numerical_expectation_values_concurrence)
     plot_experiment(
         numerical_time_values,
         numerical_expectation_values_current_up,
         numerical_expectation_values_current_down,
         numerical_expectation_values_occupation,
+        numerical_expectation_values_purity,
         numerical_expectation_values_concurrence,
         np.abs(scaler_factor),
         scaler_factor_label,
