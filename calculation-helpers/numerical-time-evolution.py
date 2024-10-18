@@ -266,9 +266,13 @@ def run_main_program(
     number_of_time_steps: int = 10,
     target_time_in_one_over_j: float = 8,
     chain_length: int = 2,
+    set_number_workers_to_one: bool = True,
 ):
     python_executable = "/bin/python3"
-    arguments_string = f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} --number_workers 1"
+    arguments_string = (
+        f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} "
+        + ("--number_workers 1 " if set_number_workers_to_one else "")
+    )
     os.system(
         f"{python_executable} ./../computation-scripts/script.py {arguments_string}"
     )
@@ -323,6 +327,8 @@ def main():
 
     chain_length = 2
 
+    set_number_workers_to_one = True
+
     # computed
     if np.abs(J) < 1e-5:
         # if J interaction deactivated, scale with U
@@ -363,6 +369,7 @@ def main():
             "number_of_time_steps": number_of_time_steps,
             "target_time_in_one_over_j": target_time_in_one_over_j,
             "chain_length": chain_length,
+            "set_number_workers_to_one": set_number_workers_to_one,
         },
     )
     external_thread.start()

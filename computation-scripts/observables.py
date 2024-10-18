@@ -6,6 +6,7 @@ import hamiltonian
 import numpy as np
 from concurrence import (
     concurrence_of_density_matrix,
+    concurrence_of_density_matrix_assym,
     get_reduced_density_matrix_in_z_basis_from_observations,
 )
 
@@ -389,6 +390,31 @@ class Concurrence(ReducedDensityMatrixMeasurement):
     def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
         return {
             "type": "Concurrence",
+            "label": self.get_label(),
+            "use_index_from": self.use_index_from,
+            "use_index_to": self.use_index_to,
+            "perform_checks": self.perform_checks,
+        }
+
+
+class ConcurrenceAssym(ReducedDensityMatrixMeasurement):
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        z_basis_density_matrix_from_measurements = (
+            get_reduced_density_matrix_in_z_basis_from_observations(
+                value, do_checks=self.perform_checks, threshold=self.check_threshold
+            )
+        )
+
+        return concurrence_of_density_matrix_assym(
+            z_basis_density_matrix_from_measurements
+        )
+
+    def get_label(self) -> str:
+        return f"Assym-Concurrence between {self.name_from} and {self.name_to}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "ConcurrenceAssym",
             "label": self.get_label(),
             "use_index_from": self.use_index_from,
             "use_index_to": self.use_index_to,

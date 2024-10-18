@@ -132,17 +132,27 @@ sigma_y_sigma_y = np.array(
 
 def spin_flip_hermitian_matrix(matr: np.ndarray) -> np.ndarray:
     """sigma_y x sigma_y conj(matr) sigma_y x sigma_y"""
-    conj = np.conjugate(matr)
+    return sigma_y_sigma_y @ np.conjugate(matr) @ sigma_y_sigma_y
 
-    return sigma_y_sigma_y @ conj @ sigma_y_sigma_y
+
+def matrix_sqrt(matr: np.ndarray) -> np.ndarray:
+    evalues, evectors = np.linalg.eigh(matr)
+    sqrt_matrix = evectors * np.emath.sqrt(evalues) @ np.linalg.inv(evectors)
+    return sqrt_matrix
 
 
 def concurrence_of_density_matrix(matr: np.ndarray) -> float:
-    rho = matr
+    spin_flipped = spin_flip_hermitian_matrix(matr)
+    sqrt_rho = matrix_sqrt(matr)
+    R_matrix = matrix_sqrt(sqrt_rho @ spin_flipped @ sqrt_rho)
+    eigenvals = np.flip(np.linalg.eigvalsh(R_matrix))
+    return np.max([0, eigenvals[0] - eigenvals[1] - eigenvals[2] - eigenvals[3]])
 
+
+def concurrence_of_density_matrix_assym(matr: np.ndarray) -> float:
     rhoTilde = spin_flip_hermitian_matrix(matr)
 
-    intermediate = rho @ rhoTilde
+    intermediate = matr @ rhoTilde
 
     eigenvals = np.flip(np.linalg.eigvals(intermediate))
 
