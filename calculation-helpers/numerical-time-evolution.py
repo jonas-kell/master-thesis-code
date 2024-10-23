@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any, Dict, Union
+from typing import List, Any, Dict, Union
 import numpy as np
 from scipy.linalg import expm
 import os
@@ -223,20 +223,24 @@ def numerically_calculate_time_evolution(
     current_operator_up = get_current_operator(current_op_from, current_op_to, True)
     current_operator_down = get_current_operator(current_op_from, current_op_to, False)
     # print(current_operator)
-    at_site = 0
-    doube_occupation_first_site_operator = np.array(
-        [
+
+    def get_double_occupation_operator(at_site: int):
+        return np.array(
             [
-                (
-                    compare_bra_ket(bra_state, ket_state)
-                    * ket_state[at_site]
-                    * ket_state[at_site + chain_length]
-                )
-                for ket_state in basis
+                [
+                    (
+                        compare_bra_ket(bra_state, ket_state)
+                        * ket_state[at_site]
+                        * ket_state[at_site + chain_length]
+                    )
+                    for ket_state in basis
+                ]
+                for bra_state in basis
             ]
-            for bra_state in basis
-        ]
-    )
+        )
+
+    doube_occupation_zero_site_operator = get_double_occupation_operator(0)
+    doube_occupation_one_site_operator = get_double_occupation_operator(1)
 
     # print(doube_occupation_first_site_operator)
     def get_occupation_operator(index: int, up: bool = True):
@@ -258,7 +262,9 @@ def numerically_calculate_time_evolution(
         )
 
     zero_up_occupation_operator = get_occupation_operator(0, True)
+    zero_down_occupation_operator = get_occupation_operator(0, False)
     one_up_occupation_operator = get_occupation_operator(1, True)
+    one_down_occupation_operator = get_occupation_operator(1, False)
 
     measurements = []
     for step_index in range(number_of_time_steps):
@@ -279,14 +285,23 @@ def numerically_calculate_time_evolution(
         expectation_value_current_down = np.vdot(
             psi_t, np.dot(current_operator_down, psi_t)
         )
-        expectation_value_double_occupation = np.vdot(
-            psi_t, np.dot(doube_occupation_first_site_operator, psi_t)
+        expectation_value_zero_double_occupation = np.vdot(
+            psi_t, np.dot(doube_occupation_zero_site_operator, psi_t)
+        )
+        expectation_value_one_double_occupation = np.vdot(
+            psi_t, np.dot(doube_occupation_one_site_operator, psi_t)
         )
         expectation_value_zero_up_occupation = np.vdot(
             psi_t, np.dot(zero_up_occupation_operator, psi_t)
         )
+        expectation_value_zero_down_occupation = np.vdot(
+            psi_t, np.dot(zero_down_occupation_operator, psi_t)
+        )
         expectation_value_one_up_occupation = np.vdot(
             psi_t, np.dot(one_up_occupation_operator, psi_t)
+        )
+        expectation_value_one_down_occupation = np.vdot(
+            psi_t, np.dot(one_down_occupation_operator, psi_t)
         )
 
         # concurrence
@@ -309,9 +324,12 @@ def numerically_calculate_time_evolution(
         data = [
             expectation_value_current_up,
             expectation_value_current_down,
-            expectation_value_double_occupation,
+            expectation_value_zero_double_occupation,
+            expectation_value_one_double_occupation,
             expectation_value_zero_up_occupation,
+            expectation_value_zero_down_occupation,
             expectation_value_one_up_occupation,
+            expectation_value_one_down_occupation,
             expectation_value_purity,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
@@ -331,8 +349,11 @@ def numerically_calculate_time_evolution(
         {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
         {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
         {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
+        {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 1"},
         {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 1, up"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
@@ -548,6 +569,10 @@ def plot_from_file():
     # things drastically change from 3 to 4 elements in the chain
     time_string = "2024-10-23__23,49,06"  # 3
     time_string = "2024-10-23__23,50,51"  # 4
+
+    # E to -E
+    time_string = "2024-10-24__00,39,49"  # E
+    time_string = "2024-10-24__00,47,46"  # -E
 
     filename_for_main_thread = "perturbation_measurements_" + time_string
     filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string

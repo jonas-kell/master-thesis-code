@@ -224,14 +224,28 @@ if __name__ == "__main__":
             site=current_from,
             system_geometry=system_geometry,
         ),
+        observables.DoubleOccupationAtSite(
+            site=current_to,
+            system_geometry=system_geometry,
+        ),
         observables.OccupationAtSite(
             site=current_from,
             up=True,
             system_geometry=system_geometry,
         ),
         observables.OccupationAtSite(
+            site=current_from,
+            up=False,
+            system_geometry=system_geometry,
+        ),
+        observables.OccupationAtSite(
             site=current_to,
             up=True,
+            system_geometry=system_geometry,
+        ),
+        observables.OccupationAtSite(
+            site=current_to,
+            up=False,
             system_geometry=system_geometry,
         ),
         observables.Purity(
