@@ -108,6 +108,47 @@ class DoubleOccupationAtSite(Observable):
         }
 
 
+class OccupationAtSite(Observable):
+
+    def __init__(
+        self, site: int, up: bool, system_geometry: systemgeometry.SystemGeometry
+    ):
+        super().__init__()
+
+        if site < 0:
+            raise Exception("Site must be at least 0")
+
+        domain_size = system_geometry.get_number_sites_wo_spin_degree()
+        if site >= domain_size:
+            raise Exception(f"Site must be smaller than {domain_size} to fit")
+
+        self.site = site
+        self.up = up
+
+        self.site_to_use = self.site
+        if not up:
+            self.site_to_use = system_geometry.get_opposite_spin_index(self.site)
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        _ = time  # time is not used
+        system_state_array = system_state.get_state_array()
+
+        return np.complex128(system_state_array[self.site_to_use])
+
+    def get_label(self) -> str:
+        return f"Occupation at site {self.site}, {'up' if self.up else 'down'}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "OccupationAtSite",
+            "label": self.get_label(),
+            "site": self.site,
+            "up": self.up,
+        }
+
+
 class SpinCurrent(Observable):
 
     def __init__(

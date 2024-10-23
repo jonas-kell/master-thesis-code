@@ -237,7 +237,28 @@ def numerically_calculate_time_evolution(
             for bra_state in basis
         ]
     )
+
     # print(doube_occupation_first_site_operator)
+    def get_occupation_operator(index: int, up: bool = True):
+        index_to_use_for_occ = index
+        if not up:
+            index_to_use_for_occ += chain_length
+
+        return np.array(
+            [
+                [
+                    (
+                        compare_bra_ket(bra_state, ket_state)
+                        * ket_state[index_to_use_for_occ]
+                    )
+                    for ket_state in basis
+                ]
+                for bra_state in basis
+            ]
+        )
+
+    zero_up_occupation_operator = get_occupation_operator(0, True)
+    one_up_occupation_operator = get_occupation_operator(1, True)
 
     measurements = []
     for step_index in range(number_of_time_steps):
@@ -258,8 +279,14 @@ def numerically_calculate_time_evolution(
         expectation_value_current_down = np.vdot(
             psi_t, np.dot(current_operator_down, psi_t)
         )
-        expectation_value_occupation = np.vdot(
+        expectation_value_double_occupation = np.vdot(
             psi_t, np.dot(doube_occupation_first_site_operator, psi_t)
+        )
+        expectation_value_zero_up_occupation = np.vdot(
+            psi_t, np.dot(zero_up_occupation_operator, psi_t)
+        )
+        expectation_value_one_up_occupation = np.vdot(
+            psi_t, np.dot(one_up_occupation_operator, psi_t)
         )
 
         # concurrence
@@ -282,7 +309,9 @@ def numerically_calculate_time_evolution(
         data = [
             expectation_value_current_up,
             expectation_value_current_down,
-            expectation_value_occupation,
+            expectation_value_double_occupation,
+            expectation_value_zero_up_occupation,
+            expectation_value_one_up_occupation,
             expectation_value_purity,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
@@ -302,6 +331,8 @@ def numerically_calculate_time_evolution(
         {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
         {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
         {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 1, up"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
@@ -528,6 +559,6 @@ def plot_from_file():
 
 
 if __name__ == "__main__":
-    # main()
+    main()
 
-    plot_from_file()
+    # plot_from_file()
