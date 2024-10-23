@@ -443,11 +443,11 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.05
+    J: float = 0.01
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 300
+    number_of_time_steps: int = 150
     target_time_in_one_over_scaler: float = 4
 
     chain_length = 4
@@ -510,7 +510,14 @@ def main():
 
 def plot_from_file():
 
-    time_string = "2024-10-23__22,08,26"
+    # was the flip correction justified
+    time_string = "2024-10-23__23,26,46"  # no flip correction
+    time_string = "2024-10-23__23,30,23"  # flip correction
+
+    # things drastically change from 3 to 4 elements in the chain
+    time_string = "2024-10-23__23,49,06"  # 3
+    time_string = "2024-10-23__23,50,51"  # 4
+
     filename_for_main_thread = "perturbation_measurements_" + time_string
     filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
 
