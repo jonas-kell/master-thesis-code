@@ -9,6 +9,9 @@ from datetime import datetime
 import json
 
 
+scaler_switch = 1e-2
+
+
 def get_full_file_path(from_file_namne: str):
     return os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
@@ -369,8 +372,6 @@ def run_main_program(
 def plot_experiment_comparison(
     filename_perturbation: str,
     filename_diagonalization: str,
-    scaler_factor: float,
-    scaler_factor_label: str = "J",
 ):
     loaded_data_perturbation: Dict[
         str, Union[float, str, Dict[Any, Any], List[Any]]
@@ -385,6 +386,17 @@ def plot_experiment_comparison(
 
     data_perturbation = loaded_data_perturbation["measurements"]
     data_diagonalization = loaded_data_diagonalization["measurements"]
+
+    J = loaded_data_diagonalization["hamiltonian"]["J"]
+    U = loaded_data_diagonalization["hamiltonian"]["U"]
+
+    if np.abs(J) < scaler_switch:
+        # if J interaction "deactivated", scale with U
+        scaler_factor = U
+        scaler_factor_label = "U"
+    else:
+        scaler_factor = J
+        scaler_factor_label = "J"
 
     observables = loaded_data_diagonalization["observables"]
 
@@ -431,26 +443,24 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.1
+    J: float = 0.05
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 100
-    target_time_in_one_over_j: float = 4
+    number_of_time_steps: int = 300
+    target_time_in_one_over_scaler: float = 4
 
-    chain_length = 2
+    chain_length = 4
 
     set_number_workers_to_one = True
 
-    # computed
-    if np.abs(J) < 1e-5:
-        # if J interaction deactivated, scale with U
+    if np.abs(J) < scaler_switch:
+        # if J interaction "deactivated", scale with U
         scaler_factor = U
-        scaler_factor_label = "U"
     else:
         scaler_factor = J
-        scaler_factor_label = "J"
-    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
+
+    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_scaler
     time_step: float = (target_time - start_time) / number_of_time_steps
 
     time_string = datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
@@ -480,7 +490,7 @@ def main():
             "phi": phi,
             "start_time": start_time,
             "number_of_time_steps": number_of_time_steps,
-            "target_time_in_one_over_j": target_time_in_one_over_j,
+            "target_time_in_one_over_j": target_time_in_one_over_scaler,
             "chain_length": chain_length,
             "set_number_workers_to_one": set_number_workers_to_one,
             "file_name": filename_for_main_thread,
@@ -495,10 +505,22 @@ def main():
     plot_experiment_comparison(
         filename_perturbation=filename_for_main_thread,
         filename_diagonalization=filename_for_diagonalization_thread,
-        scaler_factor=np.abs(scaler_factor),
-        scaler_factor_label=scaler_factor_label,
+    )
+
+
+def plot_from_file():
+
+    time_string = "2024-10-23__22,08,26"
+    filename_for_main_thread = "perturbation_measurements_" + time_string
+    filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
+
+    plot_experiment_comparison(
+        filename_perturbation=filename_for_main_thread,
+        filename_diagonalization=filename_for_diagonalization_thread,
     )
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+
+    plot_from_file()
