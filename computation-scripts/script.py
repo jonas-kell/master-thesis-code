@@ -25,6 +25,8 @@ def get_argument(
 ):
     extracted_value = default
     try:
+        if arguments[name] is None:
+            raise ValueError("None set Value")
         extracted_value = type(arguments[name])
         print(f"Using non-default Argument for param {name}: {extracted_value}")
     except ValueError:
@@ -50,12 +52,17 @@ if __name__ == "__main__":
     parser.add_argument("--start_time", required=False)
     parser.add_argument("--target_time_in_one_over_j", required=False)
     parser.add_argument("--number_of_time_steps", required=False)
+    parser.add_argument("--file_name_overwrite", required=False)
+    parser.add_argument("--do_not_plot", required=False)
 
     args = vars(parser.parse_args())
 
     # ? !! Default values for Parameters:
 
-    plot = True  # do not plot on the HPC-Server!
+    plot = False  # do not plot on the HPC-Server!
+    plot_setting = cast(str, get_argument(args, "do_not_plot", str, "do_plot"))
+    if plot_setting == "do_plot":
+        plot = True
 
     # ! General Hamiltonian properties
     U = cast(float, get_argument(args, "U", float, 0.7))
@@ -109,6 +116,12 @@ if __name__ == "__main__":
             int,
             0,
         ),
+    )
+    file_name_overwrite_proxy = cast(
+        str, get_argument(args, "file_name_overwrite", str, "None")
+    )
+    file_name_overwrite = (
+        None if file_name_overwrite_proxy == "None" else file_name_overwrite_proxy
     )
 
     # ! Control behavioral settings here ----------------------------------------------------
@@ -208,12 +221,22 @@ if __name__ == "__main__":
             system_hamiltonian=ham,
         ),
         observables.DoubleOccupationAtSite(
-            site=0,
+            site=current_from,
             system_geometry=system_geometry,
         ),
+        observables.Purity(
+            site_index_from=current_from,
+            site_index_to=current_to,
+            spin_up_from=True,
+            spin_up_to=True,
+            system_hamiltonian=ham,
+            system_geometry=system_geometry,
+            perform_checks=check_observable_imag,
+            check_threshold=check_observable_imag_threshold,
+        ),
         observables.Concurrence(
-            site_index_from=0,
-            site_index_to=1,
+            site_index_from=current_from,
+            site_index_to=current_to,
             spin_up_from=True,
             spin_up_to=True,
             system_hamiltonian=ham,
@@ -222,8 +245,8 @@ if __name__ == "__main__":
             check_threshold=check_observable_imag_threshold,
         ),
         observables.ConcurrenceAssym(
-            site_index_from=0,
-            site_index_to=1,
+            site_index_from=current_from,
+            site_index_to=current_to,
             spin_up_from=True,
             spin_up_to=True,
             system_hamiltonian=ham,
@@ -231,48 +254,25 @@ if __name__ == "__main__":
             perform_checks=check_observable_imag,
             check_threshold=check_observable_imag_threshold,
         ),
-        observables.Purity(
-            site_index_from=0,
-            site_index_to=1,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        # observables.Purity(
-        #     site_index_from=0,
-        #     site_index_to=1,
-        #     spin_up_from=False,
-        #     spin_up_to=False,
-        #     system_hamiltonian=ham,
-        #     system_geometry=system_geometry,
-        #     perform_checks=check_observable_imag,
-        #     check_threshold=check_observable_imag_threshold,
-        # ),
     ]
     obs += obs_hard_coded
 
-    center_of_concurrence_index = 0
-    for up1, up2 in [(True, True), (True, False), (False, True), (False, False)]:
+    for i in range(16):
         obs_generated: List[observables.Observable] = [
-            observables.Concurrence(
-                site_index_from=center_of_concurrence_index,
-                site_index_to=i,
-                spin_up_from=up1,
-                spin_up_to=up2,
+            observables.PauliMeasurement(
+                site_index_from=current_from,
+                site_index_to=current_to,
+                spin_up_from=True,
+                spin_up_to=True,
                 system_hamiltonian=ham,
                 system_geometry=system_geometry,
                 perform_checks=check_observable_imag,
                 check_threshold=check_observable_imag_threshold,
+                index_of_pauli_op=i,
             )
-            for i in range(num_of_sites)
-            if i != center_of_concurrence_index
-            # TODO make it possible to obtain entanglement between same site, but different spin (requires checking and rework of double flipping to allow on-site flipping of both spin degrees)
-        ]  # Measure the occupation at ALL sites
+        ]
 
-        # obs += obs_generated # TODO reactivate
+        obs += obs_generated
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
@@ -358,6 +358,7 @@ if __name__ == "__main__":
         number_workers=number_workers,
         job_array_index=job_array_index,
         write_to_file=True,
+        file_name_overwrite=file_name_overwrite,
         check_obs_imag=check_observable_imag,
         check_obs_imag_threshold=check_observable_imag_threshold,
     )

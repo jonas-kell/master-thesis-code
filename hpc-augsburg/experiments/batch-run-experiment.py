@@ -72,7 +72,7 @@ def main():
     for experiment in relevant_experiments:
         print(f"Shelling out to script run with parameters {experiment}")
 
-        arguments_string = f"--job_array_index {task_id_int_value} --number_workers {num_threads_int_value}"
+        arguments_string = f"--do_not_plot do_not_plot --job_array_index {task_id_int_value} --number_workers {num_threads_int_value}"
         for key, val in experiment.items():
             arguments_string += " --" + key + " " + str(val)
 

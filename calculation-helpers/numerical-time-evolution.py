@@ -1,9 +1,19 @@
+from typing import List, Tuple, Any, Dict, Union
 import numpy as np
 from scipy.linalg import expm
 import os
 import matplotlib.pyplot as plt
 import threading
 from partialTrace import partial_trace_out_b
+from datetime import datetime
+import json
+
+
+def get_full_file_path(from_file_namne: str):
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "./../run-outputs/" + from_file_namne + ".json",
+    )
 
 
 def matrix_sqrt(matr: np.ndarray) -> np.ndarray:
@@ -59,9 +69,7 @@ def get_rho_and_spin_measurements(rho_reduced):
         for op_row in operators
     ]
 
-    print(sigma_measurements)
-    print(rho_reduced)
-    exit()
+    return np.array(sigma_measurements).flatten()
 
 
 def numerically_calculate_time_evolution(
@@ -73,6 +81,7 @@ def numerically_calculate_time_evolution(
     number_of_time_steps: int = 10,
     time_step: float = 1,
     chain_length: int = 2,
+    file_name="measurement_for_diagonalization",
 ):
     def compare_bra_ket(bra, ket):
         return np.all(bra == ket)
@@ -227,12 +236,7 @@ def numerically_calculate_time_evolution(
     )
     # print(doube_occupation_first_site_operator)
 
-    time_values = []
-    expectation_values_current_up = []
-    expectation_values_current_down = []
-    expectation_values_occupation = []
-    expectation_values_purity = []
-    expectation_values_concurrence = []
+    measurements = []
     for step_index in range(number_of_time_steps):
         t = start_time + step_index * time_step
 
@@ -266,29 +270,78 @@ def numerically_calculate_time_evolution(
             print(rho_reduced)
             print("Reduced Density matrix is no longer of trace 1")
 
-        # get_rho_and_spin_measurements(rho_reduced)
+        sigma_measurements = get_rho_and_spin_measurements(rho_reduced)
 
         expectation_value_purity = np.trace(rho_reduced @ rho_reduced)
 
         expectation_value_concurrence = calculate_concurrence(rho_reduced)
 
-        time_values.append(t)
-        expectation_values_current_up.append(expectation_value_current_up)
-        expectation_values_current_down.append(expectation_value_current_down)
-        expectation_values_occupation.append(expectation_value_occupation)
-        expectation_values_purity.append(expectation_value_purity)
-        expectation_values_concurrence.append(expectation_value_concurrence)
+        data = [
+            expectation_value_current_up,
+            expectation_value_current_down,
+            expectation_value_occupation,
+            expectation_value_purity,
+            expectation_value_concurrence,
+            expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
+        ]
+        data.extend(sigma_measurements)
+
+        measurements.append(
+            {
+                "time": t,
+                "data": list(np.real(data)),
+            }
+        )
 
         print(f"Did time step {step_index+1} out of {number_of_time_steps}")
 
-    return (
-        time_values,
-        expectation_values_current_up,
-        expectation_values_current_down,
-        expectation_values_occupation,
-        expectation_values_purity,
-        expectation_values_concurrence,
+    observables = [
+        {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
+        {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
+        {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
+        {"type": "Purity", "label": "Purity on site 0-1 up"},
+        {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
+        {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
+    ]
+    observables.extend(
+        [
+            {"type": "PauliMeasurement", "label": "Pauli 00"},
+            {"type": "PauliMeasurement", "label": "Pauli 0x"},
+            {"type": "PauliMeasurement", "label": "Pauli 0y"},
+            {"type": "PauliMeasurement", "label": "Pauli 0z"},
+            {"type": "PauliMeasurement", "label": "Pauli x0"},
+            {"type": "PauliMeasurement", "label": "Pauli xx"},
+            {"type": "PauliMeasurement", "label": "Pauli xy"},
+            {"type": "PauliMeasurement", "label": "Pauli xz"},
+            {"type": "PauliMeasurement", "label": "Pauli y0"},
+            {"type": "PauliMeasurement", "label": "Pauli yx"},
+            {"type": "PauliMeasurement", "label": "Pauli yy"},
+            {"type": "PauliMeasurement", "label": "Pauli yz"},
+            {"type": "PauliMeasurement", "label": "Pauli z0"},
+            {"type": "PauliMeasurement", "label": "Pauli zx"},
+            {"type": "PauliMeasurement", "label": "Pauli zy"},
+            {"type": "PauliMeasurement", "label": "Pauli zz"},
+        ]
     )
+
+    with open(get_full_file_path(file_name), mode="w", newline="") as file:
+        json.dump(
+            {
+                "hamiltonian": {
+                    "U": U,
+                    "E": E,
+                    "J": J,
+                    "phi": phi,
+                    "type": "ExactDiagonalization",
+                },
+                "start_time": start_time,
+                "time_step": time_step,
+                "number_of_time_steps": number_of_time_steps,
+                "observables": observables,
+                "measurements": measurements,
+            },
+            file,
+        )
 
 
 def run_main_program(
@@ -301,10 +354,11 @@ def run_main_program(
     target_time_in_one_over_j: float = 8,
     chain_length: int = 2,
     set_number_workers_to_one: bool = True,
+    file_name="measurement_for_numerical",
 ):
     python_executable = "/bin/python3"
     arguments_string = (
-        f"--U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} "
+        f'--file_name_overwrite "{file_name}" --U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} --do_not_plot do_not_plot '
         + ("--number_workers 1 " if set_number_workers_to_one else "")
     )
     os.system(
@@ -312,40 +366,65 @@ def run_main_program(
     )
 
 
-def plot_experiment(
-    times,
-    values_current_up,
-    values_current_down,
-    values_occupation,
-    values_purity,
-    values_concurrence,
+def plot_experiment_comparison(
+    filename_perturbation: str,
+    filename_diagonalization: str,
     scaler_factor: float,
     scaler_factor_label: str = "J",
 ):
-    # Plotting
-    plt.plot(np.array(times) * scaler_factor, values_current_up, label="Current Up")
-    plt.plot(np.array(times) * scaler_factor, values_current_down, label="Current Down")
-    plt.plot(
-        np.array(times) * scaler_factor, values_occupation, label="Double Occupation 0"
-    )
-    plt.plot(
-        np.array(times) * scaler_factor,
-        values_purity,
-        label="Purity of subsystem 0up,1up",
-    )
-    plt.plot(
-        np.array(times) * scaler_factor,
-        values_concurrence,
-        label="Concurrence (0->1 UP)",
-    )
+    loaded_data_perturbation: Dict[
+        str, Union[float, str, Dict[Any, Any], List[Any]]
+    ] = {}
+    with open(get_full_file_path(filename_perturbation), mode="r") as file:
+        loaded_data_perturbation = json.load(file)
+    loaded_data_diagonalization: Dict[
+        str, Union[float, str, Dict[Any, Any], List[Any]]
+    ] = {}
+    with open(get_full_file_path(filename_diagonalization), mode="r") as file:
+        loaded_data_diagonalization = json.load(file)
 
-    # Adding labels and title
-    plt.xlabel("Time in 1/" + scaler_factor_label)
-    plt.ylabel("Values")
-    plt.legend()
+    data_perturbation = loaded_data_perturbation["measurements"]
+    data_diagonalization = loaded_data_diagonalization["measurements"]
 
-    # Show the plot
-    plt.show()
+    observables = loaded_data_diagonalization["observables"]
+
+    for i, observable in enumerate(observables):
+        label = observable["label"]
+
+        times_to_plot_perturbation = []
+        values_to_plot_perturbation = []
+        times_to_plot_diagonalization = []
+        values_to_plot_diagonalization = []
+
+        for measurement_perturbation in data_perturbation:
+            times_to_plot_perturbation.append(measurement_perturbation["time"])
+            values_to_plot_perturbation.append(measurement_perturbation["data"][i])
+
+        for measurement_diagonalization in data_diagonalization:
+            times_to_plot_diagonalization.append(measurement_diagonalization["time"])
+            values_to_plot_diagonalization.append(
+                measurement_diagonalization["data"][i]
+            )
+
+        # Plotting
+        plt.plot(
+            np.array(times_to_plot_diagonalization) * scaler_factor,
+            values_to_plot_diagonalization,
+            label="Diagonalization",
+        )
+        plt.plot(
+            np.array(times_to_plot_perturbation) * scaler_factor,
+            values_to_plot_perturbation,
+            label="Perturbation",
+        )
+
+        # Adding labels and title
+        plt.xlabel("Time in 1/" + scaler_factor_label)
+        plt.ylabel(label)
+        plt.legend()
+
+        # Show the plot
+        plt.show()
 
 
 def main():
@@ -356,7 +435,7 @@ def main():
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 400
+    number_of_time_steps: int = 100
     target_time_in_one_over_j: float = 4
 
     chain_length = 2
@@ -374,25 +453,25 @@ def main():
     target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
     time_step: float = (target_time - start_time) / number_of_time_steps
 
-    (
-        numerical_time_values,
-        numerical_expectation_values_current_up,
-        numerical_expectation_values_current_down,
-        numerical_expectation_values_occupation,
-        numerical_expectation_values_purity,
-        numerical_expectation_values_concurrence,
-    ) = numerically_calculate_time_evolution(
-        U=U,
-        E=E,
-        J=J,
-        phi=phi,
-        start_time=start_time,
-        number_of_time_steps=number_of_time_steps,
-        time_step=time_step,
-        chain_length=chain_length,
-    )
+    time_string = datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
+    filename_for_main_thread = "perturbation_measurements_" + time_string
+    filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
 
-    external_thread = threading.Thread(
+    external_thread_diagonalization = threading.Thread(
+        target=numerically_calculate_time_evolution,
+        kwargs={
+            "U": U,
+            "E": E,
+            "J": J,
+            "phi": phi,
+            "start_time": start_time,
+            "number_of_time_steps": number_of_time_steps,
+            "time_step": time_step,
+            "chain_length": chain_length,
+            "file_name": filename_for_diagonalization_thread,
+        },
+    )
+    external_thread_perturbation = threading.Thread(
         target=run_main_program,
         kwargs={
             "U": U,
@@ -404,24 +483,20 @@ def main():
             "target_time_in_one_over_j": target_time_in_one_over_j,
             "chain_length": chain_length,
             "set_number_workers_to_one": set_number_workers_to_one,
+            "file_name": filename_for_main_thread,
         },
     )
-    external_thread.start()
+    external_thread_perturbation.start()
+    external_thread_diagonalization.start()
 
-    print(numerical_expectation_values_current_up)
-    print(numerical_expectation_values_current_down)
-    print(numerical_expectation_values_occupation)
-    print(numerical_expectation_values_purity)
-    print(numerical_expectation_values_concurrence)
-    plot_experiment(
-        numerical_time_values,
-        numerical_expectation_values_current_up,
-        numerical_expectation_values_current_down,
-        numerical_expectation_values_occupation,
-        numerical_expectation_values_purity,
-        numerical_expectation_values_concurrence,
-        np.abs(scaler_factor),
-        scaler_factor_label,
+    external_thread_perturbation.join()
+    external_thread_diagonalization.join()
+
+    plot_experiment_comparison(
+        filename_perturbation=filename_for_main_thread,
+        filename_diagonalization=filename_for_diagonalization_thread,
+        scaler_factor=np.abs(scaler_factor),
+        scaler_factor_label=scaler_factor_label,
     )
 
 

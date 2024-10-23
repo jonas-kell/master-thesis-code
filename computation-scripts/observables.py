@@ -446,3 +446,54 @@ class Purity(ReducedDensityMatrixMeasurement):
             "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
         }
+
+
+class PauliMeasurement(ReducedDensityMatrixMeasurement):
+    def __init__(
+        self,
+        site_index_from: int,
+        spin_up_from: bool,
+        site_index_to: int,
+        spin_up_to: bool,
+        system_hamiltonian: hamiltonian.Hamiltonian,
+        system_geometry: systemgeometry.SystemGeometry,
+        perform_checks: bool = False,
+        check_threshold: float = 1e-4,
+        index_of_pauli_op: int = 0,
+    ):
+        super().__init__(
+            site_index_from=site_index_from,
+            spin_up_from=spin_up_from,
+            site_index_to=site_index_to,
+            spin_up_to=spin_up_to,
+            system_hamiltonian=system_hamiltonian,
+            system_geometry=system_geometry,
+            perform_checks=perform_checks,
+            check_threshold=check_threshold,
+        )
+
+        if index_of_pauli_op < 0 or index_of_pauli_op > 15:
+            raise Exception("Index of op must be between 0 and 15 inclusive")
+
+        self.index_of_pauli_op = index_of_pauli_op
+
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        pauli_measurement = value[
+            self.index_of_pauli_op // 4, self.index_of_pauli_op % 4
+        ]
+
+        # enough other implementations check the real/imag parts of this
+        return np.real(pauli_measurement)
+
+    def get_label(self) -> str:
+        return f"Pauli Measurement index {self.index_of_pauli_op} of sites {self.name_from} and {self.name_to}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "PauliMeasurement",
+            "label": self.get_label(),
+            "use_index_from": self.use_index_from,
+            "use_index_to": self.use_index_to,
+            "perform_checks": self.perform_checks,
+            "index_of_pauli_op": self.index_of_pauli_op,
+        }

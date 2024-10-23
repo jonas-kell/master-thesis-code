@@ -22,6 +22,7 @@ def main_measurement_function(
     number_workers: int,
     job_array_index: int,
     write_to_file: bool = True,
+    file_name_overwrite: str | None = None,
     check_obs_imag: bool = False,
     check_obs_imag_threshold: float = 1e-2,
 ) -> Tuple[List[float], List[List[float]]]:
@@ -38,13 +39,15 @@ def main_measurement_function(
     total_sample_count = 0
 
     # file-writing
+    time_canonical_name = (
+        datetime.now().strftime("%Y-%m-%d__%H,%M,%S") + "-" + str(job_array_index)
+    )
+    if file_name_overwrite is not None:
+        # overwrite the file's name
+        time_canonical_name = file_name_overwrite
     current_file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "./../run-outputs/"
-        + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
-        + "-"
-        + str(job_array_index)
-        + ".json",
+        "./../run-outputs/" + time_canonical_name + ".json",
     )
     if write_to_file:  # write the base file information
         with open(current_file_path, mode="w", newline="") as file:
