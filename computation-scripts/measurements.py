@@ -218,6 +218,9 @@ def run_worker_chain(
 
     requires_probability_adjustment = state_sampler.requires_probability_adjustment()
 
+    #! extract probabilities during run #TODO remove
+    # probs = []
+
     while True:
         try:
             sampled_state_n = next(sample_generator_object)
@@ -242,6 +245,11 @@ def run_worker_chain(
                 state_probability = 1.0
 
             normalization_factor += state_probability
+
+            #! extract probabilities during run #TODO remove
+            # probs.append(
+            #     (np.copy(sampled_state_n.get_state_array()), state_probability)
+            # )
 
             for i, observable in enumerate(observables):
                 observed_quantity = observable.get_expectation_value(
@@ -273,5 +281,13 @@ def run_worker_chain(
 
         except StopIteration:
             break
+
+    #! extract probabilities during run #TODO remove
+    # if time > 390:
+    #     print("perturbation")
+    #     for arr, prob in probs:
+    #         print(arr)
+    #         print(prob / normalization_factor)
+    #     exit()
 
     return worker_sample_count, normalization_factor, worker_sums

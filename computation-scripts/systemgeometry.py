@@ -145,7 +145,13 @@ class LinearChainNonPeriodicState(SystemGeometry):
 
         domain_size = self.get_number_sites_wo_spin_degree()
 
-        return cos_phi * (index % domain_size)
+        if True:
+            # simple variant, index from left to right
+            return cos_phi * ((index % domain_size))
+        else:  # TODO Remove ?
+            # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
+            # this should not influence other properties (I think)
+            return cos_phi * ((index % domain_size) - (domain_size / 2.0) + 0.5)
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return {"type": "LinearChainNonPeriodicState", "size": self.size}

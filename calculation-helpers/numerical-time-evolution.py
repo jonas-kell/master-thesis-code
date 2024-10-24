@@ -9,7 +9,7 @@ from datetime import datetime
 import json
 
 
-scaler_switch = 1e-2
+scaler_switch = 1e-4
 
 
 def get_full_file_path(from_file_namne: str):
@@ -107,9 +107,19 @@ def numerically_calculate_time_evolution(
         return np.cos(phiv) * (index % chain_length)
 
     def generate_basis(chain_length):
-        basis = np.array(
-            [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
-        )
+        if False:
+            # generate same order as exact sampler (for data extraction during run)
+            basis = np.flip(
+                np.array(
+                    [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
+                ),
+                axis=1,
+            )
+        else:
+            # generate with spins 0,1up easily extractable by tracing out to reduced density matrix
+            basis = np.array(
+                [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
+            )
         return basis
 
     # Example Hamiltonian for a linear chain of length n with 2 spin degrees
@@ -343,7 +353,19 @@ def numerically_calculate_time_evolution(
             }
         )
 
-        print(f"Did time step {step_index+1} out of {number_of_time_steps}")
+        #! extract probabilities during run #TODO remove
+        # if t > 390:
+        #     print("diagonalization")
+
+        #     for state_index, state in enumerate(basis):
+        #         print(state)
+        #         print(np.square(np.abs(psi_t[state_index])))
+
+        #     exit()
+
+        print(
+            f"Did time step {step_index+1} out of {number_of_time_steps} at time {t:.3f}"
+        )
 
     observables = [
         {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
@@ -351,8 +373,8 @@ def numerically_calculate_time_evolution(
         {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
         {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 1"},
         {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 0, down"},
+        {"type": "OccupationAtSite", "label": "Occupation on site 1, up"},
         {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
@@ -495,7 +517,7 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.01
+    J: float = 0.001
     phi: float = np.pi / 10
 
     start_time: float = 0
@@ -570,9 +592,10 @@ def plot_from_file():
     time_string = "2024-10-23__23,49,06"  # 3
     time_string = "2024-10-23__23,50,51"  # 4
 
-    # E to -E
-    time_string = "2024-10-24__00,39,49"  # E
-    time_string = "2024-10-24__00,47,46"  # -E
+    time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
+    time_string = (
+        "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
+    )
 
     filename_for_main_thread = "perturbation_measurements_" + time_string
     filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
@@ -584,6 +607,6 @@ def plot_from_file():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
 
-    # plot_from_file()
+    plot_from_file()
