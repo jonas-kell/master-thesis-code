@@ -145,7 +145,7 @@ class LinearChainNonPeriodicState(SystemGeometry):
 
         domain_size = self.get_number_sites_wo_spin_degree()
 
-        if True:
+        if False:
             # simple variant, index from left to right
             return cos_phi * ((index % domain_size))
         else:  # TODO Remove ?

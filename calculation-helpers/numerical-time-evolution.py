@@ -104,7 +104,13 @@ def numerically_calculate_time_evolution(
         return compare_bra_ket(bra, copy_of_ket)
 
     def get_eps_multiplier(index: int, phiv: float, chain_length: int) -> float:
-        return np.cos(phiv) * (index % chain_length)
+        if False:
+            # simple variant, index from left to right
+            return np.cos(phiv) * ((index % chain_length))
+        else:  # TODO Remove ?
+            # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
+            # this should not influence other properties (I think)
+            return np.cos(phiv) * ((index % chain_length) - (chain_length / 2.0) + 0.5)
 
     def generate_basis(chain_length):
         if False:
@@ -592,10 +598,12 @@ def plot_from_file():
     time_string = "2024-10-23__23,49,06"  # 3
     time_string = "2024-10-23__23,50,51"  # 4
 
-    time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
     time_string = (
         "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
     )
+    time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
+
+    time_string = "2024-10-25__09,07,00"  # diagonalization indicees also centered
 
     filename_for_main_thread = "perturbation_measurements_" + time_string
     filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
