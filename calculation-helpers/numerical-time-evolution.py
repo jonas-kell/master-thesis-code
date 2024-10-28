@@ -523,7 +523,7 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.001
+    J: float = 0.01
     phi: float = np.pi / 10
 
     start_time: float = 0
@@ -615,6 +615,6 @@ def plot_from_file():
 
 
 if __name__ == "__main__":
-    # main()
+    main()
 
-    plot_from_file()
+    # plot_from_file()

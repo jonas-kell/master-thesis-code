@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union, Any
+from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
@@ -9,6 +9,10 @@ from vcomponents import (
     v_hop as calculate_v_hop,
     v_double_flip as calculate_v_double_flip,
 )
+
+if TYPE_CHECKING:
+    # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
+    import sampler
 
 
 class Hamiltonian(ABC):
@@ -211,6 +215,200 @@ class Hamiltonian(ABC):
             "phi": self.phi,
             **additional_info,
         }
+
+
+class HardcoreBosonicHamiltonianExact(Hamiltonian):
+    """This is requires diagonalization, so it will have exponential time-complexity!!
+    Only check for correctness on small systems with this.
+    """
+
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        system_geometry: state.SystemGeometry,
+        exact_sampler: "sampler.ExactSampler",
+    ):
+        super().__init__(U=U, E=E, J=J, phi=phi)
+
+        # construct the hamiltonian matrix
+        self.base_states = []
+        for a_base_state in exact_sampler.sample_generator(
+            time=0,  # that doesn't matter for exact sampler
+            random_generator=None,  # that doesn't matter for exact sampler
+            worker_index=0,  # as only one worker in constructor
+            num_workers=1,  # as only one worker in constructor
+        ):
+            self.base_states.append(a_base_state.get_state_array().copy())
+
+        self.index_map = {tuple(entry): i for i, entry in enumerate(self.base_states)}
+
+        def compare_bra_ket(bra, ket):
+            return np.all(bra == ket)
+
+        # does c#_l c_m
+        def compare_m_to_l_hopped_ket_to_bra(bra, ket, l, m):
+            if ket[m] == 0:
+                return False
+            if ket[l] == 1:
+                return False
+
+            copy_of_ket = np.copy(ket)
+
+            copy_of_ket[m] = 0
+            copy_of_ket[l] = 1
+
+            return compare_bra_ket(bra, copy_of_ket)
+
+        print("Exact Hamiltonian is done generating basis and lookup")
+        self.H = np.array(
+            [
+                [
+                    +self.U
+                    * np.sum(
+                        np.array(
+                            [
+                                (
+                                    1
+                                    * compare_bra_ket(bra_state, ket_state)
+                                    * bra_state[index]
+                                    * bra_state[
+                                        system_geometry.get_opposite_spin_index(index)
+                                    ]
+                                )
+                                for index in range(
+                                    system_geometry.get_number_sites_wo_spin_degree()
+                                )
+                            ]
+                        )
+                    )
+                    + self.E
+                    * np.sum(
+                        np.array(
+                            [
+                                (
+                                    1
+                                    * system_geometry.get_eps_multiplier(
+                                        index=index,
+                                        phi=self.phi,
+                                        cos_phi=self.cos_phi,
+                                        sin_phi=self.sin_phi,
+                                    )
+                                    * compare_bra_ket(bra_state, ket_state)
+                                    * bra_state[index]
+                                )
+                                for index in range(system_geometry.get_number_sites())
+                            ]
+                        )
+                    )
+                    - J
+                    * np.sum(
+                        np.array(
+                            [
+                                (
+                                    1
+                                    * compare_m_to_l_hopped_ket_to_bra(
+                                        bra_state, ket_state, ind1, ind2
+                                    )
+                                )
+                                for (ind1, ind2) in (
+                                    [
+                                        (index, neighbor_index)
+                                        for index in range(
+                                            system_geometry.get_number_sites()
+                                        )
+                                        for neighbor_index in system_geometry.get_nearest_neighbor_indices(
+                                            index=index
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                    for ket_state in self.base_states
+                ]
+                for bra_state in self.base_states
+            ]
+        )
+        print("Exact Hamiltonian is done generating Hamiltonian")
+        if not np.all(np.conjugate(self.H.T) == self.H):
+            print("H not hermetian")
+
+        self.d = 2 ** (system_geometry.get_number_sites())
+        # Dimension of the Hilbert space 2 spin degrees on n particles
+        amplitude = 1 / np.sqrt(self.d)  # Same amplitude for all basis states
+        self.psi_0 = np.full(self.d, amplitude, dtype=complex)
+
+        self.matrix_cache = None
+        self.matrix_cache_time: float = -1123123123123123123
+        self.recalculate_matrix(time=0)
+
+    def recalculate_matrix(self, time: float):
+        # dependency only needed when unsing this hamiltonian
+        from scipy.linalg import expm
+
+        if self.matrix_cache_time == time:
+            return  # is already cached
+        else:
+            # recalc the cache
+            self.matrix_cache = expm(-1j * self.H * time)
+
+            self.matrix_cache_time = time
+
+    def get_one_hot_vector(self, basis_elem: np.ndarray) -> np.ndarray:
+        vec = np.zeros(self.d, dtype=np.complex128)
+        index = self.index_map[tuple(basis_elem)]
+        vec[index] = 1
+
+        return vec
+
+    def get_base_energy(
+        self,
+        system_state: state.SystemState,
+    ) -> float:
+        _ = system_state
+
+        raise Exception(
+            "This should not be called, as we do not support accessing the base energy directly on the exact version"
+        )
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        _ = system_state
+        _ = time
+
+        raise Exception(
+            "This should not be called, as we do not support accessing the H_n directly on the exact version"
+        )
+
+    def get_H_eff(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        self.recalculate_matrix(time=time)
+
+        return np.log(
+            np.vdot(
+                self.get_one_hot_vector(system_state.get_state_array()),
+                np.dot(self.matrix_cache, self.psi_0),
+            )
+        )
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianExact",
+                **additional_info,
+            }
+        )
 
 
 class VPartsMapping(Enum):

@@ -128,12 +128,13 @@ if __name__ == "__main__":
     system_geometry_type: Literal["square_np", "chain"] = "chain"
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
     hamiltonian_type: Literal[
+        "exact",
         "canonical",
         "swap_optimized",
         "flip_optimized",
         "both_optimizations",
         "canonical_legacy_care_for_psi",
-    ] = "both_optimizations"
+    ] = "exact"
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
@@ -175,6 +176,18 @@ if __name__ == "__main__":
         )
 
     # Hamiltonian
+    if hamiltonian_type == "exact":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianExact(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            system_geometry=system_geometry,
+            exact_sampler=sampler.ExactSampler(
+                system_geometry=system_geometry,
+                initial_system_state=initial_system_state,
+            ),
+        )
     if hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
