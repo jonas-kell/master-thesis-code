@@ -45,14 +45,28 @@ def compare_files(file1, file2):
     print()
     print("Sorted")
     sorted_diffs = sorted(diffs, key=lambda x: x[0])
+    average_diff = 0
+    average_diff_counter = 0
     for percentage_diff, state, val1, val2 in sorted_diffs:
         print(f"{state}: {percentage_diff:.2f}%  -  {val1:.6f} <-> {val2:.6f}")
+        average_diff += percentage_diff
+        average_diff_counter += 1
+
     print(f"{file1} <-> {file2}")
+    print(f"Average: {average_diff/average_diff_counter}%")
 
 
 if __name__ == "__main__":
-    # at time 390 * 1/J, n=4, chain
+    # at time 390, n=4, chain
+
     # U: float = 1
     # E: float = 0.5
-    # J: float = 0.001
-    compare_files("diagonalization.txt", "perturbation.txt")
+    # J: float = 0.01
+    # phi: float = np.pi / 10
+    # start_time: float = 380
+    # number_of_time_steps: int = 10
+    # target_time_in_one_over_scaler: float = 4
+    # chain_length = 4
+
+    # compare_files("diagonalization.txt", "perturbation.txt")
+    compare_files("diagonalization.txt", "perturbationO2.txt")
