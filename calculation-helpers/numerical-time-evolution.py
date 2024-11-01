@@ -103,19 +103,19 @@ def numerically_calculate_time_evolution(
             return np.cos(phiv) * ((index % chain_length) - (chain_length / 2.0) + 0.5)
 
     def generate_basis(chain_length):
-        if False:
-            # generate same order as exact sampler (for data extraction during run)
-            basis = np.flip(
-                np.array(
-                    [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
-                ),
-                axis=1,
-            )
-        else:
-            # generate with spins 0,1up easily extractable by tracing out to reduced density matrix
-            basis = np.array(
-                [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
-            )
+        # generate with spins 0,1up easily extractable by tracing out to reduced density matrix
+        # starting with up,up,up,up.... to have canonical ordering for sigma_y convention
+
+        # make sure, to start the sampling
+        # from 1,1,1,1,1
+        # then 1,1,1,1,0
+        # then 1,1,1,0,1
+        # ....
+        # last 0,0,0,0,0
+
+        basis = 1 - np.array(
+            [state for state in np.ndindex(*(2 for _ in range(chain_length)))]
+        )
         return basis
 
     # Example Hamiltonian for a linear chain of length n with 2 spin degrees

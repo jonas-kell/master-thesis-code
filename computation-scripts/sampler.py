@@ -455,10 +455,24 @@ class ExactSampler(GeneralSampler):
         else:
             end_index = (total_samples // num_workers) * (worker_index + 1)
 
+        # make sure, to start the sampling
+        # from 1,1,1,1,1
+        # then 1,1,1,1,0
+        # then 1,1,1,0,1
+        # ....
+        # last 0,0,0,0,0
+
+        # because that way, the sampling order is equivalent to the natural ordering
+        # up,up,up,up,up
+        # up,up,up,up,down
+        # ...
+        # down,... this is required, to match the logical sigma_y convention
+
         # initialize the working array
         initializer_array = working_state.get_state_array()
         for i in range(array_length):
-            initializer_array[i] = (start_index >> i) & 1
+            # 1- to start 1111, not 0000, then shift the index and extract the required index
+            initializer_array[i] = 1 - ((start_index >> i) & 1)
 
         # produce the samples
         for _ in range(end_index - start_index):
@@ -466,9 +480,9 @@ class ExactSampler(GeneralSampler):
 
             carry = 1
             for i in range(array_length):
-                res = working_state.get_state_array()[i] + carry
-
-                working_state.get_state_array()[i] = res % 2
+                working_index = array_length - i - 1
+                res = (1 - working_state.get_state_array()[working_index]) + carry
+                working_state.get_state_array()[working_index] = 1 - (res % 2)
                 carry = res // 2
 
     def produces_samples_count(self) -> int:

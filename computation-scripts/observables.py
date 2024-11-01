@@ -302,8 +302,8 @@ class ReducedDensityMatrixMeasurement(Observable):
     ) -> np.complex128:
         system_state_array = system_state.get_state_array()
 
-        site_occ_l_sigma_sign = -(2 * system_state_array[self.use_index_from] - 1)
-        site_occ_m_sigma_prime_sign = -(2 * system_state_array[self.use_index_to] - 1)
+        site_occ_l_sigma_sign = 2 * system_state_array[self.use_index_from] - 1
+        site_occ_m_sigma_prime_sign = 2 * system_state_array[self.use_index_to] - 1
         # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (flipped - original)
         # therefore also /psi not * psi
         l_sigma_diff, l_sigma_psi = (
