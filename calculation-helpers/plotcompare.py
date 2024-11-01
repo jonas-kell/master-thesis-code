@@ -25,6 +25,8 @@ def plot_experiment_comparison(
     data_array = []
     for i, filename in enumerate(filenames):
         print("reading: ", filename)
+        print(loaded_data_array[i]["hamiltonian"])
+
         data_array.append(loaded_data_array[i]["measurements"])
 
         Jcomp = loaded_data_array[i]["hamiltonian"]["J"]
