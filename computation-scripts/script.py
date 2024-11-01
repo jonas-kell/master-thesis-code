@@ -291,7 +291,7 @@ if __name__ == "__main__":
             perform_checks=check_observable_imag,
             check_threshold=check_observable_imag_threshold,
         ),
-        observables.ConcurrenceAssym(
+        observables.ConcurrenceAsymm(
             site_index_from=current_from,
             site_index_to=current_to,
             spin_up_from=True,

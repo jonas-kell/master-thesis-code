@@ -438,7 +438,7 @@ class Concurrence(ReducedDensityMatrixMeasurement):
         }
 
 
-class ConcurrenceAssym(ReducedDensityMatrixMeasurement):
+class ConcurrenceAsymm(ReducedDensityMatrixMeasurement):
     def post_process(self, value: np.ndarray) -> np.complex128:
         z_basis_density_matrix_from_measurements = (
             get_reduced_density_matrix_in_z_basis_from_observations(
@@ -455,7 +455,7 @@ class ConcurrenceAssym(ReducedDensityMatrixMeasurement):
 
     def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
         return {
-            "type": "ConcurrenceAssym",
+            "type": "ConcurrenceAsymm",
             "label": self.get_label(),
             "use_index_from": self.use_index_from,
             "use_index_to": self.use_index_to,
