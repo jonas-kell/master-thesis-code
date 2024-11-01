@@ -132,13 +132,28 @@ if __name__ == "__main__":
     # filename_a = "perturbation_measurements_" + time_string
     # filename_b = "diagonalization_measurements_" + time_string
 
-    # plot_experiment_comparison([filename_a, filename_b])
-
-    diagonal = "diagonalization_measurements_2024-11-01__16,14,33"
-    first_order = "perturbation_measurements_2024-11-01__16,09,01"
-    second_order = "perturbation_measurements_2024-11-01__16,14,33"
-
+    # spinToZBasisTransformation
+    exact = "diagonalization_measurements_2024-11-01__21,29,39"
+    current = "perturbation_measurements_2024-11-01__21,29,39"
+    flipped = "perturbation_measurements_2024-11-01__21,25,14"
     plot_experiment_comparison(
-        [diagonal, first_order, second_order],
-        ["diagonal", "pert. first", "pert. second"],
+        [
+            exact,
+            current,
+            flipped,
+        ],
+        [
+            "exact",
+            "current",
+            "flipped",
+        ],
     )
+
+    # first second order comparison
+    # diagonal = "diagonalization_measurements_2024-11-01__16,14,33"
+    # first_order = "perturbation_measurements_2024-11-01__16,09,01"
+    # second_order = "perturbation_measurements_2024-11-01__16,14,33"
+    # plot_experiment_comparison(
+    #     [diagonal, first_order, second_order],
+    #     ["diagonal", "pert. first", "pert. second"],
+    # )

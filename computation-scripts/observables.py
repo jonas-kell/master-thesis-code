@@ -527,7 +527,25 @@ class PauliMeasurement(ReducedDensityMatrixMeasurement):
         return np.real(pauli_measurement)
 
     def get_label(self) -> str:
-        return f"Pauli Measurement index {self.index_of_pauli_op} of sites {self.name_from} and {self.name_to}"
+        names = [
+            "00",
+            "0x",
+            "0y",
+            "0z",
+            "x0",
+            "xx",
+            "xy",
+            "xz",
+            "y0",
+            "yx",
+            "yy",
+            "yz",
+            "z0",
+            "zx",
+            "zy",
+            "zz",
+        ]
+        return f"Pauli Measurement {names[self.index_of_pauli_op]} of sites {self.name_from} and {self.name_to}"
 
     def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
         return {
