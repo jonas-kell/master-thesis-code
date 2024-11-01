@@ -1,8 +1,46 @@
-from typing import List, Any, Dict, Union
+from typing import List, Any, Dict, Union, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 from commonsettings import get_full_file_path, scaler_switch
 import json
+
+
+def scale_and_prepare_data(
+    observable_type, J, U, data: np.ndarray
+) -> Tuple[np.ndarray, str]:
+    second_order_error_factor = (U / J) ** 2
+
+    if np.abs(J) < scaler_switch:
+        raise Exception("Can not rescale by this, as J-deactivated")
+
+    center_var = 0
+    scale_factor = 1
+    label_addendum = ""
+
+    if observable_type == "SpinCurrent":
+        scale_factor = 1 / J
+        center_var = 0
+        label_addendum = "in J"
+    elif observable_type == "DoubleOccupationAtSite":
+        scale_factor = second_order_error_factor
+        center_var = 0.25
+        label_addendum = "in J²/U² around 0.25"
+    elif observable_type == "OccupationAtSite":
+        scale_factor = second_order_error_factor
+        center_var = 0.5
+        label_addendum = "in J²/U² around 0.5"
+    elif observable_type == "Purity":
+        pass
+    elif observable_type == "Concurrence":
+        pass
+    elif observable_type == "ConcurrenceAsymm":
+        pass
+    elif observable_type == "PauliMeasurement":
+        pass
+    else:
+        raise Exception(f"Unknown Preparation Measurement {observable_type}")
+
+    return ((data - center_var) * scale_factor, " " + label_addendum)
 
 
 def plot_experiment_comparison(
@@ -56,15 +94,19 @@ def plot_experiment_comparison(
                 times_to_plot.append(measurement["time"])
                 values_to_plot.append(measurement["data"][i])
 
+            scaled_data, label_addendum = scale_and_prepare_data(
+                observable["type"], J, U, np.array(values_to_plot)
+            )
+
             plt.plot(
                 np.array(times_to_plot) * scaler_factor,
-                values_to_plot,
+                (scaled_data),
                 label=replacement_names[j],
             )
 
         # Adding labels and title
         plt.xlabel("Time in 1/" + scaler_factor_label)
-        plt.ylabel(label)
+        plt.ylabel(label + label_addendum)
         plt.legend()
 
         # Show the plot
