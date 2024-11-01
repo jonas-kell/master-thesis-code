@@ -51,5 +51,8 @@ def compare_files(file1, file2):
 
 
 if __name__ == "__main__":
-    # at time 390 * 1/J, n=4
+    # at time 390 * 1/J, n=4, chain
+    # U: float = 1
+    # E: float = 0.5
+    # J: float = 0.001
     compare_files("diagonalization.txt", "perturbation.txt")

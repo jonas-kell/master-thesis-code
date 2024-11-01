@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any, List
+from typing import Dict, Union, Any, List, Tuple
 from abc import ABC, abstractmethod
 
 
@@ -13,7 +13,50 @@ class SystemGeometry(ABC):
     """
 
     def __init__(self):
-        pass
+        self.index_knows_cache: List[
+            List[Tuple[int, float, int, float, int, float, int, float]]
+        ] = None
+
+    def init_index_knows_cache(self, phi: float, sin_phi: float, cos_phi: float):
+        # init index knows tuples
+        self.index_knows_cache: List[
+            List[Tuple[int, float, int, float, int, float, int, float]]
+        ] = []
+        for index in range(self.get_number_sites_wo_spin_degree()):
+            inner_list: List[Tuple[int, float, int, float, int, float, int, float]] = []
+            for nb_index in self.get_nearest_neighbor_indices(index):
+                ab_indices: List[Tuple[int, int]] = []
+
+                # a = l, b is nb of l
+                for b in self.get_nearest_neighbor_indices(index):
+                    ab_indices.append((index, b))
+                # a = m, b is nb of m
+                for b in self.get_nearest_neighbor_indices(nb_index):
+                    ab_indices.append((nb_index, b))
+                # b = l, a is nb of l & neq m
+                for a in self.get_nearest_neighbor_indices(index):
+                    if a != nb_index:
+                        ab_indices.append((a, index))
+                # b = m, a is nb of m & neq l
+                for a in self.get_nearest_neighbor_indices(nb_index):
+                    if a != index:
+                        ab_indices.append((a, nb_index))
+
+                for a, b in ab_indices:
+                    inner_list.append(
+                        (
+                            index,
+                            self.get_eps_multiplier(index, phi, sin_phi, cos_phi),
+                            nb_index,
+                            self.get_eps_multiplier(nb_index, phi, sin_phi, cos_phi),
+                            a,
+                            self.get_eps_multiplier(a, phi, sin_phi, cos_phi),
+                            b,
+                            self.get_eps_multiplier(b, phi, sin_phi, cos_phi),
+                        )
+                    )
+
+            self.index_knows_cache.append(inner_list)
 
     @abstractmethod
     def get_number_sites_wo_spin_degree(self) -> int:
@@ -41,6 +84,15 @@ class SystemGeometry(ABC):
     @abstractmethod
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         pass
+
+    def get_index_knows_tuples(
+        self, index: int
+    ) -> List[Tuple[int, float, int, float, int, float, int, float]]:
+        if self.index_knows_cache is None:
+            raise Exception(
+                "Index knows cache is requested, but not yet initialized for this geometry"
+            )
+        return self.index_knows_cache[index]
 
 
 class SquareSystemNonPeriodicState(SystemGeometry):

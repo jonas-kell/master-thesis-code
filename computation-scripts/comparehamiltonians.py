@@ -18,8 +18,10 @@ system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
-ham_canonical_legacy = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiff(
-    U=U, E=E, J=J, phi=phi
+ham_canonical_legacy = (
+    hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
+        U=U, E=E, J=J, phi=phi
+    )
 )
 ham_canonical = hamiltonian.HardcoreBosonicHamiltonian(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state

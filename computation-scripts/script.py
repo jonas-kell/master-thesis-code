@@ -130,11 +130,12 @@ if __name__ == "__main__":
     hamiltonian_type: Literal[
         "exact",
         "canonical",
+        "canonical_second_order",
         "swap_optimized",
         "flip_optimized",
         "both_optimizations",
         "canonical_legacy_care_for_psi",
-    ] = "exact"
+    ] = "canonical_second_order"
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
@@ -204,8 +205,17 @@ if __name__ == "__main__":
         ham = hamiltonian.HardcoreBosonicHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
+    if hamiltonian_type == "canonical_second_order":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            system_geometry=system_geometry,
+        )
     if hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiff(
+        ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
             U=U, E=E, J=J, phi=phi
         )
 

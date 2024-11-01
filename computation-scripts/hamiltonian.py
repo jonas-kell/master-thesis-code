@@ -2,6 +2,7 @@ from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
+import systemgeometry
 import numpy as np
 from vcomponents import (
     v as calculate_v_plain,
@@ -9,6 +10,7 @@ from vcomponents import (
     v_hop as calculate_v_hop,
     v_double_flip as calculate_v_double_flip,
 )
+from vcomponentssecondorder import v_second as v_second_order
 
 if TYPE_CHECKING:
     # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
@@ -417,7 +419,7 @@ class VPartsMapping(Enum):
     C = "c"
 
 
-class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
+class HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(Hamiltonian):
     """This is implemented EXTREMELY inefficient.
     This used to make more sense in the past, when there would be 3*8 operator-strings with different factors that later would have been required to be re-assembled.
     In this form it is ONLY used for checking later and more streamlined implementations for correctness.
@@ -665,7 +667,7 @@ class HardcoreBosonicHamiltonianStraightCalcPsiDiff(Hamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianStraightCalcPsiDiff",
+                "type": "HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder",
                 **additional_info,
             }
         )
@@ -770,6 +772,60 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         return super().get_log_info(
             {
                 "type": "HardcoreBosonicHamiltonian",
+                **additional_info,
+            }
+        )
+
+
+class HardcoreBosonicHamiltonianSecondOrder(HardcoreBosonicHamiltonian):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+        system_geometry: systemgeometry.SystemGeometry,
+    ):
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The second order Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+        # second order requires this cache to be pre-calculated
+        system_geometry.init_index_knows_cache(self.phi, self.sin_phi, self.cos_phi)
+        self.system_geometry = system_geometry
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        first_order_val = super().get_H_n(time=time, system_state=system_state)
+
+        number_sites = system_state.get_number_sites_wo_spin_degree()
+
+        second_order_total_sum: np.complex128 = np.complex128(0)
+
+        for l in range(number_sites):
+            input_tuples = self.system_geometry.get_index_knows_tuples(l)
+
+            second_order_total_sum += v_second_order(
+                U=self.U, t=time, knows_l_array=input_tuples, system_state=system_state
+            )
+
+        return first_order_val - 0.5 * self.J * self.J * second_order_total_sum
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianSecondOrder",
                 **additional_info,
             }
         )
