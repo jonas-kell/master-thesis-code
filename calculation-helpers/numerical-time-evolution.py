@@ -1,22 +1,12 @@
-from typing import List, Any, Dict, Union
 import numpy as np
 from scipy.linalg import expm
 import os
-import matplotlib.pyplot as plt
 import threading
 from partialTrace import partial_trace_out_b
 from datetime import datetime
 import json
-
-
-scaler_switch = 1e-4
-
-
-def get_full_file_path(from_file_namne: str):
-    return os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "./../run-outputs/" + from_file_namne + ".json",
-    )
+from commonsettings import get_full_file_path, scaler_switch
+from plotcompare import plot_experiment_comparison
 
 
 def matrix_sqrt(matr: np.ndarray) -> np.ndarray:
@@ -449,76 +439,6 @@ def run_main_program(
     )
 
 
-def plot_experiment_comparison(
-    filename_perturbation: str,
-    filename_diagonalization: str,
-):
-    loaded_data_perturbation: Dict[
-        str, Union[float, str, Dict[Any, Any], List[Any]]
-    ] = {}
-    with open(get_full_file_path(filename_perturbation), mode="r") as file:
-        loaded_data_perturbation = json.load(file)
-    loaded_data_diagonalization: Dict[
-        str, Union[float, str, Dict[Any, Any], List[Any]]
-    ] = {}
-    with open(get_full_file_path(filename_diagonalization), mode="r") as file:
-        loaded_data_diagonalization = json.load(file)
-
-    data_perturbation = loaded_data_perturbation["measurements"]
-    data_diagonalization = loaded_data_diagonalization["measurements"]
-
-    J = loaded_data_diagonalization["hamiltonian"]["J"]
-    U = loaded_data_diagonalization["hamiltonian"]["U"]
-
-    if np.abs(J) < scaler_switch:
-        # if J interaction "deactivated", scale with U
-        scaler_factor = U
-        scaler_factor_label = "U"
-    else:
-        scaler_factor = J
-        scaler_factor_label = "J"
-
-    observables = loaded_data_diagonalization["observables"]
-
-    for i, observable in enumerate(observables):
-        label = observable["label"]
-
-        times_to_plot_perturbation = []
-        values_to_plot_perturbation = []
-        times_to_plot_diagonalization = []
-        values_to_plot_diagonalization = []
-
-        for measurement_perturbation in data_perturbation:
-            times_to_plot_perturbation.append(measurement_perturbation["time"])
-            values_to_plot_perturbation.append(measurement_perturbation["data"][i])
-
-        for measurement_diagonalization in data_diagonalization:
-            times_to_plot_diagonalization.append(measurement_diagonalization["time"])
-            values_to_plot_diagonalization.append(
-                measurement_diagonalization["data"][i]
-            )
-
-        # Plotting
-        plt.plot(
-            np.array(times_to_plot_diagonalization) * scaler_factor,
-            values_to_plot_diagonalization,
-            label="Diagonalization",
-        )
-        plt.plot(
-            np.array(times_to_plot_perturbation) * scaler_factor,
-            values_to_plot_perturbation,
-            label="Perturbation",
-        )
-
-        # Adding labels and title
-        plt.xlabel("Time in 1/" + scaler_factor_label)
-        plt.ylabel(label)
-        plt.legend()
-
-        # Show the plot
-        plt.show()
-
-
 def main():
 
     U: float = 1
@@ -582,39 +502,12 @@ def main():
     external_thread_perturbation.join()
     external_thread_diagonalization.join()
 
+    print(filename_for_main_thread, filename_for_diagonalization_thread)
     plot_experiment_comparison(
-        filename_perturbation=filename_for_main_thread,
-        filename_diagonalization=filename_for_diagonalization_thread,
-    )
-
-
-def plot_from_file():
-
-    # was the flip correction justified
-    time_string = "2024-10-23__23,26,46"  # no flip correction
-    time_string = "2024-10-23__23,30,23"  # flip correction
-
-    # things drastically change from 3 to 4 elements in the chain
-    time_string = "2024-10-23__23,49,06"  # 3
-    time_string = "2024-10-23__23,50,51"  # 4
-
-    time_string = (
-        "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
-    )
-    time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
-
-    time_string = "2024-10-25__09,07,00"  # diagonalization indicees also centered
-
-    filename_for_main_thread = "perturbation_measurements_" + time_string
-    filename_for_diagonalization_thread = "diagonalization_measurements_" + time_string
-
-    plot_experiment_comparison(
-        filename_perturbation=filename_for_main_thread,
-        filename_diagonalization=filename_for_diagonalization_thread,
+        [filename_for_main_thread, filename_for_diagonalization_thread],
+        ["Pertubation", "Diagonalization"],
     )
 
 
 if __name__ == "__main__":
     main()
-
-    # plot_from_file()
