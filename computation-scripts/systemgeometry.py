@@ -27,61 +27,14 @@ class SystemGeometry(ABC):
     def init_index_knows_cache(self, phi: float, sin_phi: float, cos_phi: float):
         time_start = measure() * 1000
         # init index knows tuples
-        self.index_knows_cache: List[
-            List[Tuple[int, float, int, float, int, float, int, float]]
-        ] = []
-        for l in range(self.get_number_sites_wo_spin_degree()):
-            inner_list: List[Tuple[int, float, int, float, int, float, int, float]] = []
-            for m in self.get_nearest_neighbor_indices(l):
-                ab_indices: List[Tuple[int, int]] = []
-
-                # a = l, b is nb of l
-                for b in self.get_nearest_neighbor_indices(l):
-                    ab_indices.append((l, b))
-                # a = m, b is nb of m
-                for b in self.get_nearest_neighbor_indices(m):
-                    ab_indices.append((m, b))
-                # b = l, a is nb of l & neq m
-                for a in self.get_nearest_neighbor_indices(l):
-                    if a != m:
-                        ab_indices.append((a, l))
-                # b = m, a is nb of m & neq l
-                for a in self.get_nearest_neighbor_indices(m):
-                    if a != l:
-                        ab_indices.append((a, m))
-
-                for a, b in ab_indices:
-                    inner_list.append(
-                        (
-                            l,
-                            self.get_eps_multiplier(l, phi, sin_phi, cos_phi),
-                            m,
-                            self.get_eps_multiplier(m, phi, sin_phi, cos_phi),
-                            a,
-                            self.get_eps_multiplier(a, phi, sin_phi, cos_phi),
-                            b,
-                            self.get_eps_multiplier(b, phi, sin_phi, cos_phi),
-                        )
-                    )
-
-            self.index_knows_cache.append(inner_list)
-
-        # init index knows tuples that contain one index
-        self.index_knows_cache_contains_one: List[
-            List[Tuple[int, float, int, float, int, float, int, float]]
-        ] = []
-        for index in range(self.get_number_sites_wo_spin_degree()):
-            inner_list: List[Tuple[int, float, int, float, int, float, int, float]] = []
-
-            index_circle = [index]
-            for one_step_nb in self.get_nearest_neighbor_indices(index):
-                if one_step_nb not in index_circle:
-                    index_circle.append(one_step_nb)
-                for two_step_nb in self.get_nearest_neighbor_indices(one_step_nb):
-                    if two_step_nb not in index_circle:
-                        index_circle.append(two_step_nb)
-
-            for l in index_circle:
+        if self.index_knows_cache is None:
+            self.index_knows_cache: List[
+                List[Tuple[int, float, int, float, int, float, int, float]]
+            ] = []
+            for l in range(self.get_number_sites_wo_spin_degree()):
+                inner_list: List[
+                    Tuple[int, float, int, float, int, float, int, float]
+                ] = []
                 for m in self.get_nearest_neighbor_indices(l):
                     ab_indices: List[Tuple[int, int]] = []
 
@@ -101,45 +54,33 @@ class SystemGeometry(ABC):
                             ab_indices.append((a, m))
 
                     for a, b in ab_indices:
-                        if (l == index or m == index or a == index or b == index) and (
-                            l == a or m == a or l == b or m == b
-                        ):
-                            inner_list.append(
-                                (
-                                    l,
-                                    self.get_eps_multiplier(l, phi, sin_phi, cos_phi),
-                                    m,
-                                    self.get_eps_multiplier(m, phi, sin_phi, cos_phi),
-                                    a,
-                                    self.get_eps_multiplier(a, phi, sin_phi, cos_phi),
-                                    b,
-                                    self.get_eps_multiplier(b, phi, sin_phi, cos_phi),
-                                )
+                        inner_list.append(
+                            (
+                                l,
+                                self.get_eps_multiplier(l, phi, sin_phi, cos_phi),
+                                m,
+                                self.get_eps_multiplier(m, phi, sin_phi, cos_phi),
+                                a,
+                                self.get_eps_multiplier(a, phi, sin_phi, cos_phi),
+                                b,
+                                self.get_eps_multiplier(b, phi, sin_phi, cos_phi),
                             )
+                        )
 
-            self.index_knows_cache_contains_one.append(inner_list)
+                self.index_knows_cache.append(inner_list)
 
-        # init index knows tuples that contain at least one of two indices
-        self.index_knows_cache_contains_two: List[
-            List[List[Tuple[int, float, int, float, int, float, int, float]]]
-        ] = []
-        for indexa in range(self.get_number_sites_wo_spin_degree()):
-            index_list: List[
+        # init index knows tuples that contain one index
+        if self.index_knows_cache_contains_one is None:
+            self.index_knows_cache_contains_one: List[
                 List[Tuple[int, float, int, float, int, float, int, float]]
             ] = []
-            for indexb in range(self.get_number_sites_wo_spin_degree()):
+            for index in range(self.get_number_sites_wo_spin_degree()):
                 inner_list: List[
                     Tuple[int, float, int, float, int, float, int, float]
                 ] = []
 
-                index_circle = [indexa, indexb]
-                for one_step_nb in self.get_nearest_neighbor_indices(indexa):
-                    if one_step_nb not in index_circle:
-                        index_circle.append(one_step_nb)
-                    for two_step_nb in self.get_nearest_neighbor_indices(one_step_nb):
-                        if two_step_nb not in index_circle:
-                            index_circle.append(two_step_nb)
-                for one_step_nb in self.get_nearest_neighbor_indices(indexb):
+                index_circle = [index]
+                for one_step_nb in self.get_nearest_neighbor_indices(index):
                     if one_step_nb not in index_circle:
                         index_circle.append(one_step_nb)
                     for two_step_nb in self.get_nearest_neighbor_indices(one_step_nb):
@@ -167,14 +108,7 @@ class SystemGeometry(ABC):
 
                         for a, b in ab_indices:
                             if (
-                                l == indexa
-                                or m == indexa
-                                or a == indexa
-                                or b == indexa
-                                or l == indexb
-                                or m == indexb
-                                or a == indexb
-                                or b == indexb
+                                l == index or m == index or a == index or b == index
                             ) and (l == a or m == a or l == b or m == b):
                                 inner_list.append(
                                     (
@@ -196,8 +130,93 @@ class SystemGeometry(ABC):
                                         ),
                                     )
                                 )
-                index_list.append(inner_list)
-            self.index_knows_cache_contains_two.append(index_list)
+
+                self.index_knows_cache_contains_one.append(inner_list)
+
+        # init index knows tuples that contain at least one of two indices
+        if self.index_knows_cache_contains_two is None:
+            self.index_knows_cache_contains_two: List[
+                List[List[Tuple[int, float, int, float, int, float, int, float]]]
+            ] = []
+            for indexa in range(self.get_number_sites_wo_spin_degree()):
+                index_list: List[
+                    List[Tuple[int, float, int, float, int, float, int, float]]
+                ] = []
+                for indexb in range(self.get_number_sites_wo_spin_degree()):
+                    inner_list: List[
+                        Tuple[int, float, int, float, int, float, int, float]
+                    ] = []
+
+                    index_circle = [indexa, indexb]
+                    for one_step_nb in self.get_nearest_neighbor_indices(indexa):
+                        if one_step_nb not in index_circle:
+                            index_circle.append(one_step_nb)
+                        for two_step_nb in self.get_nearest_neighbor_indices(
+                            one_step_nb
+                        ):
+                            if two_step_nb not in index_circle:
+                                index_circle.append(two_step_nb)
+                    for one_step_nb in self.get_nearest_neighbor_indices(indexb):
+                        if one_step_nb not in index_circle:
+                            index_circle.append(one_step_nb)
+                        for two_step_nb in self.get_nearest_neighbor_indices(
+                            one_step_nb
+                        ):
+                            if two_step_nb not in index_circle:
+                                index_circle.append(two_step_nb)
+
+                    for l in index_circle:
+                        for m in self.get_nearest_neighbor_indices(l):
+                            ab_indices: List[Tuple[int, int]] = []
+
+                            # a = l, b is nb of l
+                            for b in self.get_nearest_neighbor_indices(l):
+                                ab_indices.append((l, b))
+                            # a = m, b is nb of m
+                            for b in self.get_nearest_neighbor_indices(m):
+                                ab_indices.append((m, b))
+                            # b = l, a is nb of l & neq m
+                            for a in self.get_nearest_neighbor_indices(l):
+                                if a != m:
+                                    ab_indices.append((a, l))
+                            # b = m, a is nb of m & neq l
+                            for a in self.get_nearest_neighbor_indices(m):
+                                if a != l:
+                                    ab_indices.append((a, m))
+
+                            for a, b in ab_indices:
+                                if (
+                                    l == indexa
+                                    or m == indexa
+                                    or a == indexa
+                                    or b == indexa
+                                    or l == indexb
+                                    or m == indexb
+                                    or a == indexb
+                                    or b == indexb
+                                ) and (l == a or m == a or l == b or m == b):
+                                    inner_list.append(
+                                        (
+                                            l,
+                                            self.get_eps_multiplier(
+                                                l, phi, sin_phi, cos_phi
+                                            ),
+                                            m,
+                                            self.get_eps_multiplier(
+                                                m, phi, sin_phi, cos_phi
+                                            ),
+                                            a,
+                                            self.get_eps_multiplier(
+                                                a, phi, sin_phi, cos_phi
+                                            ),
+                                            b,
+                                            self.get_eps_multiplier(
+                                                b, phi, sin_phi, cos_phi
+                                            ),
+                                        )
+                                    )
+                    index_list.append(inner_list)
+                self.index_knows_cache_contains_two.append(index_list)
 
         time_end = measure() * 1000
         print(f"Index-Knows-Cache has been pre-computed in {time_end-time_start}ms")
