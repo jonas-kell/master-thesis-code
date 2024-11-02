@@ -115,39 +115,39 @@ def plot_experiment_comparison(
 
 if __name__ == "__main__":
 
-    # was the flip correction justified
-    time_string = "2024-10-23__23,26,46"  # no flip correction
-    time_string = "2024-10-23__23,30,23"  # flip correction
+    # # was the flip correction justified
+    # time_string = "2024-10-23__23,26,46"  # no flip correction
+    # time_string = "2024-10-23__23,30,23"  # flip correction
 
-    # things drastically change from 3 to 4 elements in the chain
-    time_string = "2024-10-23__23,49,06"  # 3
-    time_string = "2024-10-23__23,50,51"  # 4
+    # # things drastically change from 3 to 4 elements in the chain
+    # time_string = "2024-10-23__23,49,06"  # 3
+    # time_string = "2024-10-23__23,50,51"  # 4
 
-    time_string = (
-        "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
-    )
-    time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
-    time_string = "2024-10-25__09,07,00"  # diagonalization indicees also centered
+    # time_string = (
+    #     "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
+    # )
+    # time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
+    # time_string = "2024-10-25__09,07,00"  # diagonalization indicees also centered
 
     # filename_a = "perturbation_measurements_" + time_string
     # filename_b = "diagonalization_measurements_" + time_string
 
     # spinToZBasisTransformation
-    exact = "diagonalization_measurements_2024-11-01__21,29,39"
-    current = "perturbation_measurements_2024-11-01__21,29,39"
-    flipped = "perturbation_measurements_2024-11-01__21,25,14"
-    plot_experiment_comparison(
-        [
-            exact,
-            current,
-            flipped,
-        ],
-        [
-            "exact",
-            "current",
-            "flipped",
-        ],
-    )
+    # exact = "diagonalization_measurements_2024-11-01__21,29,39"
+    # current = "perturbation_measurements_2024-11-01__21,29,39"
+    # flipped = "perturbation_measurements_2024-11-01__21,25,14"
+    # plot_experiment_comparison(
+    #     [
+    #         exact,
+    #         current,
+    #         flipped,
+    #     ],
+    #     [
+    #         "exact",
+    #         "current",
+    #         "flipped",
+    #     ],
+    # )
 
     # first second order comparison
     # diagonal = "diagonalization_measurements_2024-11-01__16,14,33"
@@ -157,3 +157,12 @@ if __name__ == "__main__":
     #     [diagonal, first_order, second_order],
     #     ["diagonal", "pert. first", "pert. second"],
     # )
+
+    # skip non-knowing terms test
+    diagonal = "diagonalization_measurements_2024-11-02__13,36,33"
+    reduced = "perturbation_measurements_2024-11-02__13,19,45"
+    all_terms = "perturbation_measurements_2024-11-02__13,36,33"
+    plot_experiment_comparison(
+        [diagonal, reduced, all],
+        ["diagonal", "reduced", "all_terms"],
+    )
