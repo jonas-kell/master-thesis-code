@@ -14,7 +14,7 @@ measurement_time = 5 * (1 / J)
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(10)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -74,16 +74,21 @@ total_time_flipping_optimized_second_order = 0
 total_time_double_flipping_un_optimized_second_order = 0
 total_time_double_flipping_optimized_second_order = 0
 
-iterations = 10
+iterations = 100
 for _ in range(iterations):
     use_state.init_random_filling(random)
 
     sw1_up: bool = random.randbool()
-    sw1_index: int = 5
+    sw1_index: int = random.randint(0, use_state.get_number_sites_wo_spin_degree() - 1)
+    sw1_index_neighbors = system_geometry.get_nearest_neighbor_indices(sw1_index)
     sw2_up: bool = random.randbool()
-    sw2_index: int = 6
+    sw2_index: int = sw1_index_neighbors[0]
     sw3_up: bool = random.randbool()
-    sw3_index: int = 3
+    sw3_index: int = sw2_index
+    while sw3_index in sw1_index_neighbors + [sw1_index]:
+        sw3_index: int = random.randint(
+            0, use_state.get_number_sites_wo_spin_degree() - 1
+        )
 
     if sw2_index not in system_geometry.get_nearest_neighbor_indices(sw1_index):
         raise Exception("Expect to be neighbor")
