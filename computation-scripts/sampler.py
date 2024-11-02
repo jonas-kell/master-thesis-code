@@ -472,7 +472,7 @@ class ExactSampler(GeneralSampler):
         initializer_array = working_state.get_state_array()
         for i in range(array_length):
             # 1- to start 1111, not 0000, then shift the index and extract the required index
-            initializer_array[i] = 1 - ((start_index >> i) & 1)
+            initializer_array[array_length - i - 1] = 1 - ((start_index >> i) & 1)
 
         # produce the samples
         for _ in range(end_index - start_index):
