@@ -1520,10 +1520,10 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
         )
         before_swap_system_state.flip_in_place(
             flipping_up=sw1_index, flipping_index=sw1_up
-        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
         before_swap_system_state.flip_in_place(
             flipping_up=sw2_index, flipping_index=sw2_up
-        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 
@@ -1564,7 +1564,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
         )
         before_swap_system_state.flip_in_place(
             flipping_up=flipping_up, flipping_index=flipping_index
-        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 
@@ -1614,10 +1614,10 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
         )
         before_swap_system_state.flip_in_place(
             flipping_up=flipping1_up, flipping_index=flipping1_index
-        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
         before_swap_system_state.flip_in_place(
             flipping_up=flipping2_up, flipping_index=flipping2_index
-        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 
