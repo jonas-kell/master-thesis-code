@@ -159,10 +159,20 @@ if __name__ == "__main__":
     # )
 
     # first second order comparison
-    diagonal = "diagonalization_measurements_2024-11-02__16,32,00"
-    first_order = "perturbation_measurements_2024-11-02__16,39,46"
-    second_order = "perturbation_measurements_2024-11-02__16,32,00"
+    # diagonal = "diagonalization_measurements_2024-11-02__16,32,00"
+    # first_order = "perturbation_measurements_2024-11-02__16,39,46"
+    # second_order = "perturbation_measurements_2024-11-02__16,32,00"
+    # plot_experiment_comparison(
+    #     [diagonal, first_order, second_order],
+    #     ["diagonal", "pert. first", "pert. second"],
+    # )
+
+    # first second order comparison
+    drop_one = "perturbation_measurements_2024-11-02__17,38,14"
+    drop_two = "perturbation_measurements_2024-11-02__17,32,09"
+    drop_three = "perturbation_measurements_2024-11-02__17,37,34"
+    all_factors = "perturbation_measurements_2024-11-02__17,36,48"
     plot_experiment_comparison(
-        [diagonal, first_order, second_order],
-        ["diagonal", "pert. first", "pert. second"],
+        [all_factors, drop_one, drop_two, drop_three],
+        ["all_factors", "drop_one", "drop_two", "drop_three"],
     )
