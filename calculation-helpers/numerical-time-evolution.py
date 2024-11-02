@@ -443,16 +443,16 @@ def main():
 
     U: float = 1
     E: float = 0.5
-    J: float = 0.01
+    J: float = 0.1
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 150
-    target_time_in_one_over_scaler: float = 4
+    number_of_time_steps: int = 200
+    target_time_in_one_over_scaler: float = 6
 
     chain_length = 4
 
-    set_number_workers_to_one = True
+    set_number_workers_to_one = False
 
     if np.abs(J) < scaler_switch:
         # if J interaction "deactivated", scale with U

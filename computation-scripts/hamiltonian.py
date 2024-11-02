@@ -815,7 +815,11 @@ class HardcoreBosonicHamiltonianSecondOrder(HardcoreBosonicHamiltonian):
             input_tuples = self.system_geometry.get_index_knows_tuples(l)
 
             second_order_total_sum += v_second_order(
-                U=self.U, t=time, knows_l_array=input_tuples, system_state=system_state
+                U=self.U,
+                E=self.E,
+                t=time,
+                knows_l_array=input_tuples,
+                system_state=system_state,
             )
 
         return first_order_val - 0.5 * self.J * self.J * second_order_total_sum

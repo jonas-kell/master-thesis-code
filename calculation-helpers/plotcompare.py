@@ -149,20 +149,20 @@ if __name__ == "__main__":
     #     ],
     # )
 
-    # first second order comparison
-    # diagonal = "diagonalization_measurements_2024-11-01__16,14,33"
-    # first_order = "perturbation_measurements_2024-11-01__16,09,01"
-    # second_order = "perturbation_measurements_2024-11-01__16,14,33"
+    # skip non-knowing terms test
+    # diagonal = "diagonalization_measurements_2024-11-02__13,36,33"
+    # reduced = "perturbation_measurements_2024-11-02__13,19,45"
+    # all_terms = "perturbation_measurements_2024-11-02__13,36,33"
     # plot_experiment_comparison(
-    #     [diagonal, first_order, second_order],
-    #     ["diagonal", "pert. first", "pert. second"],
+    #     [diagonal, reduced, all],
+    #     ["diagonal", "reduced", "all_terms"],
     # )
 
-    # skip non-knowing terms test
-    diagonal = "diagonalization_measurements_2024-11-02__13,36,33"
-    reduced = "perturbation_measurements_2024-11-02__13,19,45"
-    all_terms = "perturbation_measurements_2024-11-02__13,36,33"
+    # first second order comparison
+    diagonal = "diagonalization_measurements_2024-11-02__16,32,00"
+    first_order = "perturbation_measurements_2024-11-02__16,39,46"
+    second_order = "perturbation_measurements_2024-11-02__16,32,00"
     plot_experiment_comparison(
-        [diagonal, reduced, all],
-        ["diagonal", "reduced", "all_terms"],
+        [diagonal, first_order, second_order],
+        ["diagonal", "pert. first", "pert. second"],
     )

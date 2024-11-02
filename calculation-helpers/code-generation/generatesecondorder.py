@@ -18,7 +18,7 @@ def generateHelperFile(inputMappings):
     # normal V
     write_file(
         FILENAME,
-        "def v_second(U: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state) -> np.complex128:\n",
+        "def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state) -> np.complex128:\n",
     )
     write_file(FILENAME, indent(1) + "res: np.complex128 = np.complex128(0)\n")
     write_file(
@@ -28,13 +28,13 @@ def generateHelperFile(inputMappings):
     write_file(
         FILENAME,
         indent(2)
-        + "eps_one_A = epsl-epsm\n"
+        + "eps_one_A = E*(epsl-epsm)\n"
         + indent(2)
         + "eps_one_B = eps_one_A + U\n"
         + indent(2)
         + "eps_one_C = eps_one_A - U\n"
         + indent(2)
-        + "eps_two_A = epsa-epsb\n"
+        + "eps_two_A = E*(epsa-epsb)\n"
         + indent(2)
         + "eps_two_B = eps_two_A + U\n"
         + indent(2)
@@ -139,26 +139,8 @@ def generateHelperFile(inputMappings):
 
 if __name__ == "__main__":
 
-    def A_fun_c(Lc, Ld, Mc, Md):
-        return Lc and (1 - Mc) and Ld == Md
-
-    def B_fun_c(Lc, Ld, Mc, Md):
-        return Lc * (1 - Mc) * Ld * (1 - Md)
-
-    def C_fun_c(Lc, Ld, Mc, Md):
-        return Lc * (1 - Mc) * Md * (1 - Ld)
-
-    def A_fun_d(Lc, Ld, Mc, Md):
-        return Ld and (1 - Md) and Lc == Mc
-
-    def B_fun_d(Lc, Ld, Mc, Md):
-        return Ld * (1 - Md) * Lc * (1 - Mc)
-
-    def C_fun_d(Lc, Ld, Mc, Md):
-        return Ld * (1 - Md) * Mc * (1 - Lc)
-
     def combine_funcs(eps_one, eps_two):
-        return f"((np.expm1(1j * {eps_one} * t) / {eps_one}) - ( ((1j * t)/({eps_two}))   if (({eps_one} + {eps_two})< 1e-6) else    (np.expm1(1j * ({eps_one} + {eps_two}) * t) / ({eps_two} * ({eps_one} + {eps_two})))    )      )"
+        return f"((np.expm1(1j * {eps_one} * t) / {eps_one}) - ( ((1j * t)/({eps_two}))   if (({eps_one} + {eps_two})< 1e-8) else    (np.expm1(1j * ({eps_one} + {eps_two}) * t) / ({eps_two} * ({eps_one} + {eps_two})))    )      )"
 
     def double_eval_wrapper(
         callback_1_c: Callable[[int, int, int, int], int],
@@ -302,6 +284,24 @@ if __name__ == "__main__":
             ),
             productOfFirstOrderCallable,
         )
+
+    def A_fun_c(Lc, Ld, Mc, Md):
+        return Lc * (1 - Mc) * (1 * (Ld == Md))
+
+    def B_fun_c(Lc, Ld, Mc, Md):
+        return Lc * (1 - Mc) * Ld * (1 - Md)
+
+    def C_fun_c(Lc, Ld, Mc, Md):
+        return Lc * (1 - Mc) * Md * (1 - Ld)
+
+    def A_fun_d(Lc, Ld, Mc, Md):
+        return Ld * (1 - Md) * (1 * (Lc == Mc))
+
+    def B_fun_d(Lc, Ld, Mc, Md):
+        return Ld * (1 - Md) * Lc * (1 - Mc)
+
+    def C_fun_d(Lc, Ld, Mc, Md):
+        return Ld * (1 - Md) * Mc * (1 - Lc)
 
     mappingsDict = {
         "AA": (
