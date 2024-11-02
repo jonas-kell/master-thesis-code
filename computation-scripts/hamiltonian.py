@@ -1505,25 +1505,14 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=sw1_up, flipping_index=sw1_index
-        )  # flip to calc modified state
-        before_swap_system_state.flip_in_place(
-            flipping_up=sw2_up, flipping_index=sw2_index
-        )  # flip to calc modified state
         after = v_second_order(
             U=self.U,
             E=self.E,
             t=time,
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
+            flipping_tuples=[(sw1_index, sw1_up), (sw2_index, sw2_up)],
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=sw1_index, flipping_index=sw1_up
-        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
-        before_swap_system_state.flip_in_place(
-            flipping_up=sw2_index, flipping_index=sw2_up
-        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 
@@ -1552,19 +1541,14 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping_up, flipping_index=flipping_index
-        )  # flip to calc modified state
         after = v_second_order(
             U=self.U,
             E=self.E,
             t=time,
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
+            flipping_tuples=[(flipping_index, flipping_up)],
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping_up, flipping_index=flipping_index
-        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 
@@ -1599,25 +1583,17 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping1_up, flipping_index=flipping1_index
-        )  # flip to calc modified state
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping2_up, flipping_index=flipping2_index
-        )  # flip to calc modified state
         after = v_second_order(
             U=self.U,
             E=self.E,
             t=time,
             knows_l_array=filtered_index_knows_tuples,
             system_state=before_swap_system_state,
+            flipping_tuples=[
+                (flipping1_index, flipping1_up),
+                (flipping2_index, flipping2_up),
+            ],
         )
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping1_up, flipping_index=flipping1_index
-        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
-        before_swap_system_state.flip_in_place(
-            flipping_up=flipping2_up, flipping_index=flipping2_index
-        )  # flip back (this should be fine, it is ok to modify a state, as state array is not shared across threads)
 
         return first_order_val - 0.5 * self.J * self.J * (before - after)
 

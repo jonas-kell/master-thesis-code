@@ -5,7 +5,7 @@
 from typing import List, Tuple
 import numpy as np
 
-def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state) -> np.complex128:
+def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state, flipping_tuples: List[Tuple[int, bool]] = []) -> np.complex128:
     res: np.complex128 = np.complex128(0)
     for (l, epsl, m, epsm, a, epsa, b, epsb) in knows_l_array:
         eps_one_A = E*(epsl-epsm)
@@ -23,6 +23,26 @@ def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float,
         occ_a_os = system_state.get_state_array()[system_state.get_opposite_spin_index(a)]
         occ_b = system_state.get_state_array()[b]
         occ_b_os = system_state.get_state_array()[system_state.get_opposite_spin_index(b)]
+
+        for flip_index, flip_up in flipping_tuples:
+            if flip_up:
+                if flip_index == l:
+                    occ_l = 1 - occ_l
+                if flip_index == m:
+                    occ_m = 1 - occ_m
+                if flip_index == a:
+                    occ_a = 1 - occ_a
+                if flip_index == b:
+                    occ_b = 1 - occ_b
+            else:
+                if flip_index == l:
+                    occ_l_os = 1 - occ_l_os
+                if flip_index == m:
+                    occ_m_os = 1 - occ_m_os
+                if flip_index == a:
+                    occ_a_os = 1 - occ_a_os
+                if flip_index == b:
+                    occ_b_os = 1 - occ_b_os
 
         if l == a:
             if l == b:

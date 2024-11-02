@@ -18,7 +18,7 @@ def generateHelperFile(inputMappings):
     # normal V
     write_file(
         FILENAME,
-        "def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state) -> np.complex128:\n",
+        "def v_second(U: float, E: float, t: float, knows_l_array: List[Tuple[int, float, int, float, int, float, int, float]], system_state, flipping_tuples: List[Tuple[int, bool]] = []) -> np.complex128:\n",
     )
     write_file(FILENAME, indent(1) + "res: np.complex128 = np.complex128(0)\n")
     write_file(
@@ -58,6 +58,48 @@ def generateHelperFile(inputMappings):
         + "occ_b = system_state.get_state_array()[b]\n"
         + indent(2)
         + "occ_b_os = system_state.get_state_array()[system_state.get_opposite_spin_index(b)]\n\n",
+    )
+    # This is in fact slower, as two array writes before and two after... That is so sad... # TODO complain in thesis
+    write_file(
+        FILENAME,
+        indent(2)
+        + "for flip_index, flip_up in flipping_tuples:\n"
+        + indent(3)
+        + "if flip_up:\n"
+        + indent(4)
+        + "if flip_index == l:\n"
+        + indent(5)
+        + "occ_l = 1 - occ_l\n"
+        + indent(4)
+        + "if flip_index == m:\n"
+        + indent(5)
+        + "occ_m = 1 - occ_m\n"
+        + indent(4)
+        + "if flip_index == a:\n"
+        + indent(5)
+        + "occ_a = 1 - occ_a\n"
+        + indent(4)
+        + "if flip_index == b:\n"
+        + indent(5)
+        + "occ_b = 1 - occ_b\n"
+        + indent(3)
+        + "else:\n"
+        + indent(4)
+        + "if flip_index == l:\n"
+        + indent(5)
+        + "occ_l_os = 1 - occ_l_os\n"
+        + indent(4)
+        + "if flip_index == m:\n"
+        + indent(5)
+        + "occ_m_os = 1 - occ_m_os\n"
+        + indent(4)
+        + "if flip_index == a:\n"
+        + indent(5)
+        + "occ_a_os = 1 - occ_a_os\n"
+        + indent(4)
+        + "if flip_index == b:\n"
+        + indent(5)
+        + "occ_b_os = 1 - occ_b_os\n\n",
     )
 
     def endCallback(lineStart: str, currentTruthinesses: List[bool]):
