@@ -32,6 +32,24 @@ ham_swap_optimized = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
 ham_flip_optimized = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
 )
+ham_canonical_second_order = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+    U=U,
+    E=E,
+    J=J,
+    phi=phi,
+    initial_system_state=initial_system_state,
+    system_geometry=system_geometry,
+)
+ham_second_order_optimized = (
+    hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
+        U=U,
+        E=E,
+        J=J,
+        phi=phi,
+        initial_system_state=initial_system_state,
+        system_geometry=system_geometry,
+    )
+)
 
 use_state = state.SystemState(system_geometry, initial_system_state)
 
@@ -47,7 +65,16 @@ total_time_flipping_optimized = 0
 total_time_double_flipping_un_optimized = 0
 total_time_double_flipping_optimized = 0
 
-iterations = 1000
+total_time_swapping_un_optimized_second_order = 0
+total_time_swapping_optimized_second_order = 0
+
+total_time_flipping_un_optimized_second_order = 0
+total_time_flipping_optimized_second_order = 0
+
+total_time_double_flipping_un_optimized_second_order = 0
+total_time_double_flipping_optimized_second_order = 0
+
+iterations = 10
 for _ in range(iterations):
     use_state.init_random_filling(random)
 
@@ -253,6 +280,136 @@ for _ in range(iterations):
         print(res_double_flip_a_far[0])
         print(res_double_flip_b_far[0])
 
+    a = measure() * 1000
+    res_a = ham_canonical_second_order.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    b = measure() * 1000
+    res_b = ham_second_order_optimized.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw2_up,
+        sw2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    c = measure() * 1000
+    total_time_swapping_un_optimized_second_order += b - a
+    total_time_swapping_optimized_second_order += c - b
+    if np.abs(res_a[0] - res_b[0]) > 1e-6:
+        print("Second Order Difference for Hopping")
+        print(res_a[0])
+        print(res_b[0])
+
+    a = measure() * 1000
+    res_a_far = ham_canonical_second_order.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw3_up,
+        sw2_index=sw3_index,
+        before_swap_system_state=use_state,
+    )
+    b = measure() * 1000
+    res_b_far = ham_second_order_optimized.get_H_eff_difference_swapping(
+        time=measurement_time,
+        sw1_up=sw1_up,
+        sw1_index=sw1_index,
+        sw2_up=sw3_up,
+        sw2_index=sw3_index,
+        before_swap_system_state=use_state,
+    )
+    c = measure() * 1000
+    total_time_swapping_un_optimized_second_order += b - a
+    total_time_swapping_optimized_second_order += c - b
+    if np.abs(res_a_far[0] - res_b_far[0]) > 1e-6:
+        print("Second Order Difference for far Hopping")
+        print(res_a_far[0])
+        print(res_b_far[0])
+
+    a = measure() * 1000
+    res_flip_a = ham_canonical_second_order.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    b = measure() * 1000
+    res_flip_b = ham_second_order_optimized.get_H_eff_difference_flipping(
+        time=measurement_time,
+        flipping_up=sw1_up,
+        flipping_index=sw1_index,
+        before_swap_system_state=use_state,
+    )
+    c = measure() * 1000
+    total_time_flipping_un_optimized_second_order += b - a
+    total_time_flipping_optimized_second_order += c - b
+    if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
+        print("Second Order Difference for Flipping")
+        print(res_flip_a[0])
+        print(res_flip_b[0])
+
+    a = measure() * 1000
+    res_double_flip_a = ham_canonical_second_order.get_H_eff_difference_double_flipping(
+        time=measurement_time,
+        flipping1_up=sw1_up,
+        flipping1_index=sw1_index,
+        flipping2_up=sw2_up,
+        flipping2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    b = measure() * 1000
+    res_double_flip_b = ham_second_order_optimized.get_H_eff_difference_double_flipping(
+        time=measurement_time,
+        flipping1_up=sw1_up,
+        flipping1_index=sw1_index,
+        flipping2_up=sw2_up,
+        flipping2_index=sw2_index,
+        before_swap_system_state=use_state,
+    )
+    c = measure() * 1000
+    total_time_double_flipping_un_optimized_second_order += b - a
+    total_time_double_flipping_optimized_second_order += c - b
+    if np.abs(res_double_flip_a[0] - res_double_flip_b[0]) > 1e-6:
+        print("Second Order Difference for Double Flipping")
+        print(res_double_flip_a[0])
+        print(res_double_flip_b[0])
+
+    a = measure() * 1000
+    res_double_flip_a_far = (
+        ham_canonical_second_order.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=sw1_up,
+            flipping1_index=sw1_index,
+            flipping2_up=sw3_up,
+            flipping2_index=sw3_index,
+            before_swap_system_state=use_state,
+        )
+    )
+    b = measure() * 1000
+    res_double_flip_b_far = (
+        ham_second_order_optimized.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=sw1_up,
+            flipping1_index=sw1_index,
+            flipping2_up=sw3_up,
+            flipping2_index=sw3_index,
+            before_swap_system_state=use_state,
+        )
+    )
+    c = measure() * 1000
+    total_time_double_flipping_un_optimized_second_order += b - a
+    total_time_double_flipping_optimized_second_order += c - b
+    if np.abs(res_double_flip_a_far[0] - res_double_flip_b_far[0]) > 1e-6:
+        print("Second Order Difference for far Double Flipping")
+        print(res_double_flip_a_far[0])
+        print(res_double_flip_b_far[0])
+
 print("legacy ms:", total_time_legacy)
 print("new ms:", total_time_new)
 
@@ -273,6 +430,29 @@ print("double flipping optimized ms:", total_time_double_flipping_optimized)
 
 print()
 
+print("SECOND ORDER: hopping ms:", total_time_swapping_un_optimized_second_order)
+print("SECOND ORDER: hopping optimized ms:", total_time_swapping_optimized_second_order)
+
+print()
+
+print("SECOND ORDER: flipping ms:", total_time_flipping_un_optimized_second_order)
+print(
+    "SECOND ORDER: flipping optimized ms:", total_time_flipping_optimized_second_order
+)
+
+print()
+
+print(
+    "SECOND ORDER: double flipping ms:",
+    total_time_double_flipping_un_optimized_second_order,
+)
+print(
+    "SECOND ORDER: double flipping optimized ms:",
+    total_time_double_flipping_optimized_second_order,
+)
+
+print()
+
 print(
     "Verified the correctness for the timing optimizations for:", iterations, " cases"
 )
@@ -280,11 +460,21 @@ print(
 system_geometry_chain = systemgeometry.LinearChainNonPeriodicState(3)
 initial_system_state_chain = state.HomogenousInitialSystemState(system_geometry)
 use_state_chain = state.SystemState(system_geometry_chain, initial_system_state)
-hailtonian_chain_plus = hamiltonian.HardcoreBosonicHamiltonian(
-    U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state_chain
+hailtonian_chain_plus = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+    U=U,
+    E=E,
+    J=J,
+    phi=phi,
+    initial_system_state=initial_system_state_chain,
+    system_geometry=system_geometry_chain,
 )
-hailtonian_chain_minus = hamiltonian.HardcoreBosonicHamiltonian(
-    U=U, E=-E, J=J, phi=phi, initial_system_state=initial_system_state_chain
+hailtonian_chain_minus = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+    U=U,
+    E=-E,
+    J=J,
+    phi=phi,
+    initial_system_state=initial_system_state_chain,
+    system_geometry=system_geometry_chain,
 )
 
 iterations_symmetry = 100

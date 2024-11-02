@@ -1361,7 +1361,7 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
         )
 
 
-# TODO python CAN do multiple inheritance https://www.programiz.com/python-programming/multiple-inheritance
+# python COULD do multiple inheritance https://www.programiz.com/python-programming/multiple-inheritance
 class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
     HardcoreBosonicHamiltonianFlippingOptimization
 ):
@@ -1411,6 +1411,222 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
         return super().get_log_info(
             {
                 "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimization",
+                **additional_info,
+            }
+        )
+
+
+class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
+    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
+):
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+        system_geometry: systemgeometry.SystemGeometry,
+    ):
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The second order Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+        self.second_order_base_hamiltonian = HardcoreBosonicHamiltonianSecondOrder(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            system_geometry=system_geometry,
+        )
+
+        # second order requires this cache to be pre-calculated
+        system_geometry.init_index_knows_cache(self.phi, self.sin_phi, self.cos_phi)
+        self.system_geometry = system_geometry
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        return self.second_order_base_hamiltonian.get_H_n(
+            time=time, system_state=system_state
+        )
+
+    def get_H_eff_difference_swapping(
+        self,
+        time: float,
+        sw1_up: bool,
+        sw1_index: int,
+        sw2_up: bool,
+        sw2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        use_sw1_index = sw1_index
+        if not sw1_up:
+            use_sw1_index = before_swap_system_state.get_opposite_spin_index(sw1_index)
+
+        use_sw2_index = sw2_index
+        if not sw2_up:
+            use_sw2_index = before_swap_system_state.get_opposite_spin_index(sw2_index)
+
+        if (
+            before_swap_system_state.get_state_array()[use_sw1_index]
+            == before_swap_system_state.get_state_array()[use_sw2_index]
+        ):
+            # The swapped occupations are equal. We know the result
+            return (np.complex128(0), 1.0)
+
+        first_order_val = super().get_H_eff_difference_swapping(
+            time=time,
+            sw1_up=sw1_up,
+            sw1_index=sw1_index,
+            sw2_up=sw2_up,
+            sw2_index=sw2_index,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+        filtered_index_knows_tuples = (
+            self.system_geometry.get_index_knows_tuples_contains_two(
+                sw1_index, sw2_index
+            )
+        )
+
+        before = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=sw1_up, flipping_index=sw1_index
+        )  # flip to calc modified state
+        before_swap_system_state.flip_in_place(
+            flipping_up=sw2_up, flipping_index=sw2_index
+        )  # flip to calc modified state
+        after = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=sw1_index, flipping_index=sw1_up
+        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        before_swap_system_state.flip_in_place(
+            flipping_up=sw2_index, flipping_index=sw2_up
+        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+
+        return first_order_val - 0.5 * self.J * self.J * (before - after)
+
+    def get_H_eff_difference_flipping(
+        self,
+        time: float,
+        flipping_up: bool,
+        flipping_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        first_order_val = super().get_H_eff_difference_flipping(
+            time=time,
+            flipping_up=flipping_up,
+            flipping_index=flipping_index,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+        filtered_index_knows_tuples = (
+            self.system_geometry.get_index_knows_tuples_contains_one(flipping_index)
+        )
+
+        before = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping_up, flipping_index=flipping_index
+        )  # flip to calc modified state
+        after = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping_up, flipping_index=flipping_index
+        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+
+        return first_order_val - 0.5 * self.J * self.J * (before - after)
+
+    def get_H_eff_difference_double_flipping(
+        self,
+        time: float,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        first_order_val = super().get_H_eff_difference_double_flipping(
+            time=time,
+            flipping1_up=flipping1_up,
+            flipping1_index=flipping1_index,
+            flipping2_up=flipping2_up,
+            flipping2_index=flipping2_index,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+        filtered_index_knows_tuples = (
+            self.system_geometry.get_index_knows_tuples_contains_two(
+                flipping1_index, flipping2_index
+            )
+        )
+
+        before = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping1_up, flipping_index=flipping1_index
+        )  # flip to calc modified state
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping2_up, flipping_index=flipping2_index
+        )  # flip to calc modified state
+        after = v_second_order(
+            U=self.U,
+            E=self.E,
+            t=time,
+            knows_l_array=filtered_index_knows_tuples,
+            system_state=before_swap_system_state,
+        )
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping1_up, flipping_index=flipping1_index
+        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+        before_swap_system_state.flip_in_place(
+            flipping_up=flipping2_up, flipping_index=flipping2_index
+        )  # flip back (this should be fine, it is ok to moify a state, as state array is not shared accross threads)
+
+        return first_order_val - 0.5 * self.J * self.J * (before - after)
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder",
                 **additional_info,
             }
         )

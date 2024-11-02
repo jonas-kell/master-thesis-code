@@ -16,6 +16,12 @@ class SystemGeometry(ABC):
         self.index_knows_cache: List[
             List[Tuple[int, float, int, float, int, float, int, float]]
         ] = None
+        self.index_knows_cache_contains_one: List[
+            List[Tuple[int, float, int, float, int, float, int, float]]
+        ] = None
+        self.index_knows_cache_contains_two: List[
+            List[List[Tuple[int, float, int, float, int, float, int, float]]]
+        ] = None
 
     def init_index_knows_cache(self, phi: float, sin_phi: float, cos_phi: float):
         # init index knows tuples
@@ -58,6 +64,94 @@ class SystemGeometry(ABC):
 
             self.index_knows_cache.append(inner_list)
 
+        # init index knows tuples that contain one index
+        self.index_knows_cache_contains_one: List[
+            List[Tuple[int, float, int, float, int, float, int, float]]
+        ] = []
+        for index in range(self.get_number_sites_wo_spin_degree()):
+            inner_list: List[Tuple[int, float, int, float, int, float, int, float]] = []
+            for l in range(self.get_number_sites_wo_spin_degree()):
+                for m in self.get_nearest_neighbor_indices(l):
+                    for a in range(self.get_number_sites_wo_spin_degree()):
+                        for b in self.get_nearest_neighbor_indices(a):
+                            if (
+                                l == index or m == index or a == index or b == index
+                            ) and (l == a or m == a or l == b or m == b):
+                                inner_list.append(
+                                    (
+                                        l,
+                                        self.get_eps_multiplier(
+                                            l, phi, sin_phi, cos_phi
+                                        ),
+                                        m,
+                                        self.get_eps_multiplier(
+                                            m, phi, sin_phi, cos_phi
+                                        ),
+                                        a,
+                                        self.get_eps_multiplier(
+                                            a, phi, sin_phi, cos_phi
+                                        ),
+                                        b,
+                                        self.get_eps_multiplier(
+                                            b, phi, sin_phi, cos_phi
+                                        ),
+                                    )
+                                )
+
+            self.index_knows_cache_contains_one.append(inner_list)
+
+        # init index knows tuples that contain at least one of two indices
+
+        self.index_knows_cache_contains_two: List[
+            List[List[Tuple[int, float, int, float, int, float, int, float]]]
+        ] = []
+        for indexa in range(self.get_number_sites_wo_spin_degree()):
+            index_list: List[
+                List[Tuple[int, float, int, float, int, float, int, float]]
+            ] = []
+            for indexb in range(self.get_number_sites_wo_spin_degree()):
+                inner_list: List[
+                    Tuple[int, float, int, float, int, float, int, float]
+                ] = []
+                for l in range(self.get_number_sites_wo_spin_degree()):
+                    for m in self.get_nearest_neighbor_indices(l):
+                        for a in range(self.get_number_sites_wo_spin_degree()):
+                            for b in self.get_nearest_neighbor_indices(a):
+                                if (
+                                    l == indexa
+                                    or m == indexa
+                                    or a == indexa
+                                    or b == indexa
+                                    or l == indexb
+                                    or m == indexb
+                                    or a == indexb
+                                    or b == indexb
+                                ) and (l == a or m == a or l == b or m == b):
+                                    inner_list.append(
+                                        (
+                                            l,
+                                            self.get_eps_multiplier(
+                                                l, phi, sin_phi, cos_phi
+                                            ),
+                                            m,
+                                            self.get_eps_multiplier(
+                                                m, phi, sin_phi, cos_phi
+                                            ),
+                                            a,
+                                            self.get_eps_multiplier(
+                                                a, phi, sin_phi, cos_phi
+                                            ),
+                                            b,
+                                            self.get_eps_multiplier(
+                                                b, phi, sin_phi, cos_phi
+                                            ),
+                                        )
+                                    )
+                index_list.append(inner_list)
+            self.index_knows_cache_contains_two.append(index_list)
+
+        print("Index Knows-cache has been pre-computed")
+
     @abstractmethod
     def get_number_sites_wo_spin_degree(self) -> int:
         pass
@@ -93,6 +187,24 @@ class SystemGeometry(ABC):
                 "Index knows cache is requested, but not yet initialized for this geometry"
             )
         return self.index_knows_cache[index]
+
+    def get_index_knows_tuples_contains_one(
+        self, index: int
+    ) -> List[Tuple[int, float, int, float, int, float, int, float]]:
+        if self.index_knows_cache_contains_one is None:
+            raise Exception(
+                "Index knows cache is requested, but not yet initialized for this geometry"
+            )
+        return self.index_knows_cache_contains_one[index]
+
+    def get_index_knows_tuples_contains_two(
+        self, indexa: int, indexb: int
+    ) -> List[Tuple[int, float, int, float, int, float, int, float]]:
+        if self.index_knows_cache_contains_two is None:
+            raise Exception(
+                "Index knows cache is requested, but not yet initialized for this geometry"
+            )
+        return self.index_knows_cache_contains_two[indexa][indexb]
 
 
 class SquareSystemNonPeriodicState(SystemGeometry):

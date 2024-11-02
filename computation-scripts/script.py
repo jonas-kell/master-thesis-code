@@ -135,7 +135,8 @@ if __name__ == "__main__":
         "flip_optimized",
         "both_optimizations",
         "canonical_legacy_care_for_psi",
-    ] = "canonical_second_order"
+        "both_optimizations_second_order",
+    ] = "both_optimizations_second_order"
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
     # ! Monte Carlo settings
@@ -200,6 +201,15 @@ if __name__ == "__main__":
     if hamiltonian_type == "both_optimizations":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+    if hamiltonian_type == "both_optimizations_second_order":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            system_geometry=system_geometry,
         )
     if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonian(
