@@ -183,7 +183,7 @@ def get_reduced_density_matrix_in_z_basis_from_observations(
     if imag_error > threshold:
         if do_checks:
             print(spin_basis_measurements)
-            raise Exception("A complex part in the measurements was ommitted")
+            raise Exception("A complex part in the measurements was omitted")
         else:
             print(
                 f"Warning intermediate observables {spin_basis_measurements} had imaginary part of {imag_error:.6f} that was omitted"
