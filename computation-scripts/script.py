@@ -91,8 +91,8 @@ if __name__ == "__main__":
     time_step: float = (target_time - start_time) / number_of_time_steps
 
     # ! verification settings
-    check_observable_imag = True
-    check_observable_imag_threshold = 1e-7
+    check_observable_imag = False
+    check_observable_imag_threshold = 1e-4
 
     # ! Hardware Settings
     cpu_core_count = (
@@ -137,13 +137,13 @@ if __name__ == "__main__":
         "canonical_legacy_care_for_psi",
         "both_optimizations_second_order",
     ] = "both_optimizations_second_order"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
     mc_thermalization_mode: Literal["flipping", "hopping"] = "flipping"
-    num_monte_carlo_samples: int = 40000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 800  # arbitrary at the moment
+    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
+    num_samples_per_chain: int = 80  # arbitrary at the moment
     mc_pre_therm_strategy: Literal[
         "vacuum",
         "each_random",

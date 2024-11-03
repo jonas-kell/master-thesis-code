@@ -167,12 +167,33 @@ if __name__ == "__main__":
     #     ["diagonal", "pert. first", "pert. second"],
     # )
 
-    # first second order comparison
-    drop_one = "perturbation_measurements_2024-11-02__17,38,14"
-    drop_two = "perturbation_measurements_2024-11-02__17,32,09"
-    drop_three = "perturbation_measurements_2024-11-02__17,37,34"
-    all_factors = "perturbation_measurements_2024-11-02__17,36,48"
+    # delete summands from second_order array test
+    # drop_one = "perturbation_measurements_2024-11-02__17,38,14"
+    # drop_two = "perturbation_measurements_2024-11-02__17,32,09"
+    # drop_three = "perturbation_measurements_2024-11-02__17,37,34"
+    # all_factors = "perturbation_measurements_2024-11-02__17,36,48"
+    # plot_experiment_comparison(
+    #     [all_factors, drop_one, drop_two, drop_three],
+    #     ["all_factors", "drop_one", "drop_two", "drop_three"],
+    # )
+
+    # second order optimization end to end
+    diagonal = "diagonalization_measurements_2024-11-03__15,56,10"
+    second_order_optimized = (
+        "perturbation_measurements_2024-11-03__15,56,10"  # 381.560 seconds
+    )
+    second_order_canonical = (
+        "perturbation_measurements_2024-11-03__16,05,58"  # 403.665 seconds
+    )
+    second_order_monte_carlo = (
+        "perturbation_measurements_2024-11-03__16,18,32"  # 3625.690 seconds
+    )
     plot_experiment_comparison(
-        [all_factors, drop_one, drop_two, drop_three],
-        ["all_factors", "drop_one", "drop_two", "drop_three"],
+        [
+            diagonal,
+            second_order_optimized,
+            second_order_canonical,
+            second_order_monte_carlo,
+        ],
+        ["diagonal", "opimized", "canonical", "MC"],
     )

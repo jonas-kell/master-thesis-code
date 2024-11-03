@@ -1525,7 +1525,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             sw2_up=sw2_up,
             sw2_index=sw2_index,
             before_swap_system_state=before_swap_system_state,
-        )
+        )[0]
 
         filtered_index_knows_tuples = (
             self.system_geometry.get_index_knows_tuples_contains_two(
@@ -1549,7 +1549,10 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             flipping_tuples=[(sw1_index, sw1_up), (sw2_index, sw2_up)],
         )
 
-        return first_order_val - 0.5 * self.J * self.J * (before - after)
+        return (
+            first_order_val - 0.5 * self.J * self.J * (before - after),
+            1.0,  # this being 1.0 is a required assumption for this simplification
+        )
 
     def get_H_eff_difference_flipping(
         self,
@@ -1563,7 +1566,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             flipping_up=flipping_up,
             flipping_index=flipping_index,
             before_swap_system_state=before_swap_system_state,
-        )
+        )[0]
 
         filtered_index_knows_tuples = (
             self.system_geometry.get_index_knows_tuples_contains_one(flipping_index)
@@ -1585,7 +1588,10 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             flipping_tuples=[(flipping_index, flipping_up)],
         )
 
-        return first_order_val - 0.5 * self.J * self.J * (before - after)
+        return (
+            first_order_val - 0.5 * self.J * self.J * (before - after),
+            1.0,  # this being 1.0 is a required assumption for this simplification
+        )
 
     def get_H_eff_difference_double_flipping(
         self,
@@ -1603,7 +1609,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             flipping2_up=flipping2_up,
             flipping2_index=flipping2_index,
             before_swap_system_state=before_swap_system_state,
-        )
+        )[0]
 
         filtered_index_knows_tuples = (
             self.system_geometry.get_index_knows_tuples_contains_two(
@@ -1630,7 +1636,10 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             ],
         )
 
-        return first_order_val - 0.5 * self.J * self.J * (before - after)
+        return (
+            first_order_val - 0.5 * self.J * self.J * (before - after),
+            1.0,  # this being 1.0 is a required assumption for this simplification
+        )
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
