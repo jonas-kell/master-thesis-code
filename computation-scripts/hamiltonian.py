@@ -264,8 +264,15 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
         phi: float,
         system_geometry: state.SystemGeometry,
         exact_sampler: "sampler.ExactSampler",
+        number_of_workers: int,
     ):
         super().__init__(U=U, E=E, J=J, phi=phi)
+
+        if number_of_workers != 1:
+            # The expensive scipy/numpy operations will multithread anyway (seemed to do that in testing, when using hamiltonian=exact, sampler=exact)
+            print(
+                "Warning: Caching system will not handle more than one worker properly. For most efficient cpu usage, use hamiltonian=exact, sampler=exact, #workers=1"
+            )
 
         # construct the hamiltonian matrix
         self.base_states = []

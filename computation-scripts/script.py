@@ -189,6 +189,7 @@ if __name__ == "__main__":
                 system_geometry=system_geometry,
                 initial_system_state=initial_system_state,
             ),
+            number_of_workers=number_workers,
         )
     if hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
