@@ -409,9 +409,11 @@ class ReducedDensityMatrixMeasurement(Observable):
         return {
             "type": "ReducedDensityMatrixMeasurement",
             "label": self.get_label(),
-            "use_index_from": self.use_index_from,
-            "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
+            "index_l": self.index_l,
+            "up_sigma": self.up_sigma,
+            "index_m": self.index_m,
+            "up_sigma_prime": self.up_sigma_prime,
         }
 
 
@@ -432,9 +434,11 @@ class Concurrence(ReducedDensityMatrixMeasurement):
         return {
             "type": "Concurrence",
             "label": self.get_label(),
-            "use_index_from": self.use_index_from,
-            "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
+            "index_l": self.index_l,
+            "up_sigma": self.up_sigma,
+            "index_m": self.index_m,
+            "up_sigma_prime": self.up_sigma_prime,
         }
 
 
@@ -457,9 +461,11 @@ class ConcurrenceAsymm(ReducedDensityMatrixMeasurement):
         return {
             "type": "ConcurrenceAsymm",
             "label": self.get_label(),
-            "use_index_from": self.use_index_from,
-            "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
+            "index_l": self.index_l,
+            "up_sigma": self.up_sigma,
+            "index_m": self.index_m,
+            "up_sigma_prime": self.up_sigma_prime,
         }
 
 
@@ -483,9 +489,11 @@ class Purity(ReducedDensityMatrixMeasurement):
         return {
             "type": "Purity",
             "label": self.get_label(),
-            "use_index_from": self.use_index_from,
-            "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
+            "index_l": self.index_l,
+            "up_sigma": self.up_sigma,
+            "index_m": self.index_m,
+            "up_sigma_prime": self.up_sigma_prime,
         }
 
 
@@ -551,8 +559,10 @@ class PauliMeasurement(ReducedDensityMatrixMeasurement):
         return {
             "type": "PauliMeasurement",
             "label": self.get_label(),
-            "use_index_from": self.use_index_from,
-            "use_index_to": self.use_index_to,
             "perform_checks": self.perform_checks,
+            "index_l": self.index_l,
+            "up_sigma": self.up_sigma,
+            "index_m": self.index_m,
+            "up_sigma_prime": self.up_sigma_prime,
             "index_of_pauli_op": self.index_of_pauli_op,
         }

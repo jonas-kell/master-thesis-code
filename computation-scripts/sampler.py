@@ -256,10 +256,11 @@ class MonteCarloSampler(GeneralSampler):
         for _ in range(num_steps):
             if isinstance(state_modification, state.RandomFlipping):
                 # Propose a new state modification
-                flipping_up, flipping_index = (
-                    state_modification.get_random_flipping_parameters(
-                        random_generator=random_generator
-                    )
+                (
+                    flipping_up,
+                    flipping_index,
+                ) = state_modification.get_random_flipping_parameters(  # these are in range 0<=index<#_wo_spin_degree
+                    random_generator=random_generator
                 )
 
                 energy_difference, psi_factor = (
@@ -283,10 +284,13 @@ class MonteCarloSampler(GeneralSampler):
 
             elif isinstance(state_modification, state.LatticeNeighborHopping):
 
-                sw1_up, sw1_index, sw2_up, sw2_index = (
-                    state_modification.get_lattice_hopping_parameters(
-                        random_generator=random_generator,
-                    )
+                (
+                    sw1_up,
+                    sw1_index,
+                    sw2_up,
+                    sw2_index,
+                ) = state_modification.get_lattice_hopping_parameters(  # these are in range 0<=index<#_wo_spin_degree
+                    random_generator=random_generator,
                 )
 
                 energy_difference, psi_factor = (
@@ -464,7 +468,7 @@ class ExactSampler(GeneralSampler):
 
         # because that way, the sampling order is equivalent to the natural ordering
         # up,up,up,up,up
-        # up,up,up,up,down
+        # up,up,up,up,down <- these up/down have NOTHING to do with the up/down-degree of the hc-bosons, but stem from the mapping to spins to generate the density matrix equivalent
         # ...
         # down,... this is required, to match the logical sigma_y convention
 

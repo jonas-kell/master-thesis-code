@@ -255,6 +255,7 @@ class SystemGeometry(ABC):
             raise Exception(
                 "Index knows cache is requested, but not yet initialized for this geometry"
             )
+        # This will cause an IndexOutOfBoundsException, if there are indices requested, that are not 0<=index<domain_size
         return self.index_knows_cache[index]
 
     def get_index_knows_tuples_contains_one(
@@ -292,11 +293,11 @@ class SquareSystemNonPeriodicState(SystemGeometry):
 
     def __init__(self, size: int):
         self.size = size
+        self.size_square = size * size
         super().__init__()
 
     def get_number_sites_wo_spin_degree(self) -> int:
-        # square
-        return self.size * self.size
+        return self.size_square
 
     def get_nearest_neighbor_indices(self, index: int) -> List[int]:
         ## TODO: cache
@@ -329,8 +330,8 @@ class SquareSystemNonPeriodicState(SystemGeometry):
 
         ## TODO: cache
         M = self.size
-        domain_size = self.get_number_sites_wo_spin_degree()
-        cut_index = index % domain_size
+        # it makes sense, requesting this for both spin-directions and ensuring correctness by mod
+        cut_index = index % self.get_number_sites_wo_spin_degree()
         return cos_phi * (cut_index % M) + sin_phi * (cut_index // M)
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
@@ -361,6 +362,7 @@ class LinearChainNonPeriodicState(SystemGeometry):
         rel_index = index % domain_size
         shift = (index // domain_size) * domain_size
 
+        ## TODO: cache
         # left neighbor
         if rel_index > 0:
             res.append(rel_index - 1 + shift)
@@ -376,15 +378,14 @@ class LinearChainNonPeriodicState(SystemGeometry):
         _ = phi
         _ = sin_phi  # get rid of unused error
 
+        ## TODO: cache
+        # it makes sense, requesting this for both spin-directions and ensuring correctness by mod
+
         domain_size = self.get_number_sites_wo_spin_degree()
 
-        if False:
-            # simple variant, index from left to right
-            return cos_phi * ((index % domain_size))
-        else:  # TODO Remove ?
-            # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
-            # this should not influence other properties (I think)
-            return cos_phi * ((index % domain_size) - (domain_size / 2.0) + 0.5)
+        # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
+        # this should not influence other properties (I think)
+        return cos_phi * ((index % domain_size) - (domain_size / 2.0) + 0.5)
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return {"type": "LinearChainNonPeriodicState", "size": self.size}

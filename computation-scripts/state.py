@@ -197,17 +197,28 @@ class SystemState:
         sw2_up: bool,
         sw2_index: int,
     ) -> "SystemState":
-        if_spin_offset = self.get_number_sites_wo_spin_degree()
-        swap_index_1 = sw1_index
-        if not sw1_up:
-            swap_index_1 += if_spin_offset
-        swap_index_2 = sw2_index
-        if not sw2_up:
-            swap_index_2 += if_spin_offset
+        # check that no unexpected too large indices are requested (in-place modification is not used much, so not too bad)
+        domain_size = self.get_number_sites_wo_spin_degree()
+        if (
+            sw1_index < 0
+            or sw2_index < 0
+            or sw1_index >= domain_size
+            or sw2_index >= domain_size
+        ):
+            raise Exception(
+                f"Site must be bigger than 0 and smaller than {domain_size} to fit: {sw1_index} {sw2_index}"
+            )
 
-        self.get_state_array()[[swap_index_1, swap_index_2]] = self.get_state_array()[
-            [swap_index_2, swap_index_1]
-        ]
+        use_swap_index_1 = sw1_index
+        if not sw1_up:
+            use_swap_index_1 = self.get_opposite_spin_index(sw1_index)
+        use_swap_index_2 = sw2_index
+        if not sw2_up:
+            use_swap_index_2 = self.get_opposite_spin_index(sw2_index)
+
+        self.get_state_array()[
+            [use_swap_index_1, use_swap_index_2]
+        ] = self.get_state_array()[[use_swap_index_2, use_swap_index_1]]
 
         return self
 
@@ -216,12 +227,20 @@ class SystemState:
         flipping_up: bool,
         flipping_index: int,
     ) -> "SystemState":
-        flip_index = flipping_index
-        if not flipping_up:
-            if_spin_offset = self.get_number_sites_wo_spin_degree()
-            flip_index += if_spin_offset
+        # check that no unexpected too large indices are requested (in-place modification is not used much, so not too bad)
+        domain_size = self.get_number_sites_wo_spin_degree()
+        if flipping_index < 0 or flipping_index >= domain_size:
+            raise Exception(
+                f"Site must be bigger than 0 and smaller than {domain_size} to fit: {flipping_index}"
+            )
 
-        self.get_state_array()[flip_index] = 1 - self.get_state_array()[flip_index]
+        use_flip_index = flipping_index
+        if not flipping_up:
+            use_flip_index = self.get_opposite_spin_index(flipping_index)
+
+        self.get_state_array()[use_flip_index] = (
+            1 - self.get_state_array()[use_flip_index]
+        )
 
         return self
 
@@ -288,7 +307,6 @@ class LatticeNeighborHopping(StateModification):
         bool,  # sw2_up
         int,  # sw2_index
     ]:
-
         sw1_up = random_generator.randbool()
 
         if self.allow_hopping_across_spin_direction:

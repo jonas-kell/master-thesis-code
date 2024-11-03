@@ -94,13 +94,9 @@ def numerically_calculate_time_evolution(
         return compare_bra_ket(bra, copy_of_ket)
 
     def get_eps_multiplier(index: int, phiv: float, chain_length: int) -> float:
-        if False:
-            # simple variant, index from left to right
-            return np.cos(phiv) * ((index % chain_length))
-        else:  # TODO Remove ?
-            # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
-            # this should not influence other properties (I think)
-            return np.cos(phiv) * ((index % chain_length) - (chain_length / 2.0) + 0.5)
+        # Attempt to check the lateral symmetry of flipping, by placing the 0-index in the "middle" to make it E-symmetric
+        # this should not influence other properties (I think)
+        return np.cos(phiv) * ((index % chain_length) - (chain_length / 2.0) + 0.5)
 
     def generate_basis(chain_length):
         # generate with spins 0,1up easily extractable by tracing out to reduced density matrix

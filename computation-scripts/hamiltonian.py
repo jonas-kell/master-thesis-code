@@ -80,6 +80,18 @@ class Hamiltonian(ABC):
             # assume swapping on the same site is forbidden, because that edge case is not handled in the mathematics properly
             raise Exception("Not allowed to request swapping from and to the same site")
 
+        # check that no unexpected too large indices are requested (this is typically not used, so no need for max efficiency)
+        domain_size = before_swap_system_state.get_number_sites_wo_spin_degree()
+        if (
+            sw1_index < 0
+            or sw2_index < 0
+            or sw1_index >= domain_size
+            or sw2_index >= domain_size
+        ):
+            raise Exception(
+                f"Site must be bigger than 0 and smaller than {domain_size} to fit: {sw1_index} {sw2_index}"
+            )
+
         sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
         sw1_occupation_os = before_swap_system_state.get_state_array()[
             before_swap_system_state.get_opposite_spin_index(sw1_index)
@@ -132,6 +144,13 @@ class Hamiltonian(ABC):
         flipping_index: int,
         before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
     ) -> Tuple[np.complex128, float]:
+        # check that no unexpected too large indices are requested (this is typically not used, so no need for max efficiency)
+        domain_size = before_swap_system_state.get_number_sites_wo_spin_degree()
+        if flipping_index < 0 or flipping_index >= domain_size:
+            raise Exception(
+                f"Site must be bigger than 0 and smaller than {domain_size} to fit: {flipping_index}"
+            )
+
         # allocate swapped state
         after_swap_system_state = before_swap_system_state.get_editable_copy()
         after_swap_system_state.flip_in_place(
@@ -165,6 +184,18 @@ class Hamiltonian(ABC):
         flipping2_index: int,
         before_swap_system_state: state.SystemState,  # required, because un-optimized implementation uses state and optimized implementation uses it to pre-compute the occupations and lambda functions
     ) -> Tuple[np.complex128, float]:
+        # check that no unexpected too large indices are requested (this is typically not used, so no need for max efficiency)
+        domain_size = before_swap_system_state.get_number_sites_wo_spin_degree()
+        if (
+            flipping1_index < 0
+            or flipping2_index < 0
+            or flipping1_index >= domain_size
+            or flipping2_index >= domain_size
+        ):
+            raise Exception(
+                f"Site must be bigger than 0 and smaller than {domain_size} to fit: {flipping1_index} {flipping2_index}"
+            )
+
         # allocate swapped state
         after_swap_system_state = before_swap_system_state.get_editable_copy()
         after_swap_system_state.flip_in_place(
@@ -220,7 +251,8 @@ class Hamiltonian(ABC):
 
 
 class HardcoreBosonicHamiltonianExact(Hamiltonian):
-    """This is requires diagonalization, so it will have exponential time-complexity!!
+    """
+    This is requires diagonalization, so it will have exponential time-complexity!!
     Only check for correctness on small systems with this.
     """
 
@@ -336,7 +368,7 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
         )
         print("Exact Hamiltonian is done generating Hamiltonian")
         if not np.all(np.conjugate(self.H.T) == self.H):
-            print("H not hermetian")
+            print("H not hermetian (sanity check failed)")
 
         self.d = 2 ** (system_geometry.get_number_sites())
         # Dimension of the Hilbert space 2 spin degrees on n particles
@@ -348,7 +380,7 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
         self.recalculate_matrix(time=0)
 
     def recalculate_matrix(self, time: float):
-        # dependency only needed when unsing this hamiltonian
+        # dependency only needed when unsing this hamiltonian (avoid requireing this on hpc-servers possibly)
         from scipy.linalg import expm
 
         if self.matrix_cache_time == time:
@@ -420,7 +452,8 @@ class VPartsMapping(Enum):
 
 
 class HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(Hamiltonian):
-    """This is implemented EXTREMELY inefficient.
+    """
+    This is implemented EXTREMELY inefficient.
     This used to make more sense in the past, when there would be 3*8 operator-strings with different factors that later would have been required to be re-assembled.
     In this form it is ONLY used for checking later and more streamlined implementations for correctness.
     """
@@ -697,6 +730,8 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         eps_collector = 0.0
 
         for index in range(system_state.get_number_sites_wo_spin_degree()):
+            # index is correctly clamped to 0<=index<domain_size
+
             # opposite spin
             index_os = system_state.get_opposite_spin_index(index)
 
@@ -713,7 +748,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                 index=index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
             ) + system_state.get_state_array()[
                 index_os
-            ] * system_state.get_eps_multiplier(
+            ] * system_state.get_eps_multiplier(  # eps multiplier explicitly allows for getting inputs > domain size
                 index=index_os, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
             )
 
@@ -731,6 +766,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
         # CAUTION we NEED doubling here. Meaning for (l=0,m=1) we WANT (l=1,m=0) ALSO
 
         for l in range(number_sites):
+            # l is correctly clamped to 0<=index<domain_size
             l_os = system_state.get_opposite_spin_index(l)
 
             index_neighbors = system_state.get_nearest_neighbor_indices(l)
@@ -745,7 +781,7 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
                         cos_phi=self.cos_phi,
                     ),
                     system_state.get_state_array()[nb],
-                    system_state.get_state_array()[
+                    system_state.get_state_array()[  # nb is correctly clamped to 0<=index<domain_size
                         system_state.get_opposite_spin_index(nb)
                     ],
                 )
@@ -812,6 +848,7 @@ class HardcoreBosonicHamiltonianSecondOrder(HardcoreBosonicHamiltonian):
         second_order_total_sum: np.complex128 = np.complex128(0)
 
         for l in range(number_sites):
+            # l is correctly clamped to 0<=index<domain_size
             input_tuples = self.system_geometry.get_index_knows_tuples(l)
 
             second_order_total_sum += v_second_order(
