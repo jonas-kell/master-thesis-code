@@ -14,7 +14,7 @@ measurement_time = 5 * (1 / J)
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(10)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(4)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -74,7 +74,7 @@ total_time_flipping_optimized_second_order = 0
 total_time_double_flipping_un_optimized_second_order = 0
 total_time_double_flipping_optimized_second_order = 0
 
-iterations = 100
+iterations = 1000
 for _ in range(iterations):
     use_state.init_random_filling(random)
 
@@ -137,6 +137,21 @@ for _ in range(iterations):
         print(use_state.get_state_array())
         print(non_inv_sw)
         print(inv_sw)
+
+    # check end-to-end for optimization
+    canonical_e2e = ham_canonical_second_order.get_H_eff(
+        time=measurement_time,
+        system_state=use_state,
+    )
+    optimized_e2e = ham_second_order_optimized.get_H_eff(
+        time=measurement_time,
+        system_state=spin_inverted_copy,
+    )
+    if np.abs(canonical_e2e - optimized_e2e) > 1e-6:
+        print("Difference end-to-end")
+        print(use_state.get_state_array())
+        print(canonical_e2e)
+        print(optimized_e2e)
 
     # check simplifications
 

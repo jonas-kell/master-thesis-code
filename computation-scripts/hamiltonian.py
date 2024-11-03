@@ -1445,9 +1445,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
         )
-
-        # second order requires this cache to be pre-calculated
-        system_geometry.init_index_knows_cache(self.phi, self.sin_phi, self.cos_phi)
+        # second order requires geometry cache to be pre-calculated -> will be done in constructor above
         self.system_geometry = system_geometry
 
     def get_H_n(
