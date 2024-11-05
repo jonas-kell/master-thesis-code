@@ -50,7 +50,7 @@ class PSISelection(ABC):
         if occ_l != 1 or occ_m != 0:
             # Either they are the same -> hopping does not change state, difference must be 0
             # OR because this is specifically l->m hopping test, that is a prefactor making it 0
-            return 0
+            return np.zeros(self.get_number_of_PSIs(), dtype=np.float64)
 
         first_val = self.eval_PSIs_on_state(system_state=before_swap_system_state)
         state_array[[use_index_l, use_index_m]] = state_array[
