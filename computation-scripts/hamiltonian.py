@@ -1,4 +1,5 @@
-from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING
+from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING, TypeAlias
+import numpy.typing as npt
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
@@ -11,6 +12,8 @@ from vcomponents import (
     v_double_flip as calculate_v_double_flip,
 )
 from vcomponentssecondorder import v_second as v_second_order
+from randomgenerator import RandomGenerator
+from variationalclassicalnetworks import PSISelection
 
 if TYPE_CHECKING:
     # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
@@ -31,6 +34,14 @@ class Hamiltonian(ABC):
         self.phi = phi
         self.cos_phi: float = np.cos(self.phi)
         self.sin_phi: float = np.sin(self.phi)
+
+    def initialize(
+        self,
+        time: float,
+    ):
+        _ = time
+
+        # base hamiltonian does not need initializing
 
     @abstractmethod
     def get_base_energy(
@@ -1431,6 +1442,31 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
         )
 
     # delegate this call, as we cannot extend multiple classes
+    def get_base_energy_difference_swapping(
+        self,
+        sw1_up: bool,
+        sw1_index: int,
+        sw1_occupation: int,
+        sw1_occupation_os: int,
+        sw2_up: bool,
+        sw2_index: int,
+        sw2_occupation: int,
+        sw2_occupation_os: int,
+        before_swap_system_state: state.SystemState,
+    ) -> float:
+        return self.swapping_hamiltonian.get_base_energy_difference_swapping(
+            sw1_up=sw1_up,
+            sw1_index=sw1_index,
+            sw1_occupation=sw1_occupation,
+            sw1_occupation_os=sw1_occupation_os,
+            sw2_up=sw2_up,
+            sw2_index=sw2_index,
+            sw2_occupation=sw2_occupation,
+            sw2_occupation_os=sw2_occupation_os,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+    # delegate this call, as we cannot extend multiple classes
     def get_H_eff_difference_swapping(
         self,
         time: float,
@@ -1654,6 +1690,284 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
         return super().get_log_info(
             {
                 "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder",
+                **additional_info,
+            }
+        )
+
+
+ETAVecType: TypeAlias = npt.NDArray[np.complex128]
+
+
+# We require the optimized difference and flipping cases for the base energy calculation
+class VCNHardCoreBosonicHamiltonian(
+    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
+):
+    eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
+
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+        psi_selection: PSISelection,
+        random_generator: RandomGenerator,
+        init_sigma: float,
+        eta_training_sampler: "sampler.GeneralSampler",
+        max_eta_training_rounds: int,
+        min_eta_change_for_abort: float,
+        step_size_factor_h: float,
+    ):
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The VCN Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+        self.psi_selection = psi_selection
+
+        self.init_sigma = init_sigma
+        self.step_size_factor_h = step_size_factor_h
+
+        self.eta_training_sampler = eta_training_sampler
+        self.max_eta_training_rounds = max_eta_training_rounds
+        self.min_eta_change_for_abort = min_eta_change_for_abort
+        self.random_generator = random_generator.derive()
+
+        self.eta_vec = None
+
+        self.current_time_cache = -12352343
+
+    def get_base_energy_difference_l_to_m_hopping(
+        self,
+        l: int,
+        m: int,
+        spins_up: bool,
+        before_swap_system_state: state.SystemState,
+    ) -> float:
+        domain_size = before_swap_system_state.get_number_sites_wo_spin_degree()
+
+        use_l_index = l % domain_size
+        use_m_index = m % domain_size
+
+        l_occ = before_swap_system_state.get_state_array()[use_l_index]
+        m_occ = before_swap_system_state.get_state_array()[use_m_index]
+        l_occ_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(use_l_index)
+        ]
+        m_occ_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(use_m_index)
+        ]
+
+        if (spins_up and (l_occ != 1 or m_occ != 0)) or (
+            not spins_up and (l_occ_os != 1 or m_occ_os != 0)
+        ):
+            # Either they are the same -> hopping does not change state, difference must be 0
+            # OR because this is specifically l->m hopping test, that is a prefactor making it 0
+            return 0
+
+        return self.get_base_energy_difference_swapping(
+            sw1_up=spins_up,
+            sw1_index=use_l_index,
+            sw1_occupation=l_occ,
+            sw1_occupation_os=l_occ_os,
+            sw2_up=spins_up,
+            sw2_index=use_m_index,
+            sw2_occupation=m_occ,
+            sw2_occupation_os=m_occ_os,
+            before_swap_system_state=before_swap_system_state,
+        )
+
+    def initialize(
+        self,
+        time: float,
+    ):
+        # TODO idea: is it useful, to reset the eta vec, or is it maybe useful, to re-train the one from the previous step?
+        self.eta_vec = self.get_initialized_eta_vec()
+        num_etas = self.get_number_of_eta_parameters()
+
+        training_round = 0
+        eta_derivative = None
+        while True:
+            training_round += 1
+
+            sample_generator_object = self.eta_training_sampler.sample_generator(
+                time=time,
+                worker_index=0,
+                num_workers=1,  # TODO training multithreaded
+                random_generator=self.random_generator,
+            )
+
+            number_samples_this_round = 0
+            OO_averager = np.zeros(
+                (
+                    num_etas,
+                    num_etas,
+                ),
+                dtype=np.complex128,
+            )
+            O_averager = np.zeros(
+                (num_etas,),
+                dtype=np.complex128,
+            )
+            EO_averager = np.zeros(
+                (num_etas,),
+                dtype=np.complex128,
+            )
+            E_averager = np.complex128(0)
+            while True:
+                try:
+                    sampled_state_n = next(sample_generator_object)
+                    number_samples_this_round += 1
+
+                    O_vector, E_loc = self.calculate_O_k_and_E_loc(
+                        time=time, system_state=sampled_state_n
+                    )
+
+                    OO_averager += np.outer(O_vector.conj(), O_vector)
+                    O_averager += O_vector
+                    EO_averager += E_loc * O_vector.conj()
+                    E_averager += E_loc
+
+                except StopIteration:
+                    break
+
+            O_averager_normed = O_averager / number_samples_this_round
+
+            S_matrix = (OO_averager / number_samples_this_round) - np.outer(
+                O_averager_normed.conj(), O_averager_normed
+            )
+            F_vector = (
+                EO_averager / number_samples_this_round
+                - (E_averager / number_samples_this_round) * O_averager_normed.conj()
+            )
+
+            eta_derivative = -1j * (np.linalg.pinv(S_matrix) @ F_vector)
+
+            eta_movement = np.sum(np.abs(eta_derivative)) / num_etas
+            if (
+                training_round >= self.max_eta_training_rounds
+                or eta_movement < self.min_eta_change_for_abort
+            ):
+                print(
+                    f"VCN Hamiltonian, did {training_round}/{self.max_eta_training_rounds} and had final average derivative size {eta_movement}/{self.min_eta_change_for_abort}"
+                )
+                break
+
+            # now we have the derivative. Step with explicit euler integration
+            # TODO more efficient stepper, like Heun?
+            self.eta_vec += self.step_size_factor_h * eta_derivative
+
+        # finished and the result is that trained self.eta_vec
+        self.current_time_cache = time
+
+    def calculate_O_k_and_E_loc(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ):
+        O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
+
+        E_loc = self.get_base_energy(
+            system_state=system_state
+        ) + self.eval_V_n_expectation(
+            time=time, eta_vec=self.eta_vec, system_state=system_state
+        )
+
+        return O_vector, E_loc
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        if (
+            self.current_time_cache != time
+        ):  # float comparison is ok, because float stems from same float normally, so this is bit-accurate
+            raise Exception("The Hamiltonian is not initialized for the requested time")
+
+        PSI_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
+
+        # TODO must this include the scaling factor psi_0?
+        # E_0 will be inserted because the E_heff call does that
+        return np.dot(self.eta_vec, PSI_vector)
+
+    def get_number_of_eta_parameters(self) -> int:
+        # each eta has one PSI
+        return self.psi_selection.get_number_of_PSIs()
+
+    def get_initialized_eta_vec(self) -> ETAVecType:
+        real_part = np.array(
+            [
+                self.random_generator.normal(sigma=self.init_sigma)
+                for _ in range(self.get_number_of_eta_parameters())
+            ],
+            dtype=np.complex128,
+        )
+        complex_part = np.array(
+            [
+                self.random_generator.normal(sigma=self.init_sigma)
+                for _ in range(self.get_number_of_eta_parameters())
+            ],
+            dtype=np.complex128,
+        )
+
+        return real_part + 1j * complex_part
+
+    def eval_V_n_expectation(
+        self, time: float, eta_vec: ETAVecType, system_state: state.SystemState
+    ):
+        collecting_sum = np.complex128(0)
+
+        for l in range(
+            self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
+        ):
+            for m in self.psi_selection.system_geometry.get_nearest_neighbor_indices(l):
+                for up in [True, False]:
+                    # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
+                    # H_VCN is missing ln(psi_0) part: as all psi_0 are equal, they cancel
+
+                    collecting_sum += np.exp(
+                        np.dot(
+                            eta_vec,
+                            # needs minus, because formula and convention here inverted
+                            -self.psi_selection.eval_PSI_differences_on_l_to_m_hopped_state(
+                                before_swap_system_state=system_state,
+                                l=l,
+                                m=m,
+                                spins_up=up,
+                            )
+                            # needs minus, because formula and convention here inverted, but cancels with the -i
+                            + 1j
+                            * time
+                            * self.get_base_energy_difference_l_to_m_hopping(
+                                before_swap_system_state=system_state,
+                                l=l,
+                                m=m,
+                                spins_up=up,
+                            ),
+                        )
+                    )
+
+        return -self.psi_selection.J * collecting_sum
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "VCNHardCoreBosonicHamiltonian",
+                "eta_training_sampler": self.eta_training_sampler.get_log_info(),
+                "max_eta_training_rounds": self.max_eta_training_rounds,
+                "min_eta_change_for_abort": self.min_eta_change_for_abort,
+                "psi_selection": self.psi_selection.get_log_info(),
+                "random_generator": self.random_generator.get_log_info(),
+                "init_sigma": self.init_sigma,
+                "step_size_factor_h": self.step_size_factor_h,
                 **additional_info,
             }
         )

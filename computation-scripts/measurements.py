@@ -76,6 +76,9 @@ def main_measurement_function(
         step_sample_count = 0
         time: float = start_time + time_step * time_step_nr
 
+        # e.g. the VCN hamiltonian requires initializing (training )
+        hamiltonian.initialize(time=time)
+
         total_sums_complex: List[np.complex128 | np.ndarray] = [
             np.complex128(0.0)
         ] * num_observables

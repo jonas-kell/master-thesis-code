@@ -22,6 +22,12 @@ class RandomGenerator:
         """
         return self.random.random()
 
+    def normal(self, sigma: float = 1) -> float:
+        """
+        Return a float, pulled from a binomial distribution
+        """
+        return self.random.normalvariate(sigma=sigma)
+
     def randbool(self) -> bool:
         """
         Return a random boolean

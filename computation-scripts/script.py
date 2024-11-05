@@ -13,6 +13,7 @@ import hamiltonian
 import observables
 import measurements
 import systemgeometry
+import variationalclassicalnetworks
 
 AcceptableTypes = Union[Type[int], Type[float], Type[str]]
 
@@ -20,14 +21,14 @@ AcceptableTypes = Union[Type[int], Type[float], Type[str]]
 def get_argument(
     arguments: Dict[str, Union[float, int, str]],
     name: str,
-    type: AcceptableTypes,
+    acc_type: AcceptableTypes,
     default: Union[float, int, str],
 ):
     extracted_value = default
     try:
         if arguments[name] is None:
             raise ValueError("None set Value")
-        extracted_value = type(arguments[name])
+        extracted_value = acc_type(arguments[name])
         print(f"Using non-default Argument for param {name}: {extracted_value}")
     except ValueError:
         pass
@@ -136,8 +137,16 @@ if __name__ == "__main__":
         "both_optimizations",
         "canonical_legacy_care_for_psi",
         "both_optimizations_second_order",
-    ] = "both_optimizations_second_order"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "monte_carlo"
+        "variational_classical_networks",
+    ] = "variational_classical_networks"
+    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
+
+    # ! VCN settings
+    init_sigma: float = 0.001
+    max_eta_training_rounds: int = 1000
+    min_eta_change_for_abort: float = 0.01
+    step_size_factor_h: float = 0.01
+    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
@@ -176,6 +185,19 @@ if __name__ == "__main__":
             1000.0,  # larger values would cause overflow/underflow
             system_geometry,
         )
+
+    # Psi-Selection (in case of)
+    if psi_selection_type == "chain_canonical":  # type: ignore - switch is hard-coded.
+        psi_selection = (
+            variationalclassicalnetworks.ChainDirectionDependentAllSameFirstOrder(
+                J=J, system_geometry=system_geometry
+            )
+        )
+
+    # TODO make this be monte carlo applicable also
+    eta_training_sampler = sampler.ExactSampler(
+        system_geometry=system_geometry, initial_system_state=initial_system_state
+    )
 
     # Hamiltonian
     if hamiltonian_type == "exact":  # type: ignore - switch is hard-coded.
@@ -228,6 +250,21 @@ if __name__ == "__main__":
     if hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
             U=U, E=E, J=J, phi=phi
+        )
+    if hamiltonian_type == "variational_classical_networks":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.VCNHardCoreBosonicHamiltonian(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            random_generator=random_generator,
+            psi_selection=psi_selection,
+            init_sigma=init_sigma,
+            eta_training_sampler=eta_training_sampler,
+            max_eta_training_rounds=max_eta_training_rounds,
+            min_eta_change_for_abort=min_eta_change_for_abort,
+            step_size_factor_h=step_size_factor_h,
         )
 
     # ! Observables that are tested for
