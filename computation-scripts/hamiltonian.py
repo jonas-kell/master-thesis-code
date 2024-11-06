@@ -14,6 +14,7 @@ from vcomponents import (
 from vcomponentssecondorder import v_second as v_second_order
 from randomgenerator import RandomGenerator
 from variationalclassicalnetworks import PSISelection
+import data_recorder  # TODO remove
 
 if TYPE_CHECKING:
     # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
@@ -1891,8 +1892,29 @@ class VCNHardCoreBosonicHamiltonian(
                 break
 
             # now we have the derivative. Step with explicit euler integration
-            # TODO more efficient stepper, like Heun?
             self.eta_vec += self.step_size_factor_h * eta_derivative
+
+        # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
+        # eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+        #     0, self.phi, self.sin_phi, self.cos_phi
+        # )
+        # eps_1 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+        #     1, self.phi, self.sin_phi, self.cos_phi
+        # )
+        # self.eta_vec = np.array(
+        #     [
+        #         np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
+        #         np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
+        #         / (eps_0 - eps_1 + self.U),
+        #         np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
+        #         / (eps_0 - eps_1 - self.U),
+        #         np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
+        #         np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
+        #         / (eps_1 - eps_0 + self.U),
+        #         np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
+        #         / (eps_1 - eps_0 - self.U),
+        #     ]
+        # )
 
         # finished and the result is that trained self.eta_vec
         self.current_time_cache = time
