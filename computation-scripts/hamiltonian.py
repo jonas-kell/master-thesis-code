@@ -1997,16 +1997,16 @@ class VCNHardCoreBosonicHamiltonian(
                                 l=l,
                                 m=m,
                                 spins_up=up,
-                            )
-                            # needs minus, because formula and convention here inverted, but cancels with the -i
-                            + 1j
-                            * time
-                            * self.get_base_energy_difference_l_to_m_hopping(
-                                before_swap_system_state=system_state,
-                                l=l,
-                                m=m,
-                                spins_up=up,
                             ),
+                        )
+                        # needs minus, because formula and convention here inverted, but cancels with the -i
+                        + 1j
+                        * time
+                        * self.get_base_energy_difference_l_to_m_hopping(
+                            before_swap_system_state=system_state,
+                            l=l,
+                            m=m,
+                            spins_up=up,
                         )
                     )
 
