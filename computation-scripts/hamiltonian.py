@@ -1718,6 +1718,7 @@ class VCNHardCoreBosonicHamiltonian(
         max_eta_training_rounds: int,
         min_eta_change_for_abort: float,
         step_size_factor_h: float,
+        pseudo_inverse_cutoff: float,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1741,6 +1742,8 @@ class VCNHardCoreBosonicHamiltonian(
         self.eta_vec = None
 
         self.current_time_cache = -12352343
+        self.is_initializing = False
+        self.pseudo_inverse_cutoff = pseudo_inverse_cutoff
 
     def get_base_energy_difference_l_to_m_hopping(
         self,
@@ -1786,6 +1789,8 @@ class VCNHardCoreBosonicHamiltonian(
         self,
         time: float,
     ):
+        self.is_initializing = True
+
         # TODO idea: is it useful, to reset the eta vec, or is it maybe useful, to re-train the one from the previous step?
         self.eta_vec = self.get_initialized_eta_vec()
         num_etas = self.get_number_of_eta_parameters()
@@ -1802,7 +1807,11 @@ class VCNHardCoreBosonicHamiltonian(
                 random_generator=self.random_generator,
             )
 
-            number_samples_this_round = 0
+            requires_probability_adjustment = (
+                self.eta_training_sampler.requires_probability_adjustment()
+            )
+
+            normalization_factor = 0.0
             OO_averager = np.zeros(
                 (
                     num_etas,
@@ -1822,31 +1831,54 @@ class VCNHardCoreBosonicHamiltonian(
             while True:
                 try:
                     sampled_state_n = next(sample_generator_object)
-                    number_samples_this_round += 1
+
+                    if requires_probability_adjustment:
+                        # sampled state needs to be scaled
+
+                        # get_exp_H_eff is the most expensive calculation. Only do if absolutely necessary
+                        h_eff = self.get_exp_H_eff(
+                            time=time, system_state=sampled_state_n
+                        )
+                        psi_n = sampled_state_n.get_Psi_of_N()
+
+                        state_probability: float = np.real(np.conjugate(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
+                            np.conjugate(psi_n) * psi_n
+                        )
+                    else:
+                        # e.g. Monte Carlo. Normalization is only division by number of monte carlo samples
+                        state_probability = 1.0
+
+                    normalization_factor += state_probability
 
                     O_vector, E_loc = self.calculate_O_k_and_E_loc(
                         time=time, system_state=sampled_state_n
                     )
 
-                    OO_averager += np.outer(O_vector.conj(), O_vector)
-                    O_averager += O_vector
-                    EO_averager += E_loc * O_vector.conj()
-                    E_averager += E_loc
+                    O_vector_scaled = O_vector * state_probability
+                    E_loc_scaled = E_loc * state_probability
+
+                    OO_averager += np.outer(O_vector_scaled.conj(), O_vector_scaled)
+                    O_averager += O_vector_scaled
+                    EO_averager += E_loc_scaled * O_vector_scaled.conj()
+                    E_averager += E_loc_scaled
 
                 except StopIteration:
                     break
 
-            O_averager_normed = O_averager / number_samples_this_round
+            O_averager_normed = O_averager / normalization_factor
 
-            S_matrix = (OO_averager / number_samples_this_round) - np.outer(
+            S_matrix = (OO_averager / normalization_factor) - np.outer(
                 O_averager_normed.conj(), O_averager_normed
             )
             F_vector = (
-                EO_averager / number_samples_this_round
-                - (E_averager / number_samples_this_round) * O_averager_normed.conj()
+                EO_averager / normalization_factor
+                - (E_averager / normalization_factor) * O_averager_normed.conj()
             )
 
-            eta_derivative = -1j * (np.linalg.pinv(S_matrix) @ F_vector)
+            pinv = np.linalg.pinv(
+                S_matrix, hermitian=True, rcond=self.pseudo_inverse_cutoff
+            )
+            eta_derivative = -1j * (pinv @ F_vector)
 
             eta_movement = np.sum(np.abs(eta_derivative)) / num_etas
             if (
@@ -1864,6 +1896,7 @@ class VCNHardCoreBosonicHamiltonian(
 
         # finished and the result is that trained self.eta_vec
         self.current_time_cache = time
+        self.is_initializing = False
 
     def calculate_O_k_and_E_loc(
         self,
@@ -1885,14 +1918,16 @@ class VCNHardCoreBosonicHamiltonian(
         time: float,
         system_state: state.SystemState,
     ) -> np.complex128:
+        #! We require the scaling of the samples. Because of that while initializing, this check can not run
         if (
-            self.current_time_cache != time
+            not self.is_initializing and self.current_time_cache != time
         ):  # float comparison is ok, because float stems from same float normally, so this is bit-accurate
             raise Exception("The Hamiltonian is not initialized for the requested time")
 
         PSI_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
 
-        # TODO must this include the scaling factor psi_0?
+        # must this include the scaling factor psi_0? -> NO, as we divide at the appropriate places, which is equivalent to doing the ln addition
+        # and all other places the psi_0's cancel in the differences, because of uniform initial state assumption
         # E_0 will be inserted because the E_heff call does that
         return np.dot(self.eta_vec, PSI_vector)
 
@@ -1968,6 +2003,7 @@ class VCNHardCoreBosonicHamiltonian(
                 "random_generator": self.random_generator.get_log_info(),
                 "init_sigma": self.init_sigma,
                 "step_size_factor_h": self.step_size_factor_h,
+                "pseudo_inverse_cutoff": self.pseudo_inverse_cutoff,
                 **additional_info,
             }
         )

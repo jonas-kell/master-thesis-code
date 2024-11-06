@@ -1,7 +1,7 @@
 from typing import List, Any, Dict, Union, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
-from commonsettings import get_full_file_path, scaler_switch
+from commonsettings import get_full_file_path, scaler_switch, get_newest_file_name
 import json
 
 
@@ -178,22 +178,33 @@ if __name__ == "__main__":
     # )
 
     # second order optimization end to end
-    diagonal = "diagonalization_measurements_2024-11-03__15,56,10"
-    second_order_optimized = (
-        "perturbation_measurements_2024-11-03__15,56,10"  # 381.560 seconds
-    )
-    second_order_canonical = (
-        "perturbation_measurements_2024-11-03__16,05,58"  # 403.665 seconds
-    )
-    second_order_monte_carlo = (
-        "perturbation_measurements_2024-11-03__16,18,32"  # 3625.690 seconds
-    )
+    # diagonal = "diagonalization_measurements_2024-11-03__15,56,10"
+    # second_order_optimized = (
+    #     "perturbation_measurements_2024-11-03__15,56,10"  # 381.560 seconds
+    # )
+    # second_order_canonical = (
+    #     "perturbation_measurements_2024-11-03__16,05,58"  # 403.665 seconds
+    # )
+    # second_order_monte_carlo = (
+    #     "perturbation_measurements_2024-11-03__16,18,32"  # 3625.690 seconds
+    # )
+    # plot_experiment_comparison(
+    #     [
+    #         diagonal,
+    #         second_order_optimized,
+    #         second_order_canonical,
+    #         second_order_monte_carlo,
+    #     ],
+    #     ["diagonal", "opimized", "canonical", "MC"],
+    # )
+
+    # Variational classical networks
+    first_order_perturbation = "2024-11-05__16,13,17-0"
+    vcn_test = get_newest_file_name()
     plot_experiment_comparison(
         [
-            diagonal,
-            second_order_optimized,
-            second_order_canonical,
-            second_order_monte_carlo,
+            first_order_perturbation,
+            vcn_test,
         ],
-        ["diagonal", "opimized", "canonical", "MC"],
+        ["analytical", "vcn"],
     )

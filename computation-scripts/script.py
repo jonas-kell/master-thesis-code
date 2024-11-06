@@ -147,6 +147,7 @@ if __name__ == "__main__":
     min_eta_change_for_abort: float = 0.01
     step_size_factor_h: float = 0.01
     psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
+    pseudo_inverse_cutoff: float = 1e-10
 
     # ! Monte Carlo settings
     mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
@@ -265,6 +266,7 @@ if __name__ == "__main__":
             max_eta_training_rounds=max_eta_training_rounds,
             min_eta_change_for_abort=min_eta_change_for_abort,
             step_size_factor_h=step_size_factor_h,
+            pseudo_inverse_cutoff=pseudo_inverse_cutoff,
         )
 
     # ! Observables that are tested for
