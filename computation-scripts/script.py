@@ -145,7 +145,7 @@ if __name__ == "__main__":
     init_sigma: float = 0.001
     max_eta_training_rounds: int = 1000
     min_eta_change_for_abort: float = 0.01
-    step_size_factor_h: float = 0.05
+    step_size_factor_h: float = 1e-2
     psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
     pseudo_inverse_cutoff: float = 1e-10
 
@@ -234,6 +234,14 @@ if __name__ == "__main__":
             phi=phi,
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
+        )
+    if hamiltonian_type == "base_energy_only":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
         )
     if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonian(

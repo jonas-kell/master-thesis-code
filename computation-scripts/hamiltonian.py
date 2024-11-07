@@ -1497,6 +1497,144 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
         )
 
 
+class ZerothOrderFlippingAndSwappingOptimization(
+    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
+):
+    "Basically just sets H_n to 0, but has the swapping, flipping and double flipping optimizations for the base energy"
+
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+    ):
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
+            )
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        _ = time
+        _ = system_state
+
+        return 0
+
+    def get_H_eff_difference_swapping(
+        self,
+        time: float,
+        sw1_up: bool,
+        sw1_index: int,
+        sw2_up: bool,
+        sw2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        occ1 = before_swap_system_state.get_state_array()[sw1_index]
+        occ1_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw1_index)
+        ]
+        occ2 = before_swap_system_state.get_state_array()[sw2_index]
+        occ2_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw2_index)
+        ]
+
+        return (
+            -1j
+            * time
+            * self.get_base_energy_difference_swapping(
+                sw1_up=sw1_up,
+                sw1_index=sw1_index,
+                sw1_occupation=occ1,
+                sw1_occupation_os=occ1_os,
+                sw2_up=sw2_up,
+                sw2_index=sw2_index,
+                sw2_occupation=occ2,
+                sw2_occupation_os=occ2_os,
+                before_swap_system_state=before_swap_system_state,
+            ),
+            1.0,
+        )
+
+    def get_H_eff_difference_flipping(
+        self,
+        time: float,
+        flipping_up: bool,
+        flipping_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        occ = before_swap_system_state.get_state_array()[flipping_index]
+        occ_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(flipping_index)
+        ]
+
+        return (
+            -1j
+            * time
+            * self.get_base_energy_difference_flipping(
+                flipping_up=flipping_up,
+                flipping_index=flipping_index,
+                flipping_occupation_before_flip=occ,
+                flipping_occupation_before_flip_os=occ_os,
+                before_swap_system_state=before_swap_system_state,
+            ),
+            1.0,
+        )
+
+    def get_H_eff_difference_double_flipping(
+        self,
+        time: float,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        occ1 = before_swap_system_state.get_state_array()[flipping1_index]
+        occ1_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(flipping1_index)
+        ]
+        occ2 = before_swap_system_state.get_state_array()[flipping2_index]
+        occ2_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(flipping2_index)
+        ]
+
+        return (
+            -1j
+            * time
+            * self.get_base_energy_difference_double_flipping(
+                flipping1_up=flipping1_up,
+                flipping1_index=flipping1_index,
+                flipping1_occupation_before_flip=occ1,
+                flipping1_occupation_before_flip_os=occ1_os,
+                flipping2_up=flipping2_up,
+                flipping2_index=flipping2_index,
+                flipping2_occupation_before_flip=occ2,
+                flipping2_occupation_before_flip_os=occ2_os,
+                before_swap_system_state=before_swap_system_state,
+            ),
+            1.0,
+        )
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "ZerothOrderFlippingAndSwappingOptimization",
+                **additional_info,
+            }
+        )
+
+
 class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
     HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
 ):

@@ -135,13 +135,12 @@ def main_measurement_function(
 
             real_part_of_observable = float(np.real(measurement))
             imag_part_of_observable = float(np.imag(measurement))
-            if (
-                np.abs(imag_part_of_observable) > check_obs_imag_threshold
-                and check_obs_imag
-            ):
-                print(
-                    f"Warning observable {observable.get_label()} with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
-                )
+            if np.abs(imag_part_of_observable) > check_obs_imag_threshold:
+                message = f"Observable {observable.get_label()} with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
+                if check_obs_imag:
+                    raise Exception(message)
+                else:
+                    print("Warning:", message)
             total_sums[i] = real_part_of_observable
 
         if default_prints:

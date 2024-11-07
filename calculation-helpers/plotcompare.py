@@ -200,15 +200,29 @@ if __name__ == "__main__":
 
     # Variational classical networks
     first_order_perturbation = "2024-11-05__16,13,17-0"
+    second_order_perturbation = "2024-11-07__00,58,28-0"
     exact_diagonalization = "2024-11-06__14,43,45-0"
-    # vcn_test = "2024-11-06__14,46,50-0"
-    vcn_test = get_newest_file_name()
-    print("newest file: ", vcn_test)
+    zeroth_order = "2024-11-07__00,51,22-0"
+    vcn_testem3 = "2024-11-07__01,02,13-0"
+    vcn_testem2 = "2024-11-07__01,19,04-0"
+    latest = get_newest_file_name()
     plot_experiment_comparison(
         [
             first_order_perturbation,
+            second_order_perturbation,
             exact_diagonalization,
-            vcn_test,
+            zeroth_order,
+            vcn_testem3,
+            vcn_testem2,
+            latest,
         ],
-        ["analytical", "exact", "vcn"],
+        [
+            "analytical-o1",
+            "analytical-o2",
+            "exact",
+            "zero_order",
+            "vcnem3",
+            "vcnem2",
+            "latest",
+        ],
     )
