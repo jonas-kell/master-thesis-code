@@ -138,6 +138,7 @@ if __name__ == "__main__":
         "canonical_legacy_care_for_psi",
         "both_optimizations_second_order",
         "variational_classical_networks",
+        "base_energy_only",
     ] = "variational_classical_networks"
     sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
 
