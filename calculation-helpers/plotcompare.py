@@ -46,6 +46,7 @@ def scale_and_prepare_data(
 def plot_experiment_comparison(
     filenames: List[str],
     replacement_names=None,
+    difference_tuples: List[Tuple[int, int]] = [],
 ):
     if replacement_names is None or len(replacement_names) != len(filenames):
         replacement_names = filenames
@@ -86,6 +87,7 @@ def plot_experiment_comparison(
     for i, observable in enumerate(observables):
         label = observable["label"]
 
+        difference_cache = [(None, None) for _ in difference_tuples]
         for j, filename in enumerate(filenames):
             times_to_plot = []
             values_to_plot = []
@@ -97,11 +99,33 @@ def plot_experiment_comparison(
             scaled_data, label_addendum = scale_and_prepare_data(
                 observable["type"], J, U, np.array(values_to_plot)
             )
+            scaled_times = np.array(times_to_plot) * scaler_factor
+
+            for chache_index, (
+                difference_tuple_index_0,
+                difference_tuple_index_1,
+            ) in enumerate(difference_tuples):
+                mod = list(difference_cache[chache_index])
+                if j == difference_tuple_index_0:
+                    mod[0] = scaled_times, scaled_data
+                if j == difference_tuple_index_1:
+                    mod[1] = scaled_times, scaled_data
+                difference_cache[chache_index] = tuple(mod)
 
             plt.plot(
-                np.array(times_to_plot) * scaler_factor,
-                (scaled_data),
+                scaled_times,
+                scaled_data,
                 label=replacement_names[j],
+            )
+
+        for difference_index, ((times_0, data_0), (times_1, data_1)) in enumerate(
+            difference_cache
+        ):
+            _ = times_1
+            plt.plot(
+                times_0,  # assume times_1 here to be the same
+                np.abs(data_0 - data_1),
+                label=f"difference {difference_index}",
             )
 
         # Adding labels and title
@@ -208,21 +232,22 @@ if __name__ == "__main__":
     latest = get_newest_file_name()
     plot_experiment_comparison(
         [
-            first_order_perturbation,
-            second_order_perturbation,
             exact_diagonalization,
             zeroth_order,
-            vcn_testem3,
-            vcn_testem2,
-            latest,
+            first_order_perturbation,
+            second_order_perturbation,
+            # vcn_testem3,
+            # vcn_testem2,
+            # latest,
         ],
         [
-            "analytical-o1",
-            "analytical-o2",
             "exact",
             "zero_order",
-            "vcnem3",
-            "vcnem2",
-            "latest",
+            "analytical-o1",
+            "analytical-o2",
+            # "vcnem3",
+            # "vcnem2",
+            # "latest",
         ],
+        [(0, 1), (0, 2), (0, 3)],
     )
