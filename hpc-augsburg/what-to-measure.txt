@@ -1,0 +1,41 @@
+Generally the goal is to show that we can control the Problem
+
+Parameters approx:
+    - E=2.5 U
+    - J=0.2, 0.1, 0.05, 0.01, 0.005 U
+
+Target-Time-Scale:
+    - The VCN-paper shows effects in timescale up to approx 6 J. We need to look AT MOST 10
+    - When running through the J parameter, it is important to hold the time constant, as dropping J to smaller values makes us go massively into later times
+
+Geometry: 
+    - First do observations on the chain
+        - DO:
+            - Double Occupation on a subset of sites
+                - Left, second most left, center ??
+            - current between left side and next, center and next
+        - DON'T
+            - Concurrence, Purity, Measurements of the reduced Density matrix 
+    - In the end see effects of the E-Field direction-dependence -> requires the square lattice
+        - Here it would be very interesting to be able to measure the Concurrence, as we expect the Entanglement distance to depend on the direction of the E-field vector
+        - ca n=6, square, sweep angle in non-problematic (not parallel to the lines, the maths does not take that edge case into account) range, e.g. pi/4->pi/2
+
+Parameter J dependency
+    - The error in comparison to the exact solution should be
+        - first order perturbative correction: in the order of J/U
+        - second order perturbative correction: in the order of (J/U)^2
+    - We want an experiment on the chain that shows the error vanishes in the respective orders, as J tends to 0
+        - Here I think it is quite obvious to see on the single site occupation, as that one is not affected at all in the zeroth order, but should still be in smaller orders of J (like 1)
+
+MC-Sampling
+    - The standard deviation should be going with 1/sqrt of number MonteCarlo Samples (times the standard deviation / times the root of the variance of the observable itself, which is a observable dependent constant)
+
+System Size
+    - Plot time complexity is working correctly in all methods
+        - Estimate constant time multiplier that depends on the geometry
+            - chain vs square approx *2 in first order and *4 in second order
+        - show exponential behavior of the exact diagonalization for comparison
+        - show that the cost of calculating stuff in the analytical optimization is now linear
+            - Comparison between the swapping/flipping optimized versions and the non-optimized ones
+    - Measure a large system that could not have been done in exact diagonalization
+    - Avoid odd-even-effects: look at size parameter chain n=2-4-6-8-10

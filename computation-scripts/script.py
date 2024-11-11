@@ -1,6 +1,3 @@
-# pip3 install matplotlib
-# pip3 install numpy
-
 from typing import List, Literal, Union, Type, Dict, cast
 import multiprocessing
 import argparse
@@ -52,22 +49,33 @@ if __name__ == "__main__":
     parser.add_argument("--job_array_index", required=False)
     parser.add_argument("--start_time", required=False)
     parser.add_argument("--target_time_in_one_over_j", required=False)
+    parser.add_argument("--target_time_in_one_over_u", required=False)
     parser.add_argument("--number_of_time_steps", required=False)
     parser.add_argument("--file_name_overwrite", required=False)
     parser.add_argument("--do_not_plot", required=False)
+    parser.add_argument("--hamiltonian_type", required=False)
+    parser.add_argument("--sampling_strategy", required=False)
+    parser.add_argument("--randomnes_seed", required=False)
+    parser.add_argument("--num_samples_per_chain", required=False)
+    parser.add_argument("--num_monte_carlo_samples", required=False)
+    parser.add_argument("--mc_thermalization_mode", required=False)
+    parser.add_argument("--mc_modification_mode", required=False)
+    parser.add_argument("--system_geometry_type", required=False)
 
     args = vars(parser.parse_args())
+
+    time_default = -123123123
 
     # ? !! Default values for Parameters:
 
     plot = False  # do not plot on the HPC-Server!
-    plot_setting = cast(str, get_argument(args, "do_not_plot", str, "do_plot"))
+    plot_setting = cast(str, get_argument(args, "do_not_plot", str, "do_not_plot"))
     if plot_setting == "do_plot":
         plot = True
 
     # ! General Hamiltonian properties
-    U = cast(float, get_argument(args, "U", float, 0.7))
-    E = cast(float, get_argument(args, "E", float, -0.3))
+    U = cast(float, get_argument(args, "U", float, 1.0))
+    E = cast(float, get_argument(args, "E", float, 2.5))
     J = cast(float, get_argument(args, "J", float, U / 10))
 
     n = cast(int, get_argument(args, "n", int, 2))
@@ -78,14 +86,27 @@ if __name__ == "__main__":
     # ! Simulation Scope Settings
     start_time: float = cast(float, get_argument(args, "start_time", float, 0))
     target_time_in_one_over_j: float = cast(
-        float, get_argument(args, "target_time_in_one_over_j", float, 8)
+        float, get_argument(args, "target_time_in_one_over_j", float, time_default)
     )
-    if np.abs(J) < 1e-5:
-        # if J interaction deactivated, scale with U
-        scaler_factor = U
-    else:
+    target_time_in_one_over_u: float = cast(
+        float, get_argument(args, "target_time_in_one_over_u", float, time_default)
+    )
+    if (
+        target_time_in_one_over_j != time_default
+        and target_time_in_one_over_u != time_default
+    ):
+        raise Exception("Should not have two different target times set")
+
+    target_time_in_one_over_scaler = 5
+    scaler_factor = U
+    if target_time_in_one_over_j != time_default:
+        target_time_in_one_over_scaler = target_time_in_one_over_j
         scaler_factor = J
-    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_j
+    if target_time_in_one_over_u != time_default:
+        target_time_in_one_over_scaler = target_time_in_one_over_u
+        scaler_factor = U
+
+    target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_scaler
     number_of_time_steps: int = cast(
         int, get_argument(args, "number_of_time_steps", int, 60)
     )
@@ -126,8 +147,11 @@ if __name__ == "__main__":
     )
 
     # ! Control behavioral settings here ----------------------------------------------------
-    system_geometry_type: Literal["square_np", "chain"] = "chain"
+    # singular basically only for testing in the beginning
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
+    system_geometry_type: Literal["square_np", "chain"] = cast(
+        str, get_argument(args, "system_geometry_type", str, "chain")
+    )
     hamiltonian_type: Literal[
         "exact",
         "canonical",
@@ -139,22 +163,36 @@ if __name__ == "__main__":
         "both_optimizations_second_order",
         "variational_classical_networks",
         "base_energy_only",
-    ] = "variational_classical_networks"
-    sampling_strategy: Literal["exact", "monte_carlo"] = "exact"
-
-    # ! VCN settings
-    init_sigma: float = 0.001
-    max_eta_training_rounds: int = 1000
-    min_eta_change_for_abort: float = 0.01
-    step_size_factor_h: float = 1e-2
-    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
-    pseudo_inverse_cutoff: float = 1e-10
+    ] = cast(str, get_argument(args, "hamiltonian_type", str, "exact"))
+    sampling_strategy: Literal["exact", "monte_carlo"] = cast(
+        str, get_argument(args, "sampling_strategy", str, "exact")
+    )
 
     # ! Monte Carlo settings
-    mc_modification_mode: Literal["flipping", "hopping"] = "flipping"
-    mc_thermalization_mode: Literal["flipping", "hopping"] = "flipping"
-    num_monte_carlo_samples: int = 4000  # 3x3 system has 262144 states
-    num_samples_per_chain: int = 80  # arbitrary at the moment
+    mc_modification_mode: Literal["flipping", "hopping"] = cast(
+        str, get_argument(args, "mc_modification_mode", str, "flipping")
+    )
+    mc_thermalization_mode: Literal["flipping", "hopping"] = cast(
+        str, get_argument(args, "mc_thermalization_mode", str, "flipping")
+    )
+    num_monte_carlo_samples: int = cast(
+        int,
+        get_argument(
+            args,
+            "num_monte_carlo_samples",
+            int,
+            4000,  # 3x3 system has 262144 states
+        ),
+    )
+    num_samples_per_chain: int = cast(
+        int,
+        get_argument(
+            args,
+            "num_samples_per_chain",
+            int,
+            80,
+        ),
+    )
     mc_pre_therm_strategy: Literal[
         "vacuum",
         "each_random",
@@ -164,29 +202,43 @@ if __name__ == "__main__":
     ] = "each_random"
     # only relevant for mc_pre_therm_strategy="specified_level"
     mc_pre_therm_specified_fill_level = 0.5
+    randomnes_seed = cast(
+        str, get_argument(args, "randomnes_seed", str, "very_nice_seed")
+    )
 
-    # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS !!!!!!!!!!!
+    # ! VCN settings # TODO make imput arguments for this
+    init_sigma: float = 0.001
+    max_eta_training_rounds: int = 1000
+    min_eta_change_for_abort: float = 0.01
+    step_size_factor_h: float = 1e-2
+    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
+    pseudo_inverse_cutoff: float = 1e-10
+
+    # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
     # !!!!!!! BELOW THIS, THE VALUES GET USED, NO LONGER CHANGE THEM ONLY COMPUTE WITH THEM !!!!!!!!!!!
 
     # ! Randomizer
-    randomness_seed = "very_nice_seed"
-    random_generator = RandomGenerator(randomness_seed)
+    random_generator = RandomGenerator(randomnes_seed)
 
     # ! Geometry of system
     if system_geometry_type == "square_np":  # type: ignore - switch is hard-coded.
         system_geometry = systemgeometry.SquareSystemNonPeriodicState(n)
-    if system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
+    elif system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
         system_geometry = systemgeometry.LinearChainNonPeriodicState(n)
+    else:
+        raise Exception("Invalid arguments")
 
     # ! Initial System State
     if initial_system_state_type == "homogenous":  # type: ignore - switch is hard-coded.
         initial_system_state = state.HomogenousInitialSystemState(system_geometry)
-    if initial_system_state_type == "singular":  # type: ignore - switch is hard-coded.
+    elif initial_system_state_type == "singular":  # type: ignore - switch is hard-coded.
         initial_system_state = state.SingularDoubleOccupationInitialSystemState(
             0,
             1000.0,  # larger values would cause overflow/underflow
             system_geometry,
         )
+    else:
+        raise Exception("Invalid arguments")
 
     # Psi-Selection (in case of)
     if psi_selection_type == "chain_canonical":  # type: ignore - switch is hard-coded.
@@ -195,6 +247,8 @@ if __name__ == "__main__":
                 J=J, system_geometry=system_geometry
             )
         )
+    else:
+        raise Exception("Invalid arguments")
 
     # TODO make this be monte carlo applicable also
     eta_training_sampler = sampler.ExactSampler(
@@ -215,19 +269,19 @@ if __name__ == "__main__":
             ),
             number_of_workers=number_workers,
         )
-    if hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    if hamiltonian_type == "flip_optimized":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "flip_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    if hamiltonian_type == "both_optimizations":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "both_optimizations":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    if hamiltonian_type == "both_optimizations_second_order":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "both_optimizations_second_order":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             U=U,
             E=E,
@@ -236,7 +290,7 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
         )
-    if hamiltonian_type == "base_energy_only":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "base_energy_only":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
             U=U,
             E=E,
@@ -244,11 +298,11 @@ if __name__ == "__main__":
             phi=phi,
             initial_system_state=initial_system_state,
         )
-    if hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    if hamiltonian_type == "canonical_second_order":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "canonical_second_order":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
             U=U,
             E=E,
@@ -257,11 +311,11 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
         )
-    if hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
             U=U, E=E, J=J, phi=phi
         )
-    if hamiltonian_type == "variational_classical_networks":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "variational_classical_networks":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.VCNHardCoreBosonicHamiltonian(
             U=U,
             E=E,
@@ -277,6 +331,8 @@ if __name__ == "__main__":
             step_size_factor_h=step_size_factor_h,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
         )
+    else:
+        raise Exception("Invalid arguments")
 
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
@@ -395,20 +451,26 @@ if __name__ == "__main__":
                 allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
                 system_geometry=system_geometry,
             )
-        if mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
+        elif mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
             state_modification = state.RandomFlipping(
                 system_geometry=system_geometry,
             )
+        else:
+            raise Exception("Invalid arguments")
+
         if mc_thermalization_mode == "hopping":  # type: ignore - switch is hard-coded.
             allow_hopping_across_spin_direction = True
             state_modification_thermalization = state.LatticeNeighborHopping(
                 allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
                 system_geometry=system_geometry,
             )
-        if mc_thermalization_mode == "flipping":  # type: ignore - switch is hard-coded.
+        elif mc_thermalization_mode == "flipping":  # type: ignore - switch is hard-coded.
             state_modification_thermalization = state.RandomFlipping(
                 system_geometry=system_geometry,
             )
+        else:
+            raise Exception("Invalid arguments")
+
         if mc_pre_therm_strategy == "vacuum":  # type: ignore - switch is hard-coded.
             pre_therm_strategy = sampler.VacuumStateBeforeThermalization()
         elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
@@ -427,6 +489,8 @@ if __name__ == "__main__":
             )
         elif mc_pre_therm_strategy == "each_random":  # type: ignore - switch is hard-coded.
             pre_therm_strategy = sampler.EachSiteRandomBeforeThermalization()
+        else:
+            raise Exception("Invalid arguments")
 
         # Monte Carlo Sampler
         num_intermediate_mc_steps: int = 2 * (
@@ -446,11 +510,13 @@ if __name__ == "__main__":
             state_modification_thermalization=state_modification_thermalization,
             before_thermalization_initialization=pre_therm_strategy,
         )
-    if sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
+    elif sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
         state_sampler = sampler.ExactSampler(
             system_geometry=system_geometry,
             initial_system_state=initial_system_state,
         )
+    else:
+        raise Exception("Invalid arguments")
 
     # ! Simulation
     (time_list, values_list) = measurements.main_measurement_function(
@@ -487,5 +553,5 @@ if __name__ == "__main__":
                 E,
                 J,
             ),
-            time_unit_type="one_over_J",
+            time_unit_type="one_over_scaler",
         )
