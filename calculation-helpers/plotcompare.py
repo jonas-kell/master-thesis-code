@@ -223,31 +223,42 @@ if __name__ == "__main__":
     # )
 
     # Variational classical networks
-    first_order_perturbation = "2024-11-05__16,13,17-0"
-    second_order_perturbation = "2024-11-07__00,58,28-0"
-    exact_diagonalization = "2024-11-06__14,43,45-0"
-    zeroth_order = "2024-11-07__00,51,22-0"
-    vcn_testem3 = "2024-11-07__01,02,13-0"
-    vcn_testem2 = "2024-11-07__01,19,04-0"
-    latest = get_newest_file_name()
+    # first_order_perturbation = "2024-11-05__16,13,17-0"
+    # second_order_perturbation = "2024-11-07__00,58,28-0"
+    # exact_diagonalization = "2024-11-06__14,43,45-0"
+    # zeroth_order = "2024-11-07__00,51,22-0"
+    # vcn_testem3 = "2024-11-07__01,02,13-0"
+    # vcn_testem2 = "2024-11-07__01,19,04-0"
+    # latest = get_newest_file_name()
+    # plot_experiment_comparison(
+    #     [
+    #         exact_diagonalization,
+    #         zeroth_order,
+    #         first_order_perturbation,
+    #         second_order_perturbation,
+    #         # vcn_testem3,
+    #         # vcn_testem2,
+    #         # latest,
+    #     ],
+    #     [
+    #         "exact",
+    #         "zero_order",
+    #         "analytical-o1",
+    #         "analytical-o2",
+    #         # "vcnem3",
+    #         # "vcnem2",
+    #         # "latest",
+    #     ],
+    #     [(0, 1), (0, 2), (0, 3)],
+    # )
+
+    # Concurrence proof of concept verification
+
+    diagonal = "diagonal"
+    diagonalsampled = "diagonal-sampled"
+    perturbationo0 = "perturbation-o0"
+    perturbationo1 = "perturbation-o1"
+    perturbationo2 = "perturbation-o2"
     plot_experiment_comparison(
-        [
-            exact_diagonalization,
-            zeroth_order,
-            first_order_perturbation,
-            second_order_perturbation,
-            # vcn_testem3,
-            # vcn_testem2,
-            # latest,
-        ],
-        [
-            "exact",
-            "zero_order",
-            "analytical-o1",
-            "analytical-o2",
-            # "vcnem3",
-            # "vcnem2",
-            # "latest",
-        ],
-        [(0, 1), (0, 2), (0, 3)],
+        [diagonal, diagonalsampled, perturbationo0, perturbationo1, perturbationo2],
     )
