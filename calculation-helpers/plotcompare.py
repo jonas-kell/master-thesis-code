@@ -8,10 +8,11 @@ import json
 def scale_and_prepare_data(
     observable_type, J, U, data: np.ndarray
 ) -> Tuple[np.ndarray, str]:
-    second_order_error_factor = (U / J) ** 2
+    rescale_orders = np.abs(J) > scaler_switch
 
-    if np.abs(J) < scaler_switch:
-        raise Exception("Can not rescale by this, as J-deactivated")
+    second_order_error_factor = 1
+    if rescale_orders:
+        second_order_error_factor = (U / J) ** 2
 
     center_var = 0
     scale_factor = 1
@@ -22,13 +23,15 @@ def scale_and_prepare_data(
         center_var = 0
         label_addendum = "in J"
     elif observable_type == "DoubleOccupationAtSite":
-        scale_factor = second_order_error_factor
+        if rescale_orders:
+            scale_factor = second_order_error_factor
+            label_addendum = "in J²/U² around 0.25"
         center_var = 0.25
-        label_addendum = "in J²/U² around 0.25"
     elif observable_type == "OccupationAtSite":
-        scale_factor = second_order_error_factor
+        if rescale_orders:
+            scale_factor = second_order_error_factor
+            label_addendum = "in J²/U² around 0.5"
         center_var = 0.5
-        label_addendum = "in J²/U² around 0.5"
     elif observable_type == "Purity":
         pass
     elif observable_type == "Concurrence":

@@ -350,14 +350,14 @@ if __name__ == "__main__":
             system_geometry=system_geometry,
             system_hamiltonian=ham,
         ),
-        observables.SpinCurrent(
-            direction_dependent=direction_dependent,
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up=False,
-            system_geometry=system_geometry,
-            system_hamiltonian=ham,
-        ),
+        # observables.SpinCurrent(
+        #     direction_dependent=direction_dependent,
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up=False,
+        #     system_geometry=system_geometry,
+        #     system_hamiltonian=ham,
+        # ),
         observables.DoubleOccupationAtSite(
             site=current_from,
             system_geometry=system_geometry,
@@ -371,70 +371,70 @@ if __name__ == "__main__":
             up=True,
             system_geometry=system_geometry,
         ),
-        observables.OccupationAtSite(
-            site=current_from,
-            up=False,
-            system_geometry=system_geometry,
-        ),
+        # observables.OccupationAtSite(
+        #     site=current_from,
+        #     up=False,
+        #     system_geometry=system_geometry,
+        # ),
         observables.OccupationAtSite(
             site=current_to,
             up=True,
             system_geometry=system_geometry,
         ),
-        observables.OccupationAtSite(
-            site=current_to,
-            up=False,
-            system_geometry=system_geometry,
-        ),
-        observables.Purity(
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        observables.Concurrence(
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
-        observables.ConcurrenceAsymm(
-            site_index_from=current_from,
-            site_index_to=current_to,
-            spin_up_from=True,
-            spin_up_to=True,
-            system_hamiltonian=ham,
-            system_geometry=system_geometry,
-            perform_checks=check_observable_imag,
-            check_threshold=check_observable_imag_threshold,
-        ),
+        # observables.OccupationAtSite(
+        #     site=current_to,
+        #     up=False,
+        #     system_geometry=system_geometry,
+        # ),
+        # observables.Purity(
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
+        # observables.Concurrence(
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
+        # observables.ConcurrenceAsymm(
+        #     site_index_from=current_from,
+        #     site_index_to=current_to,
+        #     spin_up_from=True,
+        #     spin_up_to=True,
+        #     system_hamiltonian=ham,
+        #     system_geometry=system_geometry,
+        #     perform_checks=check_observable_imag,
+        #     check_threshold=check_observable_imag_threshold,
+        # ),
     ]
     obs += obs_hard_coded
 
-    for i in range(16):
-        obs_generated: List[observables.Observable] = [
-            observables.PauliMeasurement(
-                site_index_from=current_from,
-                site_index_to=current_to,
-                spin_up_from=True,
-                spin_up_to=True,
-                system_hamiltonian=ham,
-                system_geometry=system_geometry,
-                perform_checks=check_observable_imag,
-                check_threshold=check_observable_imag_threshold,
-                index_of_pauli_op=i,
-            )
-        ]
+    # for i in range(16):
+    #     obs_generated: List[observables.Observable] = [
+    #         observables.PauliMeasurement(
+    #             site_index_from=current_from,
+    #             site_index_to=current_to,
+    #             spin_up_from=True,
+    #             spin_up_to=True,
+    #             system_hamiltonian=ham,
+    #             system_geometry=system_geometry,
+    #             perform_checks=check_observable_imag,
+    #             check_threshold=check_observable_imag_threshold,
+    #             index_of_pauli_op=i,
+    #         )
+    #     ]
 
-        obs += obs_generated
+    #     obs += obs_generated
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.

@@ -1,6 +1,6 @@
 import os
 
-scaler_switch = 1e-4
+scaler_switch = 1e2
 
 
 def get_full_file_path(from_file_name: str):
