@@ -22,7 +22,7 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 
 # Loading modules here
 module purge
-module load anaconda/2024.02
+module load miniforge/24.7.1
 conda activate myenv
 
 # Execute Script
