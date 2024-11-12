@@ -42,14 +42,14 @@ def generate_random_string(length=8):
     return "".join(random.choice(letters) for _ in range(length))
 
 
-def run_experiment(data):
+def run_experiment(data, is_hpc: bool):
     arguments_string = "--do_not_plot do_not_plot"
     for key, val in data.items():
         arguments_string += " --" + key + " " + str(val)
 
     python_executable = "python"
     os.system(
-        f"{python_executable} ./../computation-scripts/script.py {arguments_string}"
+        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string}"
     )
 
 
@@ -66,7 +66,9 @@ def main():
     parser = argparse.ArgumentParser(description="Parse command-line arguments.")
     parser.add_argument("--number_workers", required=False)
     parser.add_argument("--parameter", required=False)
+    parser.add_argument("--is_hpc", action="store_true", required=False)
     args = vars(parser.parse_args())
+    is_hpc = args["is_hpc"]
     # ! arg parse section end
 
     print("Running aggregator script")
@@ -125,7 +127,7 @@ def main():
         "sampling_strategy": "exact",
         **experiment_base_data,
     }
-    run_experiment(experiment_data)
+    run_experiment(experiment_data, is_hpc)
 
     compare_exact_name = run_file_name_base + "-compare-exact"
     file_names_list.append(compare_exact_name)
@@ -136,7 +138,7 @@ def main():
         "number_workers": num_multithread_workers,
         **experiment_base_data,
     }
-    run_experiment(experiment_data)
+    run_experiment(experiment_data, is_hpc)
 
     for i in range(different_monte_carlo_tests):
         mc_name = run_file_name_base + f"-compare-mc{i}"
@@ -151,7 +153,7 @@ def main():
             "number_workers": num_multithread_workers,
             **experiment_base_data,
         }
-        run_experiment(experiment_data)
+        run_experiment(experiment_data, is_hpc)
 
     zip_filename = f"{run_file_name_base}.zip"
     print(zip_filename)
