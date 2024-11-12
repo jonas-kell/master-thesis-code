@@ -75,7 +75,7 @@ def main():
 
         python_executable = "python"
         os.system(
-            f"{python_executable} ./../../calculation-helpers/aggregator.py {arguments_string}"
+            f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc {arguments_string}"
         )
 
 
