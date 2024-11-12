@@ -89,6 +89,7 @@ def main():
     num_samples_per_chain = num_monte_carlo_samples // 10
 
     different_monte_carlo_tests = 10
+    do_exact_comparison = True
 
     scaler = 8
     # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
@@ -124,27 +125,28 @@ def main():
         "target_time_in_one_over_u": target_time_in_1_over_u,
     }
 
-    exact_name = run_file_name_base + "-exact-exact"
-    file_names_list.append(exact_name)
-    experiment_data = {
-        "number_workers": 1,  # this is faster without multithreading
-        "hamiltonian_type": "exact",
-        "file_name_overwrite": exact_name,
-        "sampling_strategy": "exact",
-        **experiment_base_data,
-    }
-    run_experiment(experiment_data, is_hpc)
+    if do_exact_comparison:
+        exact_name = run_file_name_base + "-exact-exact"
+        file_names_list.append(exact_name)
+        experiment_data = {
+            "number_workers": 1,  # this is faster without multithreading
+            "hamiltonian_type": "exact",
+            "file_name_overwrite": exact_name,
+            "sampling_strategy": "exact",
+            **experiment_base_data,
+        }
+        run_experiment(experiment_data, is_hpc)
 
-    compare_exact_name = run_file_name_base + "-compare-exact"
-    file_names_list.append(compare_exact_name)
-    experiment_data = {
-        "hamiltonian_type": compare_type_hamiltonian,
-        "file_name_overwrite": compare_exact_name,
-        "sampling_strategy": "exact",
-        "number_workers": num_multithread_workers,
-        **experiment_base_data,
-    }
-    run_experiment(experiment_data, is_hpc)
+        compare_exact_name = run_file_name_base + "-compare-exact"
+        file_names_list.append(compare_exact_name)
+        experiment_data = {
+            "hamiltonian_type": compare_type_hamiltonian,
+            "file_name_overwrite": compare_exact_name,
+            "sampling_strategy": "exact",
+            "number_workers": num_multithread_workers,
+            **experiment_base_data,
+        }
+        run_experiment(experiment_data, is_hpc)
 
     for i in range(different_monte_carlo_tests):
         mc_name = run_file_name_base + f"-compare-mc{i}"
