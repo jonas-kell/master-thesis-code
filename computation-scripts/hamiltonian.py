@@ -14,7 +14,6 @@ from vcomponents import (
 from vcomponentssecondorder import v_second as v_second_order
 from randomgenerator import RandomGenerator
 from variationalclassicalnetworks import PSISelection
-import data_recorder  # TODO remove
 
 if TYPE_CHECKING:
     # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/

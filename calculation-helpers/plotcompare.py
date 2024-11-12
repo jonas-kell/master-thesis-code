@@ -1,6 +1,5 @@
 from typing import List, Any, Dict, Union, Tuple
 import numpy as np
-import matplotlib.pyplot as plt
 from commonsettings import get_full_file_path, scaler_switch, get_newest_file_name
 import json
 
@@ -51,6 +50,9 @@ def plot_experiment_comparison(
     replacement_names=None,
     difference_tuples: List[Tuple[int, int]] = [],
 ):
+    # ! only require this import when we are plotting
+    import matplotlib.pyplot as plt
+
     if replacement_names is None or len(replacement_names) != len(filenames):
         replacement_names = filenames
 
