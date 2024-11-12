@@ -82,7 +82,7 @@ def main():
     U = 1.0
     E = 2.5
     J = parameter * U
-    n = 5
+    n = 6
     phi = 0.1
 
     num_monte_carlo_samples = 10000
