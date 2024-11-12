@@ -69,13 +69,9 @@ def main():
     for parameter in relevant_parameters:
         print(f"Shelling out to script run with parameter {parameter}")
 
-        arguments_string = (
-            f"--number_workers {num_threads_int_value} --parameter {parameter}"
-        )
-
         python_executable = "python"
         os.system(
-            f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc {arguments_string}"
+            f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc --hpc_task_id {task_id_int_value} --number_workers {num_threads_int_value} --parameter {parameter}"
         )
 
 

@@ -67,8 +67,10 @@ def main():
     parser.add_argument("--number_workers", required=False)
     parser.add_argument("--parameter", required=False)
     parser.add_argument("--is_hpc", action="store_true", required=False)
+    parser.add_argument("--hpc_task_id", required=False)
     args = vars(parser.parse_args())
     is_hpc = args["is_hpc"]
+    hpc_task_id = cast(int, get_argument(args, "hpc_task_id", int, 0))
     # ! arg parse section end
 
     print("Running aggregator script")
@@ -103,7 +105,11 @@ def main():
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
 
     seed_random_generator(seed_string)
-    run_file_name_base = "aggregator-" + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
+    run_file_name_base = (
+        "aggregator-"
+        + ((hpc_task_id + "-") if is_hpc else "")
+        + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
+    )
 
     file_names_list = []
 
