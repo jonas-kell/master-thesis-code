@@ -1,4 +1,4 @@
-# python3 treats (1 == True) -> True and (0 == False) -> True
+# python treats (1 == True) -> True and (0 == False) -> True
 
 
 def part_A_flipping_if_free(

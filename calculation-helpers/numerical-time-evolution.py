@@ -425,7 +425,7 @@ def run_main_program(
     set_number_workers_to_one: bool = True,
     file_name="measurement_for_numerical",
 ):
-    python_executable = "/bin/python3"
+    python_executable = "python"
     arguments_string = (
         f'--file_name_overwrite "{file_name}" --U {U} --E {E} --J {J} --phi {phi} --start_time {start_time} --target_time_in_one_over_j {target_time_in_one_over_j} --number_of_time_steps {number_of_time_steps} --n {chain_length} --do_not_plot do_not_plot '
         + ("--number_workers 1 " if set_number_workers_to_one else "")
