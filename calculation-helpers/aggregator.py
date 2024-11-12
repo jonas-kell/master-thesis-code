@@ -77,30 +77,31 @@ def main():
 
     seed_string = "experiment_main_seed"
 
-    parameter = cast(int, get_argument(args, "parameter", int, 0))
+    parameter = cast(float, get_argument(args, "parameter", float, 0))
 
     U = 1.0
     E = 2.5
-    J = 0.1
-    n = 4
+    J = parameter * U
+    n = 5
     phi = 0.1
 
-    num_monte_carlo_samples = parameter
+    num_monte_carlo_samples = 10000
     num_samples_per_chain = num_monte_carlo_samples // 10
 
-    different_monte_carlo_tests = 10
+    different_monte_carlo_tests = 1
     do_exact_comparison = True
+    compare_type_hamiltonians = [
+        ("base_energy_only", "o0"),
+        ("both_optimizations", "o1"),
+        ("both_optimizations_second_order", "o2"),
+    ]
 
     scaler = 8
     # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
     target_time_in_1_over_u = scaler * 100
     num_samples_over_timespan = 2 * scaler
 
-    # compare_type_hamiltonian = "base_energy_only"
-    # compare_type_hamiltonian = "both_optimizations"
-    compare_type_hamiltonian = "both_optimizations_second_order"
-
-    plotting = True
+    plotting = False
 
     # !! compute experiment settings below this
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
@@ -137,31 +138,33 @@ def main():
         }
         run_experiment(experiment_data, is_hpc)
 
-        compare_exact_name = run_file_name_base + "-compare-exact"
-        file_names_list.append(compare_exact_name)
-        experiment_data = {
-            "hamiltonian_type": compare_type_hamiltonian,
-            "file_name_overwrite": compare_exact_name,
-            "sampling_strategy": "exact",
-            "number_workers": num_multithread_workers,
-            **experiment_base_data,
-        }
-        run_experiment(experiment_data, is_hpc)
+        for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
+            compare_exact_name = run_file_name_base + f"-compare{order_slug}-exact"
+            file_names_list.append(compare_exact_name)
+            experiment_data = {
+                "hamiltonian_type": compare_type_hamiltonian,
+                "file_name_overwrite": compare_exact_name,
+                "sampling_strategy": "exact",
+                "number_workers": num_multithread_workers,
+                **experiment_base_data,
+            }
+            run_experiment(experiment_data, is_hpc)
 
     for i in range(different_monte_carlo_tests):
-        mc_name = run_file_name_base + f"-compare-mc{i}"
-        file_names_list.append(mc_name)
-        experiment_data = {
-            "hamiltonian_type": compare_type_hamiltonian,
-            "file_name_overwrite": mc_name,
-            "randomnes_seed": generate_random_string(),
-            "num_samples_per_chain": num_samples_per_chain,
-            "num_monte_carlo_samples": num_monte_carlo_samples,
-            "sampling_strategy": "monte_carlo",
-            "number_workers": num_multithread_workers,
-            **experiment_base_data,
-        }
-        run_experiment(experiment_data, is_hpc)
+        for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
+            mc_name = run_file_name_base + f"-compare{order_slug}-mc{i}"
+            file_names_list.append(mc_name)
+            experiment_data = {
+                "hamiltonian_type": compare_type_hamiltonian,
+                "file_name_overwrite": mc_name,
+                "randomnes_seed": generate_random_string(),
+                "num_samples_per_chain": num_samples_per_chain,
+                "num_monte_carlo_samples": num_monte_carlo_samples,
+                "sampling_strategy": "monte_carlo",
+                "number_workers": num_multithread_workers,
+                **experiment_base_data,
+            }
+            run_experiment(experiment_data, is_hpc)
 
     zip_filename = f"{run_file_name_base}.zip"
     print(zip_filename)

@@ -5,9 +5,11 @@ from typing import Any, List
 def main():
     # !! use to configure parameter
     parameter_array: List[Any] = [
-        400,
-        4000,
-        40000,
+        0.2,  # param*U here is J
+        0.1,
+        0.05,
+        0.01,
+        0.005,
     ]
     print(
         f"Assignment Script contains the Job Description for {len(parameter_array)} jobs"
