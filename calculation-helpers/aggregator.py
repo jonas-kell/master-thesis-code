@@ -107,7 +107,7 @@ def main():
     seed_random_generator(seed_string)
     run_file_name_base = (
         "aggregator-"
-        + ((hpc_task_id + "-") if is_hpc else "")
+        + ((str(hpc_task_id) + "-") if is_hpc else "")
         + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
     )
 
