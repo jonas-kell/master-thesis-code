@@ -1852,11 +1852,9 @@ class VCNHardCoreBosonicHamiltonian(
         psi_selection: PSISelection,
         random_generator: RandomGenerator,
         init_sigma: float,
-        eta_training_sampler: "sampler.GeneralSampler",
-        max_eta_training_rounds: int,
-        min_eta_change_for_abort: float,
-        step_size_factor_h: float,
+        eta_calculation_sampler: "sampler.GeneralSampler",
         pseudo_inverse_cutoff: float,
+        variational_step_fraction_multiplier: int,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1870,12 +1868,11 @@ class VCNHardCoreBosonicHamiltonian(
         self.psi_selection = psi_selection
 
         self.init_sigma = init_sigma
-        self.step_size_factor_h = step_size_factor_h
 
-        self.eta_training_sampler = eta_training_sampler
-        self.max_eta_training_rounds = max_eta_training_rounds
-        self.min_eta_change_for_abort = min_eta_change_for_abort
+        self.eta_calculation_sampler = eta_calculation_sampler
         self.random_generator = random_generator.derive()
+
+        self.variational_step_fraction_multiplier = variational_step_fraction_multiplier
 
         self.eta_vec = None
 
@@ -1929,24 +1926,35 @@ class VCNHardCoreBosonicHamiltonian(
     ):
         self.is_initializing = True
 
-        # TODO idea: is it useful, to reset the eta vec, or is it maybe useful, to re-train the one from the previous step?
-        self.eta_vec = self.get_initialized_eta_vec()
+        if self.eta_vec is None:
+            if time == 0:
+                self.eta_vec = self.get_initialized_eta_vec()
+                self.current_time_cache = 0
+            else:
+                raise Exception(
+                    "The VCN Hamiltonian must start from a known set of eta params (t=0)"
+                )
+
         num_etas = self.get_number_of_eta_parameters()
 
-        training_round = 0
-        eta_derivative = None
-        while True:
-            training_round += 1
+        prev_time = self.current_time_cache
+        for intermediate_step_index in range(self.variational_step_fraction_multiplier):
+            intermediate_step_time = (
+                prev_time
+                + (intermediate_step_index + 1)
+                * (time - prev_time)
+                / self.variational_step_fraction_multiplier
+            )
 
-            sample_generator_object = self.eta_training_sampler.sample_generator(
-                time=time,
+            sample_generator_object = self.eta_calculation_sampler.sample_generator(
+                time=intermediate_step_time,
                 worker_index=0,
                 num_workers=1,  # TODO training multithreaded
                 random_generator=self.random_generator,
             )
 
             requires_probability_adjustment = (
-                self.eta_training_sampler.requires_probability_adjustment()
+                self.eta_calculation_sampler.requires_probability_adjustment()
             )
 
             normalization_factor = 0.0
@@ -1975,7 +1983,7 @@ class VCNHardCoreBosonicHamiltonian(
 
                         # get_exp_H_eff is the most expensive calculation. Only do if absolutely necessary
                         h_eff = self.get_exp_H_eff(
-                            time=time, system_state=sampled_state_n
+                            time=intermediate_step_time, system_state=sampled_state_n
                         )
                         psi_n = sampled_state_n.get_Psi_of_N()
 
@@ -1989,7 +1997,7 @@ class VCNHardCoreBosonicHamiltonian(
                     normalization_factor += state_probability
 
                     O_vector, E_loc = self.calculate_O_k_and_E_loc(
-                        time=time, system_state=sampled_state_n
+                        time=intermediate_step_time, system_state=sampled_state_n
                     )
 
                     O_vector_scaled = O_vector * state_probability
@@ -2018,18 +2026,8 @@ class VCNHardCoreBosonicHamiltonian(
             )
             eta_derivative = -1j * (pinv @ F_vector)
 
-            eta_movement = np.sum(np.abs(eta_derivative)) / num_etas
-            if (
-                training_round >= self.max_eta_training_rounds
-                or eta_movement < self.min_eta_change_for_abort
-            ):
-                print(
-                    f"VCN Hamiltonian, did {training_round}/{self.max_eta_training_rounds} and had final average derivative size {eta_movement}/{self.min_eta_change_for_abort}"
-                )
-                break
-
-            # now we have the derivative. Step with explicit euler integration
-            self.eta_vec += self.step_size_factor_h * eta_derivative
+            # now we have the derivative. Step with explicit euler integration # TODO better approximator
+            self.eta_vec += eta_derivative
 
         # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
         # eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
@@ -2155,14 +2153,12 @@ class VCNHardCoreBosonicHamiltonian(
         return super().get_log_info(
             {
                 "type": "VCNHardCoreBosonicHamiltonian",
-                "eta_training_sampler": self.eta_training_sampler.get_log_info(),
-                "max_eta_training_rounds": self.max_eta_training_rounds,
-                "min_eta_change_for_abort": self.min_eta_change_for_abort,
+                "eta_calculation_sampler": self.eta_calculation_sampler.get_log_info(),
                 "psi_selection": self.psi_selection.get_log_info(),
                 "random_generator": self.random_generator.get_log_info(),
                 "init_sigma": self.init_sigma,
-                "step_size_factor_h": self.step_size_factor_h,
                 "pseudo_inverse_cutoff": self.pseudo_inverse_cutoff,
+                "variational_step_fraction_multiplier": self.variational_step_fraction_multiplier,
                 **additional_info,
             }
         )

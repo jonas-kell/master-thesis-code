@@ -26,7 +26,7 @@ class RandomGenerator:
         """
         Return a float, pulled from a binomial distribution
         """
-        return self.random.normalvariate(sigma=sigma)
+        return self.random.normalvariate(mu=0, sigma=sigma)
 
     def randbool(self) -> bool:
         """

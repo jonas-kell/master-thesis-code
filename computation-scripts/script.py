@@ -208,11 +208,11 @@ if __name__ == "__main__":
 
     # ! VCN settings # TODO make imput arguments for this
     init_sigma: float = 0.001
-    max_eta_training_rounds: int = 1000
-    min_eta_change_for_abort: float = 0.01
-    step_size_factor_h: float = 1e-2
-    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
     pseudo_inverse_cutoff: float = 1e-10
+    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
+    variational_step_fraction_multiplier: int = cast(
+        int, get_argument(args, "variational_step_fraction_multiplier", int, 1)
+    )
 
     # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
     # !!!!!!! BELOW THIS, THE VALUES GET USED, NO LONGER CHANGE THEM ONLY COMPUTE WITH THEM !!!!!!!!!!!
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         raise Exception("Invalid arguments")
 
     # TODO make this be monte carlo applicable also
-    eta_training_sampler = sampler.ExactSampler(
+    eta_calculation_sampler = sampler.ExactSampler(
         system_geometry=system_geometry, initial_system_state=initial_system_state
     )
 
@@ -325,11 +325,9 @@ if __name__ == "__main__":
             random_generator=random_generator,
             psi_selection=psi_selection,
             init_sigma=init_sigma,
-            eta_training_sampler=eta_training_sampler,
-            max_eta_training_rounds=max_eta_training_rounds,
-            min_eta_change_for_abort=min_eta_change_for_abort,
-            step_size_factor_h=step_size_factor_h,
+            eta_calculation_sampler=eta_calculation_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
+            variational_step_fraction_multiplier=variational_step_fraction_multiplier,
         )
     else:
         raise Exception("Invalid arguments")
