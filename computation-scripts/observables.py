@@ -42,7 +42,18 @@ class Observable(ABC):
         pass
 
 
-class DoubleOccupationFraction(Observable):
+# this separation is not type-safely/properly extenable/generalizable.
+class MeasurableObservable(Observable):
+    pass
+
+
+# this is a hacky way of doing it, but I cannot be bothered to adapt the other observable-driven plotting/calculation systems, sorry not sorry
+class HamiltonianProperty(Observable):
+    def __init__(self, ham: hamiltonian.Hamiltonian):
+        self.hamiltonian = ham
+
+
+class DoubleOccupationFraction(MeasurableObservable):
     def __init__(
         self,
     ):
@@ -72,7 +83,7 @@ class DoubleOccupationFraction(Observable):
         return {"type": "DoubleOccupationFraction", "label": self.get_label()}
 
 
-class DoubleOccupationAtSite(Observable):
+class DoubleOccupationAtSite(MeasurableObservable):
 
     def __init__(self, site: int, system_geometry: systemgeometry.SystemGeometry):
         super().__init__()
@@ -108,7 +119,7 @@ class DoubleOccupationAtSite(Observable):
         }
 
 
-class OccupationAtSite(Observable):
+class OccupationAtSite(MeasurableObservable):
 
     def __init__(
         self, site: int, up: bool, system_geometry: systemgeometry.SystemGeometry
@@ -149,7 +160,7 @@ class OccupationAtSite(Observable):
         }
 
 
-class SpinCurrent(Observable):
+class SpinCurrent(MeasurableObservable):
 
     def __init__(
         self,
@@ -251,7 +262,7 @@ class SpinCurrent(Observable):
         }
 
 
-class ReducedDensityMatrixMeasurement(Observable):
+class ReducedDensityMatrixMeasurement(MeasurableObservable):
 
     def __init__(
         self,
@@ -565,4 +576,60 @@ class PauliMeasurement(ReducedDensityMatrixMeasurement):
             "index_m": self.index_m,
             "up_sigma_prime": self.up_sigma_prime,
             "index_of_pauli_op": self.index_of_pauli_op,
+        }
+
+
+class VCNFactor(HamiltonianProperty):
+    def __init__(
+        self, ham: hamiltonian.Hamiltonian, param_index: int, param_real_part: bool
+    ):
+        super().__init__(ham)
+
+        self.param_index = param_index
+        self.param_real_part = param_real_part
+
+        self.can_return_value: bool = False
+        self.vcn_hamiltonian: hamiltonian.VCNHardCoreBosonicHamiltonian = None
+
+        if isinstance(self.hamiltonian, hamiltonian.VCNHardCoreBosonicHamiltonian):
+            self.can_return_value = True
+            self.vcn_hamiltonian = self.hamiltonian
+            self.number_eta_params = self.vcn_hamiltonian.get_number_of_eta_parameters()
+
+            if self.param_index < 0 or self.param_index > self.number_eta_params:
+                raise Exception(
+                    f"VCN Hamiltonian has only {self.number_eta_params} parameters. But index {self.param_index} was requested"
+                )
+        else:
+            self.number_eta_params = 0
+            print(
+                "Warning: the Hamiltonian has no VCN parameter, nothing will be measured"
+            )
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128 | np.ndarray:
+        _ = time
+        _ = system_state
+
+        if self.can_return_value:
+            etas = self.vcn_hamiltonian.eta_vec
+
+            if self.param_real_part:
+                return np.real(etas[self.param_index])
+            else:
+                return np.imag(etas[self.param_index])
+        else:
+            return 0
+
+    def get_label(self) -> str:
+        return f"{'Re' if self.param_real_part else 'Im'}-Part of VCN Parameter {self.param_index}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "VCNFactor",
+            "label": self.get_label(),
+            "param_real_part": self.param_real_part,
+            "param_index": self.param_index,
+            "can_return_value": self.can_return_value,
         }

@@ -25,14 +25,28 @@ def main_measurement_function(
     file_name_overwrite: str | None = None,
     check_obs_imag: bool = False,
     check_obs_imag_threshold: float = 1e-2,
-) -> Tuple[List[float], List[List[float]]]:
+) -> Tuple[List[float], List[List[float]], List[observablesImport.Observable]]:
     time_list: List[float] = []
     values_list: List[List[float]] = []
 
     exact_sample_count = state_sampler.all_samples_count()
     used_sample_count = state_sampler.produces_samples_count()
 
-    num_observables = len(observables)
+    measurable_observables = [
+        measurable_observable
+        for measurable_observable in observables
+        if isinstance(measurable_observable, observablesImport.MeasurableObservable)
+    ]
+    hamiltonian_properties = [
+        hamiltonian_property
+        for hamiltonian_property in observables
+        if isinstance(hamiltonian_property, observablesImport.HamiltonianProperty)
+    ]
+    # re-assign, so that all measurable observables come first and then all hamiltonian properties and they are not intermingled
+    observables = measurable_observables + hamiltonian_properties
+
+    num_measurable_observables = len(measurable_observables)
+    num_hamiltonian_properties = len(hamiltonian_properties)
 
     function_start_time = computerTime.time()
     total_needed_sample_count = used_sample_count * number_of_time_steps
@@ -81,7 +95,7 @@ def main_measurement_function(
 
         total_sums_complex: List[np.complex128 | np.ndarray] = [
             np.complex128(0.0)
-        ] * num_observables
+        ] * num_measurable_observables
 
         # ! Branch out jobs into worker-functions
 
@@ -91,7 +105,7 @@ def main_measurement_function(
             (
                 job_number,
                 time,
-                observables,
+                measurable_observables,
                 state_sampler,
                 hamiltonian,
                 random_generator.derive(),
@@ -118,34 +132,47 @@ def main_measurement_function(
             step_sample_count += worker_sample_count
             total_sample_count += worker_sample_count
             normalization_factor += worker_normalization_factor
-            for i in range(num_observables):
+            for i in range(num_measurable_observables):
                 total_sums_complex[i] += worker_sums[i]
         # ! Collected branched out jobs from worker-functions
 
         inverse_normalization_factor = 1 / normalization_factor
 
         # scale and convert observables
-        total_sums: List[float] = [0.0] * num_observables
-        for i, observable in enumerate(observables):
+        total_sums: List[float] = [0.0] * num_measurable_observables
+        for i, measurable_observable in enumerate(measurable_observables):
             measurement = total_sums_complex[i] * inverse_normalization_factor
 
-            if observable.post_process_necessary():
+            if measurable_observable.post_process_necessary():
                 # in this case, the handled values in an ndarray that needs post processing (e.g. a density matrix or other factors that need to be sampled)
-                measurement = observable.post_process(measurement)
+                measurement = measurable_observable.post_process(measurement)
 
             real_part_of_observable = float(np.real(measurement))
             imag_part_of_observable = float(np.imag(measurement))
             if np.abs(imag_part_of_observable) > check_obs_imag_threshold:
-                message = f"Observable {observable.get_label()} with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
+                message = f"Observable {measurable_observable.get_label()} with real part {real_part_of_observable:.6f} had imaginary part of {imag_part_of_observable:.6f} that was omitted"
                 if check_obs_imag:
                     raise Exception(message)
                 else:
                     print("Warning:", message)
             total_sums[i] = real_part_of_observable
 
+        # hamiltonian properties do not require being re-scaled by the energies/probabilities
+        hamiltonian_property_measurements: List[float] = [
+            0.0
+        ] * num_hamiltonian_properties
+        for i, hamiltonian_property in enumerate(hamiltonian_properties):
+            hamiltonian_property_measurements[i] = (
+                hamiltonian_property.get_expectation_value(
+                    time=time, system_state=None
+                )  # that is a hacky way of doing it, but I cannot be bothered to adapt the other observable-driven plotting/calculation systems, sorry not sorry
+            )
+
+        total_measurements = total_sums + hamiltonian_property_measurements
+
         if default_prints:
             print(
-                f"Time: {time:.3f} (step {time_step_nr+1}/{number_of_time_steps}) {total_sums} ({step_sample_count} samples, while exact needs {exact_sample_count})"
+                f"Time: {time:.3f} (step {time_step_nr+1}/{number_of_time_steps}) {total_measurements} ({step_sample_count} samples, while exact needs {exact_sample_count})"
             )
         if write_to_file:  # write the base file information
             data: Dict[str, Union[float, str, Dict[Any, Any], List[Any]]] = {}
@@ -158,7 +185,7 @@ def main_measurement_function(
                     {
                         "time": time,
                         "step_sample_count": step_sample_count,
-                        "data": total_sums,
+                        "data": total_measurements,
                     }
                 )
 
@@ -173,20 +200,20 @@ def main_measurement_function(
                 )
 
         time_list.append(time)
-        values_list.append(total_sums)
+        values_list.append(total_measurements)
 
     if default_prints:
         print(
             f"Whole computation took {computerTime.time()-function_start_time:.3f} seconds"
         )
 
-    return (time_list, values_list)
+    return (time_list, values_list, observables)
 
 
 def run_worker_chain(
     job_number: int,
     time: float,
-    observables: List[observablesImport.Observable],
+    observables: List[observablesImport.MeasurableObservable],
     state_sampler: samplerImport.GeneralSampler,
     hamiltonian: hamiltonianImport.Hamiltonian,
     random_generator: RandomGenerator,

@@ -40,6 +40,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse command-line arguments.")
 
     # Expected command-line arguments
+    parser.add_argument(
+        "--record_hamiltonian_properties", action="store_true", required=False
+    )
     parser.add_argument("--U", required=False)
     parser.add_argument("--E", required=False)
     parser.add_argument("--J", required=False)
@@ -164,6 +167,7 @@ if __name__ == "__main__":
         "canonical_legacy_care_for_psi",
         "both_optimizations_second_order",
         "variational_classical_networks",
+        "variational_classical_networks_analytical_factors",
         "base_energy_only",
     ] = cast(str, get_argument(args, "hamiltonian_type", str, "exact"))
     sampling_strategy: Literal["exact", "monte_carlo"] = cast(
@@ -209,6 +213,7 @@ if __name__ == "__main__":
     )
 
     # ! VCN settings
+    record_hamiltonian_properties: bool = args["record_hamiltonian_properties"]
     init_sigma: float = cast(float, get_argument(args, "init_sigma", float, 0.001))
     pseudo_inverse_cutoff: float = 1e-10
     psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
@@ -331,6 +336,20 @@ if __name__ == "__main__":
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
         )
+    elif hamiltonian_type == "variational_classical_networks_analytical_factors":  # type: ignore - switch is hard-coded.
+        ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            random_generator=random_generator,
+            psi_selection=psi_selection,
+            init_sigma=init_sigma,
+            eta_calculation_sampler=eta_calculation_sampler,
+            pseudo_inverse_cutoff=pseudo_inverse_cutoff,
+            variational_step_fraction_multiplier=variational_step_fraction_multiplier,
+        )
     else:
         raise Exception("Invalid arguments")
 
@@ -399,6 +418,21 @@ if __name__ == "__main__":
         ),
     ]
     obs += obs_hard_coded
+
+    if record_hamiltonian_properties:
+        obs_ham_properties: List[observables.Observable] = []
+        num_etas = 6  # TODO lift this hard-coded number of constants
+        for real_part_of_property in [True, False]:
+            for eta_index in range(num_etas):
+                obs_ham_properties.append(
+                    observables.VCNFactor(
+                        ham=ham,
+                        param_index=eta_index,
+                        param_real_part=real_part_of_property,
+                    )
+                )
+
+        obs += obs_ham_properties
 
     # ! Sampling Strategy
     if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
@@ -483,20 +517,22 @@ if __name__ == "__main__":
         raise Exception("Invalid arguments")
 
     # ! Simulation
-    (time_list, values_list) = measurements.main_measurement_function(
-        start_time=start_time,
-        time_step=time_step,
-        number_of_time_steps=number_of_time_steps,
-        hamiltonian=ham,
-        observables=obs,
-        random_generator=random_generator,
-        state_sampler=state_sampler,
-        number_workers=number_workers,
-        job_array_index=job_array_index,
-        write_to_file=True,
-        file_name_overwrite=file_name_overwrite,
-        check_obs_imag=check_observable_imag,
-        check_obs_imag_threshold=check_observable_imag_threshold,
+    (time_list, values_list, plotting_observables) = (
+        measurements.main_measurement_function(
+            start_time=start_time,
+            time_step=time_step,
+            number_of_time_steps=number_of_time_steps,
+            hamiltonian=ham,
+            observables=obs,
+            random_generator=random_generator,
+            state_sampler=state_sampler,
+            number_workers=number_workers,
+            job_array_index=job_array_index,
+            write_to_file=True,
+            file_name_overwrite=file_name_overwrite,
+            check_obs_imag=check_observable_imag,
+            check_obs_imag_threshold=check_observable_imag_threshold,
+        )
     )
 
     # ! Plotting
@@ -509,7 +545,9 @@ if __name__ == "__main__":
         plot_measurements(
             times=time_list,
             values=values_list,
-            observable_labels=[observable.get_label() for observable in obs],
+            observable_labels=[
+                observable.get_label() for observable in plotting_observables
+            ],
             title=plot_title,
             x_label=plot_x_label,
             params=(

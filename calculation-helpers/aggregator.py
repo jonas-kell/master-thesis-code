@@ -42,14 +42,14 @@ def generate_random_string(length=8):
     return "".join(random.choice(letters) for _ in range(length))
 
 
-def run_experiment(data, is_hpc: bool):
+def run_experiment(data, is_hpc: bool, record_hamiltonian_properties: bool):
     arguments_string = "--do_not_plot do_not_plot"
     for key, val in data.items():
         arguments_string += " --" + key + " " + str(val)
 
     python_executable = "python"
     os.system(
-        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string}"
+        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''}"
     )
 
 
@@ -95,10 +95,13 @@ def main():
         ("both_optimizations", "o1"),
         ("both_optimizations_second_order", "o2"),
         ("variational_classical_networks", "vcn"),
+        ("variational_classical_networks_analytical_factors", "vcn-precalc"),
     ]
 
     variational_step_fraction_multiplier = 100
     init_sigma = 0.0001
+
+    record_hamiltonian_properties: bool = True
 
     scaler = 1
     # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
@@ -142,7 +145,7 @@ def main():
             "sampling_strategy": "exact",
             **experiment_base_data,
         }
-        run_experiment(experiment_data, is_hpc)
+        run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
 
         for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
             compare_exact_name = run_file_name_base + f"-compare{order_slug}-exact"
@@ -154,7 +157,7 @@ def main():
                 "number_workers": num_multithread_workers,
                 **experiment_base_data,
             }
-            run_experiment(experiment_data, is_hpc)
+            run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
 
     for i in range(different_monte_carlo_tests):
         for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
@@ -170,7 +173,7 @@ def main():
                 "number_workers": num_multithread_workers,
                 **experiment_base_data,
             }
-            run_experiment(experiment_data, is_hpc)
+            run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
 
     zip_filename = f"{run_file_name_base}.zip"
     print(zip_filename)

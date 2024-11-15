@@ -13,7 +13,10 @@ from vcomponents import (
 )
 from vcomponentssecondorder import v_second as v_second_order
 from randomgenerator import RandomGenerator
-from variationalclassicalnetworks import PSISelection
+from variationalclassicalnetworks import (
+    PSISelection,
+    ChainDirectionDependentAllSameFirstOrder,
+)
 
 if TYPE_CHECKING:
     # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
@@ -2029,28 +2032,6 @@ class VCNHardCoreBosonicHamiltonian(
             # now we have the derivative. Step with explicit euler integration # TODO better approximator
             self.eta_vec += eta_derivative
 
-        # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
-        # eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
-        #     0, self.phi, self.sin_phi, self.cos_phi
-        # )
-        # eps_1 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
-        #     1, self.phi, self.sin_phi, self.cos_phi
-        # )
-        # self.eta_vec = np.array(
-        #     [
-        #         np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
-        #         np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
-        #         / (eps_0 - eps_1 + self.U),
-        #         np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
-        #         / (eps_0 - eps_1 - self.U),
-        #         np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
-        #         np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
-        #         / (eps_1 - eps_0 + self.U),
-        #         np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
-        #         / (eps_1 - eps_0 - self.U),
-        #     ]
-        # )
-
         # finished and the result is that trained self.eta_vec
         self.current_time_cache = time
         self.is_initializing = False
@@ -2159,6 +2140,87 @@ class VCNHardCoreBosonicHamiltonian(
                 "init_sigma": self.init_sigma,
                 "pseudo_inverse_cutoff": self.pseudo_inverse_cutoff,
                 "variational_step_fraction_multiplier": self.variational_step_fraction_multiplier,
+                **additional_info,
+            }
+        )
+
+
+class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
+    VCNHardCoreBosonicHamiltonian
+):
+    eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
+
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+        psi_selection: PSISelection,
+        random_generator: RandomGenerator,
+        init_sigma: float,
+        eta_calculation_sampler: "sampler.GeneralSampler",
+        pseudo_inverse_cutoff: float,
+        variational_step_fraction_multiplier: int,
+    ):
+        super().__init__(
+            U,
+            E,
+            J,
+            phi,
+            initial_system_state,
+            psi_selection,
+            random_generator,
+            init_sigma,
+            eta_calculation_sampler,
+            pseudo_inverse_cutoff,
+            variational_step_fraction_multiplier,
+        )
+
+        if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
+            raise Exception(
+                'The Hamiltonian has hard-coded "variational" parameters, it can only be used with the correct comparison PSI-Selection'
+            )
+
+    def initialize(
+        self,
+        time: float,
+    ):
+        self.is_initializing = True
+
+        # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
+        eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+            0, self.phi, self.sin_phi, self.cos_phi
+        )
+        eps_1 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+            1, self.phi, self.sin_phi, self.cos_phi
+        )
+        self.eta_vec = np.array(
+            [
+                np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
+                np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
+                / (eps_0 - eps_1 + self.U),
+                np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
+                / (eps_0 - eps_1 - self.U),
+                np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
+                np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
+                / (eps_1 - eps_0 + self.U),
+                np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
+                / (eps_1 - eps_0 - self.U),
+            ]
+        )
+
+        # finished and the result is that trained self.eta_vec
+        self.current_time_cache = time
+        self.is_initializing = False
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder",  # overwrites this
                 **additional_info,
             }
         )
