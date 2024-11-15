@@ -61,6 +61,8 @@ if __name__ == "__main__":
     parser.add_argument("--mc_thermalization_mode", required=False)
     parser.add_argument("--mc_modification_mode", required=False)
     parser.add_argument("--system_geometry_type", required=False)
+    parser.add_argument("--variational_step_fraction_multiplier", required=False)
+    parser.add_argument("--init_sigma", required=False)
 
     args = vars(parser.parse_args())
 
@@ -206,8 +208,8 @@ if __name__ == "__main__":
         str, get_argument(args, "randomnes_seed", str, "very_nice_seed")
     )
 
-    # ! VCN settings # TODO make imput arguments for this
-    init_sigma: float = 0.001
+    # ! VCN settings
+    init_sigma: float = cast(float, get_argument(args, "init_sigma", float, 0.001))
     pseudo_inverse_cutoff: float = 1e-10
     psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
     variational_step_fraction_multiplier: int = cast(

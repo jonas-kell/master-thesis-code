@@ -81,8 +81,8 @@ def main():
 
     U = 1.0
     E = 2.5
-    J = 0.2 * U
-    n = 4
+    J = 0.1 * U
+    n = 3
     phi = 0.1
 
     num_monte_carlo_samples = 10000
@@ -97,11 +97,12 @@ def main():
         ("variational_classical_networks", "vcn"),
     ]
 
-    variational_step_fraction_multiplier = 10
+    variational_step_fraction_multiplier = 100
+    init_sigma = 0.0001
 
     scaler = 1
     # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
-    target_time_in_1_over_u = scaler * 18
+    target_time_in_1_over_u = scaler * 9
     num_samples_over_timespan = 100
 
     plotting = True
@@ -128,6 +129,7 @@ def main():
         "number_of_time_steps": num_samples_over_timespan,
         "target_time_in_one_over_u": target_time_in_1_over_u,
         "variational_step_fraction_multiplier": variational_step_fraction_multiplier,
+        "init_sigma": init_sigma,
     }
 
     if do_exact_comparison:
