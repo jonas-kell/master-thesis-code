@@ -501,7 +501,7 @@ def main():
     print(filename_for_main_thread, filename_for_diagonalization_thread)
     plot_experiment_comparison(
         [filename_for_main_thread, filename_for_diagonalization_thread],
-        ["Pertubation", "Diagonalization"],
+        ["Perturbation", "Diagonalization"],
     )
 
 
