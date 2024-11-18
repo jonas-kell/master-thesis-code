@@ -77,38 +77,38 @@ def main():
 
     seed_string = "experiment_main_seed"
 
-    # parameter = cast(float, get_argument(args, "parameter", float, 0))
+    parameter = cast(float, get_argument(args, "parameter", float, 0))
 
     U = 1.0
     E = 2.5
-    J = 0.1 * U
-    n = 3
+    J = parameter * U
+    n = 6
     phi = 0.1
 
     num_monte_carlo_samples = 10000
     num_samples_per_chain = num_monte_carlo_samples // 10
+    different_monte_carlo_tests = 1
 
-    different_monte_carlo_tests = 0
     do_exact_comparison = True
     compare_type_hamiltonians = [
         ("base_energy_only", "o0"),
         ("both_optimizations", "o1"),
         ("both_optimizations_second_order", "o2"),
-        ("variational_classical_networks", "vcn"),
-        ("variational_classical_networks_analytical_factors", "vcn-precalc"),
+        # ("variational_classical_networks", "vcn"),
+        # ("variational_classical_networks_analytical_factors", "vcn-precalc"),
     ]
 
     variational_step_fraction_multiplier = 100
     init_sigma = 0.0001
 
-    record_hamiltonian_properties: bool = True
+    record_hamiltonian_properties: bool = False
 
     scaler = 1
     # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
-    target_time_in_1_over_u = scaler * 9
-    num_samples_over_timespan = 100
+    target_time_in_1_over_u = scaler * 200
+    num_samples_over_timespan = 30
 
-    plotting = True
+    plotting = False
 
     # !! compute experiment settings below this
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
