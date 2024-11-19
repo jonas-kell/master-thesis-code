@@ -117,6 +117,7 @@ def generateHelperFile(inputMappings):
         for (
             factor_t1_greater,
             factor_t2_greater,
+            factor_sum,
             (mapping_t1_greater, mapping_t2_greater, mapping_first_order_product),
         ) in inputMappings.values():
             # integral part 1
@@ -144,13 +145,12 @@ def generateHelperFile(inputMappings):
             # minus factor product
             mult_prod = -mapping_first_order_product(Lc, Ld, Mc, Md, Ac, Ad, Bc, Bd)
             if not is_basically_zero(mult_prod):
-                factor_str = "(" + factor_t1_greater + " + " + factor_t2_greater + ")"
                 if is_basically_one(mult_prod):
-                    res += "+" + factor_str
+                    res += "+" + factor_sum
                 elif is_basically_one(-mult_prod):
-                    res += "-" + factor_str
+                    res += "-" + factor_sum
                 else:
-                    res += "+ " + str(mult_prod) + " * " + factor_str
+                    res += "+ " + str(mult_prod) + " * " + factor_sum
         res += "\n"
         return res
 
@@ -182,7 +182,13 @@ def generateHelperFile(inputMappings):
 if __name__ == "__main__":
 
     def combine_funcs(eps_one, eps_two):
-        return f"((np.expm1(1j * {eps_one} * t) / {eps_one}) - ( ((1j * t)/({eps_two}))   if (({eps_one} + {eps_two})< 1e-8) else    (np.expm1(1j * ({eps_one} + {eps_two}) * t) / ({eps_two} * ({eps_one} + {eps_two})))    )      )"
+        return f"((np.expm1(1j * {eps_one} * t) / ({eps_one} * {eps_two})) - ( ((1j * t)/({eps_two}))   if (({eps_one} + {eps_two})< 1e-8) else    (np.expm1(1j * ({eps_one} + {eps_two}) * t) / ({eps_two} * ({eps_one} + {eps_two})))    )      )"
+
+    def combine_funcs_reverse(eps_one, eps_two):
+        return f"((np.exp(1j * {eps_two} * t) * np.expm1(1j * {eps_one} * t) / (-1 * {eps_one} * {eps_two})) + ( ((1j * t)/({eps_two}))   if (({eps_one} + {eps_two})< 1e-8) else    (np.expm1(1j * ({eps_one} + {eps_two}) * t) / ({eps_two} * ({eps_one} + {eps_two})))    )      )"
+
+    def combine_funcs_sum(eps_one, eps_two):
+        return f"((np.expm1(1j * {eps_one} * t) * np.expm1(1j * {eps_two} * t)) / ((-1 * {eps_one} * {eps_two})))"
 
     def double_eval_wrapper(
         callback_1_c: Callable[[int, int, int, int], int],
@@ -348,47 +354,56 @@ if __name__ == "__main__":
     mappingsDict = {
         "AA": (
             combine_funcs("eps_one_A", "eps_two_A"),
-            combine_funcs("eps_two_A", "eps_one_A"),
+            combine_funcs_reverse("eps_two_A", "eps_one_A"),
+            combine_funcs_sum("eps_two_A", "eps_one_A"),
             eval_wrapper_packer(A_fun_c, A_fun_d, A_fun_c, A_fun_d),
         ),
         "AB": (
             combine_funcs("eps_one_A", "eps_two_B"),
-            combine_funcs("eps_two_B", "eps_one_A"),
+            combine_funcs_reverse("eps_one_A", "eps_two_B"),
+            combine_funcs_sum("eps_one_A", "eps_two_B"),
             eval_wrapper_packer(A_fun_c, A_fun_d, B_fun_c, B_fun_d),
         ),
         "AC": (
             combine_funcs("eps_one_A", "eps_two_C"),
-            combine_funcs("eps_two_C", "eps_one_A"),
+            combine_funcs_reverse("eps_one_A", "eps_two_C"),
+            combine_funcs_sum("eps_one_A", "eps_two_C"),
             eval_wrapper_packer(A_fun_c, A_fun_d, C_fun_c, C_fun_d),
         ),
         "BA": (
             combine_funcs("eps_one_B", "eps_two_A"),
-            combine_funcs("eps_two_A", "eps_one_B"),
+            combine_funcs_reverse("eps_one_B", "eps_two_A"),
+            combine_funcs_sum("eps_one_B", "eps_two_A"),
             eval_wrapper_packer(B_fun_c, B_fun_d, A_fun_c, A_fun_d),
         ),
         "BB": (
             combine_funcs("eps_one_B", "eps_two_B"),
-            combine_funcs("eps_two_B", "eps_one_B"),
+            combine_funcs_reverse("eps_one_B", "eps_two_B"),
+            combine_funcs_sum("eps_one_B", "eps_two_B"),
             eval_wrapper_packer(B_fun_c, B_fun_d, B_fun_c, B_fun_d),
         ),
         "BC": (
             combine_funcs("eps_one_B", "eps_two_C"),
-            combine_funcs("eps_two_C", "eps_one_B"),
+            combine_funcs_reverse("eps_one_B", "eps_two_C"),
+            combine_funcs_sum("eps_one_B", "eps_two_C"),
             eval_wrapper_packer(B_fun_c, B_fun_d, C_fun_c, C_fun_d),
         ),
         "CA": (
             combine_funcs("eps_one_C", "eps_two_A"),
-            combine_funcs("eps_two_A", "eps_one_C"),
+            combine_funcs_reverse("eps_one_C", "eps_two_A"),
+            combine_funcs_sum("eps_one_C", "eps_two_A"),
             eval_wrapper_packer(C_fun_c, C_fun_d, A_fun_c, A_fun_d),
         ),
         "CB": (
             combine_funcs("eps_one_C", "eps_two_B"),
-            combine_funcs("eps_two_B", "eps_one_C"),
+            combine_funcs_reverse("eps_one_C", "eps_two_B"),
+            combine_funcs_sum("eps_one_C", "eps_two_B"),
             eval_wrapper_packer(C_fun_c, C_fun_d, B_fun_c, B_fun_d),
         ),
         "CC": (
             combine_funcs("eps_one_C", "eps_two_C"),
-            combine_funcs("eps_two_C", "eps_one_C"),
+            combine_funcs_reverse("eps_one_C", "eps_two_C"),
+            combine_funcs_sum("eps_one_C", "eps_two_C"),
             eval_wrapper_packer(C_fun_c, C_fun_d, C_fun_c, C_fun_d),
         ),
     }

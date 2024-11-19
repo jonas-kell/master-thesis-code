@@ -89,10 +89,12 @@ def main():
     num_samples_per_chain = num_monte_carlo_samples // 10
     different_monte_carlo_tests = 1
 
+    do_exact_diagonalization = False
+
     do_exact_comparison = True
     compare_type_hamiltonians = [
-        ("base_energy_only", "o0"),
-        ("both_optimizations", "o1"),
+        # ("base_energy_only", "o0"),
+        # ("both_optimizations", "o1"),
         ("both_optimizations_second_order", "o2"),
         # ("variational_classical_networks", "vcn"),
         # ("variational_classical_networks_analytical_factors", "vcn-precalc"),
@@ -135,7 +137,7 @@ def main():
         "init_sigma": init_sigma,
     }
 
-    if do_exact_comparison:
+    if do_exact_diagonalization:
         exact_name = run_file_name_base + "-exact-exact"
         file_names_list.append(exact_name)
         experiment_data = {
@@ -147,6 +149,7 @@ def main():
         }
         run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
 
+    if do_exact_comparison:
         for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
             compare_exact_name = run_file_name_base + f"-compare{order_slug}-exact"
             file_names_list.append(compare_exact_name)

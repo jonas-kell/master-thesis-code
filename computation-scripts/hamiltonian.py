@@ -389,7 +389,7 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
         )
         print("Exact Hamiltonian is done generating Hamiltonian")
         if not np.all(np.conjugate(self.H.T) == self.H):
-            print("H not hermetian (sanity check failed)")
+            print("H not hermitian (sanity check failed)")
 
         self.d = 2 ** (system_geometry.get_number_sites())
         # Dimension of the Hilbert space 2 spin degrees on n particles
