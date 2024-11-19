@@ -1,4 +1,4 @@
-from typing import cast, Dict, Union, Type
+from typing import cast, Dict, Union, Type, Literal
 import os
 import random
 import hashlib
@@ -8,8 +8,17 @@ from plotcompare import plot_experiment_comparison
 import zipfile
 from commonsettings import get_full_file_path
 import argparse
+import decimal
+import numpy as np
 
 AcceptableTypes = Union[Type[int], Type[float], Type[str]]
+
+
+def float_to_str(f):
+    ctx = decimal.Context()
+    ctx.prec = 20
+    d1 = ctx.create_decimal(repr(f))
+    return format(d1, "f")
 
 
 def get_argument(
@@ -65,6 +74,7 @@ def main():
     # ! arg parse section
     parser = argparse.ArgumentParser(description="Parse command-line arguments.")
     parser.add_argument("--number_workers", required=False)
+    parser.add_argument("--experiment", required=False)
     parser.add_argument("--parameter", required=False)
     parser.add_argument("--is_hpc", action="store_true", required=False)
     parser.add_argument("--hpc_task_id", required=False)
@@ -73,51 +83,134 @@ def main():
     hpc_task_id = cast(int, get_argument(args, "hpc_task_id", int, 0))
     # ! arg parse section end
 
-    print("Running aggregator script")
+    experiment: Literal[
+        "j_sweep", "concurrence_from_spin", "monte_carlo_variance_test"
+    ] = cast(str, get_argument(args, "experiment", str, "j_sweep"))
+    plotting = False
+
+    print("Running aggregator script for experiment:", experiment)
 
     seed_string = "experiment_main_seed"
 
-    parameter = cast(float, get_argument(args, "parameter", float, 0))
+    # !! configure experiment settings below this
+    if experiment == "j_sweep":
+        parameter = cast(
+            float, get_argument(args, "parameter", float, 0.1)
+        )  # parameter is for giving j scaler
+        # ! j-sweep
+        U = 1.0
+        E = 2.5
+        J = parameter * U
+        n = 6
+        phi = 0.1
+        system_geometry_type = "chain"
 
-    U = 1.0
-    E = 2.5
-    J = parameter * U
-    n = 6
-    phi = 0.1
+        num_monte_carlo_samples = 10000
+        num_samples_per_chain = num_monte_carlo_samples // 10
 
-    num_monte_carlo_samples = 10000
-    num_samples_per_chain = num_monte_carlo_samples // 10
-    different_monte_carlo_tests = 1
+        do_exact_diagonalization = True
+        do_exact_comparison = True
+        different_monte_carlo_tests = 1
 
-    do_exact_diagonalization = False
+        compare_type_hamiltonians = [
+            ("base_energy_only", "o0"),
+            ("both_optimizations", "o1"),
+            ("both_optimizations_second_order", "o2"),
+        ]
 
-    do_exact_comparison = True
-    compare_type_hamiltonians = [
-        # ("base_energy_only", "o0"),
-        # ("both_optimizations", "o1"),
-        ("both_optimizations_second_order", "o2"),
-        # ("variational_classical_networks", "vcn"),
-        # ("variational_classical_networks_analytical_factors", "vcn-precalc"),
-    ]
+        variational_step_fraction_multiplier = 100
+        init_sigma = 0.0001
 
-    variational_step_fraction_multiplier = 100
-    init_sigma = 0.0001
+        record_hamiltonian_properties: bool = False
+        observable_set = "current_and_occupation"
 
-    record_hamiltonian_properties: bool = False
+        scaler = 1
+        target_time_in_1_over_u = scaler * 200
+        num_samples_over_timespan = 30
 
-    scaler = 1
-    # goal: for one of the smaller J=0.01U this is t=scaler*J, but we calc in U, because that is constant when we do runs in J
-    target_time_in_1_over_u = scaler * 200
-    num_samples_over_timespan = 30
+        zip_filename_base = "j" + float_to_str(J).replace(".", "")
 
-    plotting = False
+    elif experiment == "concurrence_from_spin":
+        # ! concurrence-from-spin
+        U = 1.0
+        E = 0.5
+        J = 0.1
+        n = 4
+        phi = 0.1 * np.pi
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 10  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_diagonalization = True
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        compare_type_hamiltonians = [
+            ("base_energy_only", "o0"),
+            ("both_optimizations", "o1"),
+            ("both_optimizations_second_order", "o2"),
+        ]
+
+        variational_step_fraction_multiplier = 100  # not switched on
+        init_sigma = 0.0001  # not switched on
+
+        record_hamiltonian_properties: bool = False
+        observable_set = "concurrence_and_pauli"
+
+        scaler = 1 / J
+        target_time_in_1_over_u = scaler * 1
+        num_samples_over_timespan = 200
+
+        zip_filename_base = "concurrence-comparison"
+
+    elif experiment == "monte_carlo_variance_test":
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 400)
+        )  # parameter is for giving num mc-samples
+        # ! monte-carlo-variance-test
+        U = 1.0
+        E = 2.5
+        J = 0.1
+        n = 4
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = parameter
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_diagonalization = False
+        do_exact_comparison = True
+        different_monte_carlo_tests = 10  # switched on in variance mode
+
+        compare_type_hamiltonians = [
+            ("base_energy_only", "o0"),
+            ("both_optimizations", "o1"),
+            ("both_optimizations_second_order", "o2"),
+        ]
+
+        variational_step_fraction_multiplier = 100  # not switched on
+        init_sigma = 0.0001  # not switched on
+
+        record_hamiltonian_properties: bool = False
+        observable_set = "current_and_occupation"
+
+        scaler = 50
+        num_samples_over_timespan = 16
+        target_time_in_1_over_u = scaler * num_samples_over_timespan
+
+        zip_filename_base = str(num_monte_carlo_samples) + "samples"
+
+    else:
+        raise Exception("Unknown Experiment Specification")
 
     # !! compute experiment settings below this
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
 
     seed_random_generator(seed_string)
     run_file_name_base = (
-        "aggregator-"
+        zip_filename_base
+        + "-"
         + ((str(hpc_task_id) + "-") if is_hpc else "")
         + datetime.now().strftime("%Y-%m-%d__%H,%M,%S")
     )
@@ -135,6 +228,8 @@ def main():
         "target_time_in_one_over_u": target_time_in_1_over_u,
         "variational_step_fraction_multiplier": variational_step_fraction_multiplier,
         "init_sigma": init_sigma,
+        "system_geometry_type": system_geometry_type,
+        "observable_set": observable_set,
     }
 
     if do_exact_diagonalization:
@@ -169,7 +264,7 @@ def main():
             experiment_data = {
                 "hamiltonian_type": compare_type_hamiltonian,
                 "file_name_overwrite": mc_name,
-                "randomnes_seed": generate_random_string(),
+                "randomness_seed": generate_random_string(),
                 "num_samples_per_chain": num_samples_per_chain,
                 "num_monte_carlo_samples": num_monte_carlo_samples,
                 "sampling_strategy": "monte_carlo",

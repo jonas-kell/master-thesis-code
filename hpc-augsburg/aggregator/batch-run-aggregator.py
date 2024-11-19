@@ -4,6 +4,8 @@ from typing import Any, List
 
 def main():
     # !! use to configure parameter
+
+    experiment = "j_sweep"
     parameter_array: List[Any] = [
         # param*U here is J
         0.1,
@@ -14,10 +16,19 @@ def main():
         0.04,
         0.02,
     ]
+
+    # experiment = "monte_carlo_variance_test"
+    # parameter_array: List[Any] = [
+    #     # param is here num mc-samples
+    #     400,
+    #     4000,
+    #     40000
+    # ]
+
+    # !! use to configure parameter
     print(
         f"Assignment Script contains the Job Description for {len(parameter_array)} jobs"
     )
-    # !! use to configure parameter
 
     task_id_env_var_name = "SLURM_ARRAY_TASK_ID"
     task_id_env_value = os.getenv(task_id_env_var_name)
@@ -76,7 +87,7 @@ def main():
 
         python_executable = "python"
         os.system(
-            f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc --hpc_task_id {task_id_int_value} --number_workers {num_threads_int_value} --parameter {parameter}"
+            f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc --hpc_task_id {task_id_int_value} --number_workers {num_threads_int_value} --parameter {parameter} --experiment {experiment}"
         )
 
 
