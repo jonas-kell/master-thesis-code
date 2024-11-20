@@ -324,17 +324,17 @@ def numerically_calculate_time_evolution(
         expectation_value_concurrence = calculate_concurrence(rho_reduced)
 
         data = [
-            expectation_value_current_up,
-            expectation_value_current_down,
-            expectation_value_zero_double_occupation,
-            expectation_value_one_double_occupation,
-            expectation_value_zero_up_occupation,
-            expectation_value_zero_down_occupation,
-            expectation_value_one_up_occupation,
-            expectation_value_one_down_occupation,
-            expectation_value_purity,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
+            expectation_value_purity,
+            # expectation_value_current_up,
+            # expectation_value_current_down,
+            # expectation_value_zero_double_occupation,
+            # expectation_value_one_double_occupation,
+            # expectation_value_zero_up_occupation,
+            # expectation_value_zero_down_occupation,
+            # expectation_value_one_up_occupation,
+            # expectation_value_one_down_occupation,
         ]
         data.extend(sigma_measurements)
 
@@ -360,17 +360,17 @@ def numerically_calculate_time_evolution(
         )
 
     observables = [
-        {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
-        {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
-        {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
-        {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 1"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 0, down"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 1, up"},
-        {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
-        {"type": "Purity", "label": "Purity on site 0-1 up"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
+        {"type": "Purity", "label": "Purity on site 0-1 up"},
+        # {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
+        # {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
+        # {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
+        # {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 1"},
+        # {"type": "OccupationAtSite", "label": "Occupation on site 0, up"},
+        # {"type": "OccupationAtSite", "label": "Occupation on site 0, down"},
+        # {"type": "OccupationAtSite", "label": "Occupation on site 1, up"},
+        # {"type": "OccupationAtSite", "label": "Occupation on site 1, down"},
     ]
     observables.extend(
         [
@@ -444,7 +444,7 @@ def main():
 
     start_time: float = 0
     number_of_time_steps: int = 200
-    target_time_in_one_over_scaler: float = 6
+    target_time_in_one_over_scaler: float = 10
 
     chain_length = 4
 
