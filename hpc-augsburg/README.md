@@ -86,3 +86,12 @@ module load miniforge/24.7.1
 conda remove -n ENV_NAME --all
 conda deactivate
 ```
+
+## Cleanup all
+
+```shell
+rm ~/master-thesis-code/hpc-augsburg/aggregator/*.err
+rm ~/master-thesis-code/hpc-augsburg/aggregator/*.out
+rm ~/master-thesis-code/run-outputs/*.zip
+rm ~/master-thesis-code/run-outputs/*.json
+```
