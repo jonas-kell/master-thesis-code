@@ -5,25 +5,29 @@ from typing import Any, List
 def main():
     # !! use to configure parameter
 
-    experiment = "j_sweep"
-    parameter_array: List[Any] = [
-        # param*U here is J
-        0.1,
-        0.09,
-        0.08,
-        0.07,
-        0.06,
-        0.04,
-        0.02,
-    ]
-
-    # experiment = "monte_carlo_variance_test"
+    # needs: --array=0-6
+    # experiment = "j_sweep"
     # parameter_array: List[Any] = [
-    #     # param is here num mc-samples
-    #     400,
-    #     4000,
-    #     40000
+    #     # param*U here is J
+    #     0.1,
+    #     0.09,
+    #     0.08,
+    #     0.07,
+    #     0.06,
+    #     0.04,
+    #     0.02,
     # ]
+
+    # needs: --array=0-4
+    experiment = "monte_carlo_variance_test"
+    parameter_array: List[Any] = [
+        # param is here num mc-samples
+        400,
+        2000,
+        4000,
+        20000,
+        40000,
+    ]
 
     # !! use to configure parameter
     print(
