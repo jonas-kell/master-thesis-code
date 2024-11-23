@@ -184,7 +184,7 @@ def generateHelperFile(inputMappings):
                 else:
                     res += "+ " + str(mult) + " * " + meta[0]
             if not DirectSwap:
-                # would otherwise doubly apply this one as one is reverse of other and vice-versa
+                # would otherwise doubly apply this one as one is reverse of other and vice versa
                 # second meta entry - l<->m swapped
                 mult = mappings[0](nbC, sw1C, nbD, sw1D) - mappings[0](
                     McPrime, LcPrime, MdPrime, LdPrime
@@ -268,7 +268,7 @@ def generateHelperFile(inputMappings):
                 else:
                     res += "+ " + str(mult) + " * " + meta[0]
             if not Direct:
-                # would otherwise doubly apply this one as one is reverse of other and vice-versa
+                # would otherwise doubly apply this one as one is reverse of other and vice versa
                 # second meta entry - l<->m swapped
                 mult = mappings[0](Mc, Lc, Md, Ld) - mappings[0](
                     McPrime, LcPrime, MdPrime, LdPrime
