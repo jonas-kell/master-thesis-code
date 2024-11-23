@@ -1,6 +1,6 @@
 import numpy as np
 
-# from "spinToZBasisTransformation.py"
+# from "spin-to-z-basis-transformation.py"
 density_matrix_builder_helper = np.array(
     [
         [
