@@ -140,7 +140,7 @@ def eval_variance_op(
             )[0]
         )
 
-    return (exp_JJ) - (exp_lm * exp_ab)
+    return ham.J * ham.J * ((exp_JJ) - (exp_lm * exp_ab))
 
 
 def main():
