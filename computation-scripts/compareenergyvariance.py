@@ -148,12 +148,15 @@ def main():
     E = -0.5
     J = 0.2
     phi = np.pi / 3
-    measurement_time = 5 * (1 / J)
-    n = 3
+    measurement_time = 1.2
+    n = 4
 
     random = RandomGenerator(str(time.time()))
 
     system_geometry = systemgeometry.SquareSystemNonPeriodicState(n)
+    system_geometry.init_index_knows_cache(
+        phi=phi, sin_phi=np.sin(phi), cos_phi=np.cos(phi)
+    )
 
     initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -165,12 +168,14 @@ def main():
     #     initial_system_state=initial_system_state,
     #     system_geometry=system_geometry,
     # )
-    # use_hamiltonian = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
-    #     U=U,
-    #     E=E,
-    #     J=J,
-    #     phi=phi,
-    #     initial_system_state=initial_system_state,
+    # use_hamiltonian = (
+    #     hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+    #         U=U,
+    #         E=E,
+    #         J=J,
+    #         phi=phi,
+    #         initial_system_state=initial_system_state,
+    #     )
     # )
     use_hamiltonian = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
         U=U,
@@ -207,27 +212,37 @@ def main():
                                     measurement_time=measurement_time,
                                 )
 
-        no_opposite_spin_dirs_aggregator = np.complex128(0)
-        for both_spins in [True, False]:
-            for l in range(system_geometry.get_number_sites_wo_spin_degree()):
-                for m in system_geometry.get_nearest_neighbor_indices(l):
-                    for a in range(system_geometry.get_number_sites_wo_spin_degree()):
-                        for b in system_geometry.get_nearest_neighbor_indices(a):
-                            no_opposite_spin_dirs_aggregator += eval_variance_op(
-                                ham=use_hamiltonian,
-                                use_state=use_state,
-                                l=l,
-                                m=m,
-                                a=a,
-                                b=b,
-                                sigma_up=both_spins,
-                                mu_up=both_spins,
-                                measurement_time=measurement_time,
-                            )
+        only_overlap_aggregator = np.complex128(0)
+        for sigma_up in [True, False]:
+            for mu_up in [True, False]:
+                for help_index in range(
+                    system_geometry.get_number_sites_wo_spin_degree()
+                ):
+                    for (
+                        l,
+                        _,
+                        m,
+                        _,
+                        a,
+                        _,
+                        b,
+                        _,
+                    ) in system_geometry.get_index_knows_tuples(help_index):
+                        only_overlap_aggregator += eval_variance_op(
+                            ham=use_hamiltonian,
+                            use_state=use_state,
+                            l=l,
+                            m=m,
+                            a=a,
+                            b=b,
+                            sigma_up=sigma_up,
+                            mu_up=mu_up,
+                            measurement_time=measurement_time,
+                        )
 
-        if np.abs(all_aggregator - no_opposite_spin_dirs_aggregator) > 1e-6:
+        if np.abs(all_aggregator - only_overlap_aggregator) > 1e-6:
             print(all_aggregator)
-            print(no_opposite_spin_dirs_aggregator)
+            print(only_overlap_aggregator)
             raise Exception("Should be the same")
 
 
