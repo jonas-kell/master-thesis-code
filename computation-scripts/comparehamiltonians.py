@@ -74,7 +74,7 @@ total_time_flipping_optimized_second_order = 0
 total_time_double_flipping_un_optimized_second_order = 0
 total_time_double_flipping_optimized_second_order = 0
 
-iterations = 1000
+iterations = 100
 for _ in range(iterations):
     use_state.init_random_filling(random)
 
@@ -249,6 +249,32 @@ for _ in range(iterations):
         print(res_flip_b[0])
 
     a = measure() * 1000
+    res_double_flip_a_same = ham_canonical.get_H_eff_difference_double_flipping(
+        time=measurement_time,
+        flipping1_up=sw1_up,
+        flipping1_index=sw1_index,  # same site!!
+        flipping2_up=sw2_up,
+        flipping2_index=sw1_index,  # same site!!
+        before_swap_system_state=use_state,
+    )
+    b = measure() * 1000
+    res_double_flip_b_same = ham_flip_optimized.get_H_eff_difference_double_flipping(
+        time=measurement_time,
+        flipping1_up=sw1_up,
+        flipping1_index=sw1_index,  # same site!!
+        flipping2_up=sw2_up,
+        flipping2_index=sw1_index,  # same site!!
+        before_swap_system_state=use_state,
+    )
+    c = measure() * 1000
+    total_time_double_flipping_un_optimized += b - a
+    total_time_double_flipping_optimized += c - b
+    if np.abs(res_double_flip_a_same[0] - res_double_flip_b_same[0]) > 1e-6:
+        print("Difference for Double Flipping Same Site")
+        print(res_double_flip_a_same[0])
+        print(res_double_flip_b_same[0])
+
+    a = measure() * 1000
     res_double_flip_a = ham_canonical.get_H_eff_difference_double_flipping(
         time=measurement_time,
         flipping1_up=sw1_up,
@@ -373,6 +399,36 @@ for _ in range(iterations):
         print("Second Order Difference for Flipping")
         print(res_flip_a[0])
         print(res_flip_b[0])
+
+    a = measure() * 1000
+    res_double_flip_a_same = (
+        ham_canonical_second_order.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=sw1_up,
+            flipping1_index=sw1_index,  # same site!!
+            flipping2_up=sw2_up,
+            flipping2_index=sw1_index,  # same site!!
+            before_swap_system_state=use_state,
+        )
+    )
+    b = measure() * 1000
+    res_double_flip_b_same = (
+        ham_second_order_optimized.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=sw1_up,
+            flipping1_index=sw1_index,  # same site!!
+            flipping2_up=sw2_up,
+            flipping2_index=sw1_index,  # same site!!
+            before_swap_system_state=use_state,
+        )
+    )
+    c = measure() * 1000
+    total_time_double_flipping_un_optimized_second_order += b - a
+    total_time_double_flipping_optimized_second_order += c - b
+    if np.abs(res_double_flip_a_same[0] - res_double_flip_b_same[0]) > 1e-6:
+        print("Second Order Difference for Double Flipping Same Site")
+        print(res_double_flip_a_same[0])
+        print(res_double_flip_b_same[0])
 
     a = measure() * 1000
     res_double_flip_a = ham_canonical_second_order.get_H_eff_difference_double_flipping(
