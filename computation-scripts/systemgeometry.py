@@ -15,13 +15,13 @@ class SystemGeometry(ABC):
 
     def __init__(self):
         self.index_knows_cache: List[
-            List[Tuple[int, float, int, float, int, float, int, float]]
+            Set[Tuple[int, float, int, float, int, float, int, float]]
         ] = None
         self.index_knows_cache_contains_one: List[
-            List[Tuple[int, float, int, float, int, float, int, float]]
+            Set[Tuple[int, float, int, float, int, float, int, float]]
         ] = None
         self.index_knows_cache_contains_two: List[
-            List[List[Tuple[int, float, int, float, int, float, int, float]]]
+            List[Set[Tuple[int, float, int, float, int, float, int, float]]]
         ] = None
         self.index_overlap_circle_cache: Set[Tuple[int, int, int, int]] = None
 
@@ -32,14 +32,13 @@ class SystemGeometry(ABC):
             self.index_overlap_circle_cache: Set[Tuple[int, int, int, int]] = set()
 
             for index in range(self.get_number_sites_wo_spin_degree()):
-                index_circle = [index]
+                index_circle = set([index])
                 for _ in range(circle_radius):
                     for check_index in index_circle.copy():
                         for plus_one_step_nb in self.get_nearest_neighbor_indices(
                             check_index
                         ):
-                            if plus_one_step_nb not in index_circle:
-                                index_circle.append(plus_one_step_nb)
+                            index_circle.add(plus_one_step_nb)
 
                 for l in index_circle:
                     for m in self.get_nearest_neighbor_indices(l):
@@ -57,32 +56,32 @@ class SystemGeometry(ABC):
         # init index knows tuples
         if self.index_knows_cache is None:
             self.index_knows_cache: List[
-                List[Tuple[int, float, int, float, int, float, int, float]]
+                Set[Tuple[int, float, int, float, int, float, int, float]]
             ] = []
             for l in range(self.get_number_sites_wo_spin_degree()):
-                inner_list: List[
+                inner_list: Set[
                     Tuple[int, float, int, float, int, float, int, float]
-                ] = []
+                ] = set()
                 for m in self.get_nearest_neighbor_indices(l):
-                    ab_indices: List[Tuple[int, int]] = []
+                    ab_indices: Set[Tuple[int, int]] = set()
 
                     # a = l, b is nb of l
                     for b in self.get_nearest_neighbor_indices(l):
-                        ab_indices.append((l, b))
+                        ab_indices.add((l, b))
                     # a = m, b is nb of m
                     for b in self.get_nearest_neighbor_indices(m):
-                        ab_indices.append((m, b))
+                        ab_indices.add((m, b))
                     # b = l, a is nb of l & neq m
                     for a in self.get_nearest_neighbor_indices(l):
                         if a != m:
-                            ab_indices.append((a, l))
+                            ab_indices.add((a, l))
                     # b = m, a is nb of m & neq l
                     for a in self.get_nearest_neighbor_indices(m):
                         if a != l:
-                            ab_indices.append((a, m))
+                            ab_indices.add((a, m))
 
                     for a, b in ab_indices:
-                        inner_list.append(
+                        inner_list.add(
                             (
                                 l,
                                 self.get_eps_multiplier(l, phi, sin_phi, cos_phi),
@@ -100,45 +99,43 @@ class SystemGeometry(ABC):
         # init index knows tuples that contain one index
         if self.index_knows_cache_contains_one is None:
             self.index_knows_cache_contains_one: List[
-                List[Tuple[int, float, int, float, int, float, int, float]]
+                Set[Tuple[int, float, int, float, int, float, int, float]]
             ] = []
             for index in range(self.get_number_sites_wo_spin_degree()):
-                inner_list: List[
+                inner_list: Set[
                     Tuple[int, float, int, float, int, float, int, float]
-                ] = []
+                ] = set()
 
-                index_circle = [index]
+                index_circle = set([index])
                 for one_step_nb in self.get_nearest_neighbor_indices(index):
-                    if one_step_nb not in index_circle:
-                        index_circle.append(one_step_nb)
+                    index_circle.add(one_step_nb)
                     for two_step_nb in self.get_nearest_neighbor_indices(one_step_nb):
-                        if two_step_nb not in index_circle:
-                            index_circle.append(two_step_nb)
+                        index_circle.add(two_step_nb)
 
                 for l in index_circle:
                     for m in self.get_nearest_neighbor_indices(l):
-                        ab_indices: List[Tuple[int, int]] = []
+                        ab_indices: Set[Tuple[int, int]] = set()
 
                         # a = l, b is nb of l
                         for b in self.get_nearest_neighbor_indices(l):
-                            ab_indices.append((l, b))
+                            ab_indices.add((l, b))
                         # a = m, b is nb of m
                         for b in self.get_nearest_neighbor_indices(m):
-                            ab_indices.append((m, b))
+                            ab_indices.add((m, b))
                         # b = l, a is nb of l & neq m
                         for a in self.get_nearest_neighbor_indices(l):
                             if a != m:
-                                ab_indices.append((a, l))
+                                ab_indices.add((a, l))
                         # b = m, a is nb of m & neq l
                         for a in self.get_nearest_neighbor_indices(m):
                             if a != l:
-                                ab_indices.append((a, m))
+                                ab_indices.add((a, m))
 
                         for a, b in ab_indices:
                             if (
                                 l == index or m == index or a == index or b == index
                             ) and (l == a or m == a or l == b or m == b):
-                                inner_list.append(
+                                inner_list.add(
                                     (
                                         l,
                                         self.get_eps_multiplier(
@@ -164,53 +161,49 @@ class SystemGeometry(ABC):
         # init index knows tuples that contain at least one of two indices
         if self.index_knows_cache_contains_two is None:
             self.index_knows_cache_contains_two: List[
-                List[List[Tuple[int, float, int, float, int, float, int, float]]]
+                List[Set[Tuple[int, float, int, float, int, float, int, float]]]
             ] = []
             for indexa in range(self.get_number_sites_wo_spin_degree()):
                 index_list: List[
-                    List[Tuple[int, float, int, float, int, float, int, float]]
+                    Set[Tuple[int, float, int, float, int, float, int, float]]
                 ] = []
                 for indexb in range(self.get_number_sites_wo_spin_degree()):
-                    inner_list: List[
+                    inner_list: Set[
                         Tuple[int, float, int, float, int, float, int, float]
-                    ] = []
+                    ] = set()
 
-                    index_circle = [indexa, indexb]
+                    index_circle = set([indexa, indexb])
                     for one_step_nb in self.get_nearest_neighbor_indices(indexa):
-                        if one_step_nb not in index_circle:
-                            index_circle.append(one_step_nb)
+                        index_circle.add(one_step_nb)
                         for two_step_nb in self.get_nearest_neighbor_indices(
                             one_step_nb
                         ):
-                            if two_step_nb not in index_circle:
-                                index_circle.append(two_step_nb)
+                            index_circle.add(two_step_nb)
                     for one_step_nb in self.get_nearest_neighbor_indices(indexb):
-                        if one_step_nb not in index_circle:
-                            index_circle.append(one_step_nb)
+                        index_circle.add(one_step_nb)
                         for two_step_nb in self.get_nearest_neighbor_indices(
                             one_step_nb
                         ):
-                            if two_step_nb not in index_circle:
-                                index_circle.append(two_step_nb)
+                            index_circle.add(two_step_nb)
 
                     for l in index_circle:
                         for m in self.get_nearest_neighbor_indices(l):
-                            ab_indices: List[Tuple[int, int]] = []
+                            ab_indices: Set[Tuple[int, int]] = set()
 
                             # a = l, b is nb of l
                             for b in self.get_nearest_neighbor_indices(l):
-                                ab_indices.append((l, b))
+                                ab_indices.add((l, b))
                             # a = m, b is nb of m
                             for b in self.get_nearest_neighbor_indices(m):
-                                ab_indices.append((m, b))
+                                ab_indices.add((m, b))
                             # b = l, a is nb of l & neq m
                             for a in self.get_nearest_neighbor_indices(l):
                                 if a != m:
-                                    ab_indices.append((a, l))
+                                    ab_indices.add((a, l))
                             # b = m, a is nb of m & neq l
                             for a in self.get_nearest_neighbor_indices(m):
                                 if a != l:
-                                    ab_indices.append((a, m))
+                                    ab_indices.add((a, m))
 
                             for a, b in ab_indices:
                                 if (
@@ -223,7 +216,7 @@ class SystemGeometry(ABC):
                                     or a == indexb
                                     or b == indexb
                                 ) and (l == a or m == a or l == b or m == b):
-                                    inner_list.append(
+                                    inner_list.add(
                                         (
                                             l,
                                             self.get_eps_multiplier(

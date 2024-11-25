@@ -5863,3 +5863,170 @@ def v_double_flip(
                                         / (flip1_eps - nb_eps)
                                     )
     return res
+
+
+def v_double_flip_same_site(
+    U: float,
+    t: float,
+    flip_eps: float,
+    flip_occ_up: int,
+    flip_occ_down: int,
+    neighbors_eps_occupation_tuples: List[Tuple[float, int, int]],
+) -> np.complex128:
+    res: np.complex128 = np.complex128(0)
+    for nb_eps, nb_occ_up, nb_occ_down in neighbors_eps_occupation_tuples:
+        if flip_occ_up:
+            if flip_occ_down:
+                if nb_occ_up:
+                    if nb_occ_down:
+                        # Lc:True, Mc:True, Ld:True, Md:True
+                        res += 0 + -2 * (
+                            np.expm1(1j * (nb_eps - flip_eps + U) * t)
+                            / (nb_eps - flip_eps + U)
+                        )
+                    else:
+                        # Lc:True, Mc:True, Ld:True, Md:False
+                        res += (
+                            0
+                            + (
+                                np.expm1(1j * (flip_eps - nb_eps) * t)
+                                / (flip_eps - nb_eps)
+                            )
+                            - (
+                                np.expm1(1j * (nb_eps - flip_eps) * t)
+                                / (nb_eps - flip_eps)
+                            )
+                        )
+                else:
+                    if nb_occ_down:
+                        # Lc:True, Mc:False, Ld:True, Md:True
+                        res += (
+                            0
+                            + (
+                                np.expm1(1j * (flip_eps - nb_eps) * t)
+                                / (flip_eps - nb_eps)
+                            )
+                            - (
+                                np.expm1(1j * (nb_eps - flip_eps) * t)
+                                / (nb_eps - flip_eps)
+                            )
+                        )
+                    else:
+                        # Lc:True, Mc:False, Ld:True, Md:False
+                        res += 0 + 2 * (
+                            np.expm1(1j * (flip_eps - nb_eps + U) * t)
+                            / (flip_eps - nb_eps + U)
+                        )
+            else:
+                if nb_occ_up:
+                    if nb_occ_down:
+                        # Lc:True, Mc:True, Ld:False, Md:True
+                        res += 0
+                    else:
+                        # Lc:True, Mc:True, Ld:False, Md:False
+                        res += (
+                            0
+                            - (
+                                np.expm1(1j * (flip_eps - nb_eps - U) * t)
+                                / (flip_eps - nb_eps - U)
+                            )
+                            - (
+                                np.expm1(1j * (nb_eps - flip_eps - U) * t)
+                                / (nb_eps - flip_eps - U)
+                            )
+                        )
+                else:
+                    if nb_occ_down:
+                        # Lc:True, Mc:False, Ld:False, Md:True
+                        res += (
+                            0
+                            + (
+                                np.expm1(1j * (flip_eps - nb_eps - U) * t)
+                                / (flip_eps - nb_eps - U)
+                            )
+                            + (
+                                np.expm1(1j * (nb_eps - flip_eps - U) * t)
+                                / (nb_eps - flip_eps - U)
+                            )
+                        )
+                    else:
+                        # Lc:True, Mc:False, Ld:False, Md:False
+                        res += 0
+        else:
+            if flip_occ_down:
+                if nb_occ_up:
+                    if nb_occ_down:
+                        # Lc:False, Mc:True, Ld:True, Md:True
+                        res += 0
+                    else:
+                        # Lc:False, Mc:True, Ld:True, Md:False
+                        res += (
+                            0
+                            + (
+                                np.expm1(1j * (flip_eps - nb_eps - U) * t)
+                                / (flip_eps - nb_eps - U)
+                            )
+                            + (
+                                np.expm1(1j * (nb_eps - flip_eps - U) * t)
+                                / (nb_eps - flip_eps - U)
+                            )
+                        )
+                else:
+                    if nb_occ_down:
+                        # Lc:False, Mc:False, Ld:True, Md:True
+                        res += (
+                            0
+                            - (
+                                np.expm1(1j * (flip_eps - nb_eps - U) * t)
+                                / (flip_eps - nb_eps - U)
+                            )
+                            - (
+                                np.expm1(1j * (nb_eps - flip_eps - U) * t)
+                                / (nb_eps - flip_eps - U)
+                            )
+                        )
+                    else:
+                        # Lc:False, Mc:False, Ld:True, Md:False
+                        res += 0
+            else:
+                if nb_occ_up:
+                    if nb_occ_down:
+                        # Lc:False, Mc:True, Ld:False, Md:True
+                        res += 0 + 2 * (
+                            np.expm1(1j * (nb_eps - flip_eps + U) * t)
+                            / (nb_eps - flip_eps + U)
+                        )
+                    else:
+                        # Lc:False, Mc:True, Ld:False, Md:False
+                        res += (
+                            0
+                            - (
+                                np.expm1(1j * (flip_eps - nb_eps) * t)
+                                / (flip_eps - nb_eps)
+                            )
+                            + (
+                                np.expm1(1j * (nb_eps - flip_eps) * t)
+                                / (nb_eps - flip_eps)
+                            )
+                        )
+                else:
+                    if nb_occ_down:
+                        # Lc:False, Mc:False, Ld:False, Md:True
+                        res += (
+                            0
+                            - (
+                                np.expm1(1j * (flip_eps - nb_eps) * t)
+                                / (flip_eps - nb_eps)
+                            )
+                            + (
+                                np.expm1(1j * (nb_eps - flip_eps) * t)
+                                / (nb_eps - flip_eps)
+                            )
+                        )
+                    else:
+                        # Lc:False, Mc:False, Ld:False, Md:False
+                        res += 0 + -2 * (
+                            np.expm1(1j * (flip_eps - nb_eps + U) * t)
+                            / (flip_eps - nb_eps + U)
+                        )
+    return res

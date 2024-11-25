@@ -306,6 +306,75 @@ def generateHelperFile(inputMappings):
 
     write_file(FILENAME, indent(1) + "return res\n\n\n")
 
+    # V, double flipping, same site
+    write_file(
+        FILENAME,
+        "def v_double_flip_same_site(U: float, t: float, flip_eps: float, flip_occ_up: int, flip_occ_down: int, neighbors_eps_occupation_tuples: List[Tuple[float, int, int]]) -> np.complex128:\n",
+    )
+    write_file(FILENAME, indent(1) + "res: np.complex128 = np.complex128(0)\n")
+    write_file(
+        FILENAME,
+        indent(1)
+        + "for (nb_eps, nb_occ_up, nb_occ_down) in neighbors_eps_occupation_tuples:\n",
+    )
+
+    def endCallbackDoubleSameSiteFlip(lineStart: str, currentTruthinesses: List[bool]):
+        Lc, Ld, Mc, Md = currentTruthinesses
+
+        res = ""
+        res += lineStart + f"# Lc:{Lc}, Mc:{Mc}, Ld:{Ld}, Md:{Md}" + "\n"
+        res += lineStart + "res += 0 "
+        for meta, mappings in inputMappings.values():
+            LcPrime = 1 - Lc
+            LdPrime = 1 - Ld
+            McPrime = Mc
+            MdPrime = Md
+
+            # first meta entry - normal
+            mult = mappings[0](Lc, Mc, Ld, Md) - mappings[0](
+                LcPrime, McPrime, LdPrime, MdPrime
+            )
+            if mult != 0:
+                if is_basically_one(mult):
+                    res += "+" + meta[0]
+                elif is_basically_one(-mult):
+                    res += "-" + meta[0]
+                else:
+                    res += "+ " + str(mult) + " * " + meta[0]
+            # second meta entry - l<->m swapped
+            mult = mappings[0](Mc, Lc, Md, Ld) - mappings[0](
+                McPrime, LcPrime, MdPrime, LdPrime
+            )
+            if mult != 0:
+                if is_basically_one(mult):
+                    res += "+" + meta[1]
+                elif is_basically_one(-mult):
+                    res += "-" + meta[1]
+                else:
+                    res += "+ " + str(mult) + " * " + meta[1]
+
+        res = res.replace("epsl", "flip_eps")
+        res = res.replace("epsm", "nb_eps")
+
+        res += "\n"
+        return res
+
+    write_file(
+        FILENAME,
+        generate_if_tree(
+            2,
+            [
+                "flip_occ_up",
+                "flip_occ_down",
+                "nb_occ_up",
+                "nb_occ_down",
+            ],
+            endCallbackDoubleSameSiteFlip,
+        ),
+    )
+
+    write_file(FILENAME, indent(1) + "return res\n\n\n")
+
 
 if __name__ == "__main__":
     mappingsDict = {
