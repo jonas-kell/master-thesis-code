@@ -101,21 +101,35 @@ def get_efficienter_4_way_flip_exp(
             )[0]
         )
     else:
-        modified_state = use_state.get_editable_copy()
+        # all use_indices use_l, use_m, use_a, use_b are different
+        modify_arr = use_state.get_state_array()
 
-        modify_arr = modified_state.get_state_array()
+        # N(4-flip) - N(no flip) = [N(4-flip) - N(2-flip)] + [N(no flip) - N(2-flip)]
+
+        # flip in-place for computation
         modify_arr[use_l_index] = 1 - modify_arr[use_l_index]
         modify_arr[use_m_index] = 1 - modify_arr[use_m_index]
-        modify_arr[use_a_index] = 1 - modify_arr[use_a_index]
-        modify_arr[use_b_index] = 1 - modify_arr[use_b_index]
+        a_result = ham.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=mu_up,
+            flipping1_index=a,
+            flipping2_up=mu_up,
+            flipping2_index=b,
+            before_swap_system_state=use_state,
+        )[0]
+        # flip back, function doesn't modify state permanently, change is only in this section
+        modify_arr[use_l_index] = 1 - modify_arr[use_l_index]
+        modify_arr[use_m_index] = 1 - modify_arr[use_m_index]
+        b_result = ham.get_H_eff_difference_double_flipping(
+            time=measurement_time,
+            flipping1_up=sigma_up,
+            flipping1_index=l,
+            flipping2_up=sigma_up,
+            flipping2_index=m,
+            before_swap_system_state=use_state,
+        )[0]
 
-        return np.exp(  # has the difference (modified)-(non-modified) already
-            ham.get_H_eff_difference(
-                time=measurement_time,
-                system_state_a=modified_state,
-                system_state_b=use_state,
-            )
-        )
+        return np.exp(-a_result - b_result)
 
 
 def eval_variance_op(
@@ -225,7 +239,7 @@ def main():
     J = 0.2
     phi = np.pi / 3
     measurement_time = 1.2
-    n = 4
+    n = 6
 
     random = RandomGenerator(str(measure()))
 
