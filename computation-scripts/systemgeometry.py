@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any, List, Tuple
+from typing import Dict, Union, Any, List, Tuple, Set
 from abc import ABC, abstractmethod
 from time import time as measure
 
@@ -23,6 +23,34 @@ class SystemGeometry(ABC):
         self.index_knows_cache_contains_two: List[
             List[List[Tuple[int, float, int, float, int, float, int, float]]]
         ] = None
+        self.index_overlap_circle_cache: Set[Tuple[int, int, int, int]] = None
+
+    def init_index_overlap_circle_cache(self, circle_radius: int):
+        time_start = measure() * 1000
+        # init index overlap circle tuples
+        if self.index_overlap_circle_cache is None:
+            self.index_overlap_circle_cache: Set[Tuple[int, int, int, int]] = set()
+
+            for index in range(self.get_number_sites_wo_spin_degree()):
+                index_circle = [index]
+                for _ in range(circle_radius):
+                    for check_index in index_circle.copy():
+                        for plus_one_step_nb in self.get_nearest_neighbor_indices(
+                            check_index
+                        ):
+                            if plus_one_step_nb not in index_circle:
+                                index_circle.append(plus_one_step_nb)
+
+                for l in index_circle:
+                    for m in self.get_nearest_neighbor_indices(l):
+                        for a in index_circle:
+                            for b in self.get_nearest_neighbor_indices(a):
+                                self.index_overlap_circle_cache.add((l, m, a, b))
+
+        time_end = measure() * 1000
+        print(
+            f"Index-Overlap-Circle-Cache has been pre-computed in {time_end-time_start}ms to contain {len(self.index_overlap_circle_cache)}"
+        )
 
     def init_index_knows_cache(self, phi: float, sin_phi: float, cos_phi: float):
         time_start = measure() * 1000
@@ -275,6 +303,15 @@ class SystemGeometry(ABC):
                 "Index knows cache is requested, but not yet initialized for this geometry"
             )
         return self.index_knows_cache_contains_two[indexa][indexb]
+
+    def get_index_overlap_circle_tuples(
+        self,
+    ) -> Set[Tuple[int, int, int, int]]:
+        if self.index_overlap_circle_cache is None:
+            raise Exception(
+                "Index overlap circle cache is requested, but not yet initialized for this geometry"
+            )
+        return self.index_overlap_circle_cache
 
 
 class SquareSystemNonPeriodicState(SystemGeometry):
