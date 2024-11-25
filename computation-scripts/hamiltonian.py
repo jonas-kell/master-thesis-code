@@ -1637,6 +1637,42 @@ class ZerothOrderFlippingAndSwappingOptimization(
         )
 
 
+class ZerothOrder(HardcoreBosonicHamiltonian):
+    "Basically just sets H_n to 0"
+
+    def __init__(
+        self,
+        U: float,
+        E: float,
+        J: float,
+        phi: float,
+        initial_system_state: state.InitialSystemState,
+    ):
+        super().__init__(
+            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
+        )
+
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        _ = time
+        _ = system_state
+
+        return 0
+
+    def get_log_info(
+        self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
+    ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "ZerothOrder",
+                **additional_info,
+            }
+        )
+
+
 class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
     HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
 ):
