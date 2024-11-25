@@ -46,29 +46,11 @@ def main():
         system_hamiltonian=use_hamiltonian,
         system_geometry=system_geometry,
     )
-    # concurrence_operator = observables.Concurrence(
-    #     site_index_from=from_index,
-    #     spin_up_from=spin_up,
-    #     site_index_to=to_index,
-    #     spin_up_to=spin_up,
-    #     system_hamiltonian=use_hamiltonian,
-    #     system_geometry=system_geometry,
-    # )
-    # concurrence_asymm_operator = observables.ConcurrenceAsymm(
-    #     site_index_from=from_index,
-    #     spin_up_from=spin_up,
-    #     site_index_to=to_index,
-    #     spin_up_to=spin_up,
-    #     system_hamiltonian=use_hamiltonian,
-    #     system_geometry=system_geometry,
-    # )
 
     use_state = state.SystemState(system_geometry, initial_system_state)
 
     total_time_old_current = 0
     total_time_new_current = 0
-    # total_time_concurrence = 0
-    # total_time_concurrence_asymm = 0
     iterations = 3000
     for _ in range(iterations):
         use_state.init_random_filling(random)
@@ -92,33 +74,8 @@ def main():
             print(new_current)
             raise Exception("Should be the same")
 
-        # start = measure() * 1000
-        # concurrence = concurrence_operator.post_process(
-        #     concurrence_operator.get_expectation_value(
-        #         time=measurement_time, system_state=use_state
-        #     )
-        # )
-        # end = measure() * 1000
-        # total_time_concurrence += end - start
-
-        # start = measure() * 1000
-        # concurrence_asymm = concurrence_asymm_operator.post_process(
-        #     concurrence_asymm_operator.get_expectation_value(
-        #         time=measurement_time, system_state=use_state
-        #     )
-        # )
-        # end = measure() * 1000
-        # total_time_concurrence_asymm += end - start
-
-        # if np.abs(concurrence - concurrence_asymm) > 1e-6:
-        #     print(concurrence)
-        #     print(concurrence_asymm)
-        #     raise Exception("Should be the same")
-
     print("Current old ms:", total_time_old_current)
     print("Current new ms:", total_time_new_current)
-    # print("Concurrence ms:", total_time_concurrence)
-    # print("Concurrence asym ms:", total_time_concurrence_asymm)
 
 
 if __name__ == "__main__":
