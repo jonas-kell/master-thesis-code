@@ -47,6 +47,77 @@ def get_inefficient_4_way_flip_exp(
     )
 
 
+def get_efficienter_4_way_flip_exp(
+    use_state: state.SystemState,
+    ham: hamiltonian.Hamiltonian,
+    l: int,
+    m: int,
+    a: int,
+    b: int,
+    sigma_up: bool,
+    mu_up: bool,
+    measurement_time: float,
+) -> np.complex128:
+    if sigma_up:
+        use_l_index = l
+        use_m_index = m
+    else:
+        use_l_index = use_state.get_opposite_spin_index(l)
+        use_m_index = use_state.get_opposite_spin_index(m)
+    if mu_up:
+        use_a_index = a
+        use_b_index = b
+    else:
+        use_a_index = use_state.get_opposite_spin_index(a)
+        use_b_index = use_state.get_opposite_spin_index(b)
+
+    # this might never get called with use_l_index == use_a_index or use_m_index == use_b_index
+    # thant must be filtered out earlier
+    if use_l_index == use_a_index or use_m_index == use_b_index:
+        raise Exception("This should not happen")  # TODO remove, when algo is correct
+
+    if use_l_index == use_b_index and use_m_index == use_a_index:
+        return 1.0  # exp^0
+    elif use_l_index == use_b_index:  # use_m_index != use_a_index
+        return np.exp(
+            -ham.get_H_eff_difference_double_flipping(
+                time=measurement_time,
+                flipping1_up=sigma_up,
+                flipping1_index=m,
+                flipping2_up=mu_up,
+                flipping2_index=a,
+                before_swap_system_state=use_state,
+            )[0]
+        )
+    elif use_m_index == use_a_index:  # use_l_index != use_b_index
+        return np.exp(
+            -ham.get_H_eff_difference_double_flipping(
+                time=measurement_time,
+                flipping1_up=sigma_up,
+                flipping1_index=l,
+                flipping2_up=mu_up,
+                flipping2_index=b,
+                before_swap_system_state=use_state,
+            )[0]
+        )
+    else:
+        modified_state = use_state.get_editable_copy()
+
+        modify_arr = modified_state.get_state_array()
+        modify_arr[use_l_index] = 1 - modify_arr[use_l_index]
+        modify_arr[use_m_index] = 1 - modify_arr[use_m_index]
+        modify_arr[use_a_index] = 1 - modify_arr[use_a_index]
+        modify_arr[use_b_index] = 1 - modify_arr[use_b_index]
+
+        return np.exp(  # has the difference (modified)-(non-modified) already
+            ham.get_H_eff_difference(
+                time=measurement_time,
+                system_state_a=modified_state,
+                system_state_b=use_state,
+            )
+        )
+
+
 def eval_variance_op(
     use_state: state.SystemState,
     ham: hamiltonian.Hamiltonian,
@@ -57,6 +128,7 @@ def eval_variance_op(
     sigma_up: bool,
     mu_up: bool,
     measurement_time: float,
+    four_way_flip_callback,
 ) -> np.complex128:
     if sigma_up:
         initial_occ_l = use_state.get_state_array()[l]
@@ -103,7 +175,7 @@ def eval_variance_op(
     )
     exp_JJ = 0
     if factor_square:
-        exp_JJ = get_inefficient_4_way_flip_exp(
+        exp_JJ = four_way_flip_callback(
             use_state=use_state,
             ham=ham,
             l=l,
@@ -153,7 +225,7 @@ def main():
     J = 0.2
     phi = np.pi / 3
     measurement_time = 1.2
-    n = 5
+    n = 4
 
     random = RandomGenerator(str(measure()))
 
@@ -191,6 +263,7 @@ def main():
 
     total_time_all_aggregation = 0
     total_time_only_overlap_aggregation = 0
+    total_time_only_overlap_aggregation_eff_flip = 0
     iterations = 1
     for iter_index in range(iterations):
         use_state.init_random_filling(random)
@@ -217,6 +290,7 @@ def main():
                                     sigma_up=sigma_up,
                                     mu_up=mu_up,
                                     measurement_time=measurement_time,
+                                    four_way_flip_callback=get_inefficient_4_way_flip_exp,
                                 )
                 if iter_index == 0 and sigma_up and mu_up:
                     print(f"Full convolution took {num_all_index_pairs} index tuples")
@@ -238,17 +312,47 @@ def main():
                         sigma_up=sigma_up,
                         mu_up=mu_up,
                         measurement_time=measurement_time,
+                        four_way_flip_callback=get_inefficient_4_way_flip_exp,
                     )
         end = measure() * 1000
         total_time_only_overlap_aggregation += end - start
+
+        start = measure() * 1000
+        only_overlap_aggregator_eff_flip = np.complex128(0)
+        for sigma_up in [True, False]:
+            for mu_up in [True, False]:
+                for l, m, a, b in system_geometry.get_index_overlap_circle_tuples():
+                    only_overlap_aggregator_eff_flip += eval_variance_op(
+                        ham=use_hamiltonian,
+                        use_state=use_state,
+                        l=l,
+                        m=m,
+                        a=a,
+                        b=b,
+                        sigma_up=sigma_up,
+                        mu_up=mu_up,
+                        measurement_time=measurement_time,
+                        four_way_flip_callback=get_efficienter_4_way_flip_exp,
+                    )
+        end = measure() * 1000
+        total_time_only_overlap_aggregation_eff_flip += end - start
 
         if np.abs(all_aggregator - only_overlap_aggregator) > 1e-6:
             print(all_aggregator)
             print(only_overlap_aggregator)
             raise Exception("Should be the same")
 
+        if np.abs(only_overlap_aggregator - only_overlap_aggregator_eff_flip) > 1e-6:
+            print(only_overlap_aggregator)
+            print(only_overlap_aggregator_eff_flip)
+            raise Exception("Should be the same")
+
     print("All aggregation ms:", total_time_all_aggregation)
     print("Overlap aggregation ms:", total_time_only_overlap_aggregation)
+    print(
+        "Overlap aggregation better flipping:",
+        total_time_only_overlap_aggregation_eff_flip,
+    )
 
 
 if __name__ == "__main__":
