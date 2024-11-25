@@ -262,6 +262,66 @@ class SpinCurrent(MeasurableObservable):
         }
 
 
+class SpinCurrentFlipping(SpinCurrent):
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        system_state_array = system_state.get_state_array()
+
+        site_occ_l = system_state_array[self.occ_site_index_from]
+        site_occ_m = system_state_array[self.occ_site_index_to]
+        forward_swap_condition = site_occ_l == 1 and site_occ_m == 0
+        disjunct_condition = site_occ_l != site_occ_m
+
+        res: np.complex128 = np.complex128(0)
+        if disjunct_condition:
+            H_eff_difference, psi_factor = (
+                self.system_hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    before_swap_system_state=system_state,
+                    flipping1_index=self.site_index_from_save,
+                    flipping2_index=self.site_index_to_save,
+                    flipping1_up=self.spin_up,
+                    flipping2_up=self.spin_up,
+                )
+            )
+
+            # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (swapped - original)
+            # therefore also (x/psi) not (x*psi)
+
+            if forward_swap_condition:
+                res += np.exp(-H_eff_difference) / psi_factor
+            else:
+                if self.direction_dependent:
+                    # other direction = other sign
+                    res -= np.exp(-H_eff_difference) / psi_factor
+                else:
+                    # both directions contribute with same sign
+                    res += np.exp(-H_eff_difference) / psi_factor
+
+            # this can be indented to here, as if it was one more layer further out there would be only value = 0
+            if self.direction_dependent:
+                # required to make the direction dependent operation hermitian
+                res *= 1j
+
+        # Upstream functions check that the imaginary part of this cancels
+        return -self.system_hamiltonian.J * res
+
+    def get_label(self) -> str:
+        return f"Spin Current Flipping {'(signed)' if self.direction_dependent else ''} from {self.site_index_from} to {self.site_index_to} ({'up' if self.spin_up else 'down'})"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "SpinCurrentFlipping",
+            "label": self.get_label(),
+            "site_index_from": self.site_index_from,
+            "site_index_to": self.site_index_to,
+            "spin_up": self.spin_up,
+            "direction_dependent": self.direction_dependent,
+        }
+
+
 class ReducedDensityMatrixMeasurement(MeasurableObservable):
 
     def __init__(
