@@ -234,7 +234,7 @@ def main():
 
         scaler = 1 / J
         num_samples_over_timespan = 50
-        target_time_in_1_over_u = scaler * 1
+        target_time_in_1_over_u = scaler * 10
 
         zip_filename_base = str(num_monte_carlo_samples) + "samples"
 

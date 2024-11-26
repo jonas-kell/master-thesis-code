@@ -486,6 +486,7 @@ if __name__ == "__main__":
             observables.EnergyVariance(
                 ham=ham,
                 geometry=system_geometry,
+                initial_system_state=initial_system_state,
             ),
         ]
         obs += obs_hard_coded

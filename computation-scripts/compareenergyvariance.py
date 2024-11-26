@@ -276,7 +276,9 @@ def main():
 
     use_state = state.SystemState(system_geometry, initial_system_state)
     observable_var = observables.EnergyVariance(
-        ham=use_hamiltonian, geometry=system_geometry
+        ham=use_hamiltonian,
+        geometry=system_geometry,
+        initial_system_state=initial_system_state,
     )
 
     total_time_all_aggregation = 0
@@ -357,12 +359,10 @@ def main():
         total_time_only_overlap_aggregation_eff_flip += end - start
 
         start = measure() * 1000
-        result_implementation = (
-            observable_var.get_expectation_value(
-                time=measurement_time, system_state=use_state
-            )  # needs renormalization away from number of sites
-            * system_geometry.get_number_sites_wo_spin_degree()
+        intermediate_result = observable_var.get_expectation_value(
+            time=measurement_time, system_state=use_state
         )
+        result_implementation = intermediate_result[0] - intermediate_result[1]
         end = measure() * 1000
         total_time_implementation += end - start
 

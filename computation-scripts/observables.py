@@ -62,11 +62,7 @@ class Energy(MeasurableObservable):
 
         super().__init__()
 
-    def get_expectation_value(
-        self, time: float, system_state: state.SystemState
-    ) -> np.complex128:
-        E_0 = self.hamiltonian.get_base_energy(system_state=system_state)
-
+    def get_s_V_s(self, time: float, system_state: state.SystemState) -> np.complex128:
         v_aggregator = np.complex128(0)
         for l in range(self.number_of_sites):
             for m in system_state.get_nearest_neighbor_indices(l):
@@ -97,7 +93,16 @@ class Energy(MeasurableObservable):
                             )
                             v_aggregator += np.exp(-e_diff) / psi_fact
 
-        return (E_0 - self.hamiltonian.J * v_aggregator) / self.number_of_sites
+        return self.hamiltonian.J * v_aggregator
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        E_0 = self.hamiltonian.get_base_energy(system_state=system_state)
+
+        return (
+            E_0 - self.get_s_V_s(time=time, system_state=system_state)
+        ) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy per site"
@@ -106,12 +111,15 @@ class Energy(MeasurableObservable):
         return {"type": "Energy", "label": self.get_label()}
 
 
-class EnergyVariance(MeasurableObservable):
+class EnergyVariance(Energy):
     def __init__(
-        self, ham: hamiltonian.Hamiltonian, geometry: systemgeometry.SystemGeometry
+        self,
+        ham: hamiltonian.Hamiltonian,
+        geometry: systemgeometry.SystemGeometry,
+        initial_system_state: state.InitialSystemState,
     ):
-        self.hamiltonian = ham
-        self.number_of_sites = geometry.get_number_sites_wo_spin_degree()
+        super().__init__(geometry=geometry, ham=ham)
+
         self.geometry = geometry
         geometry.init_index_overlap_circle_cache(2)
         # 2 is known to be a good value for all apptoximations we do here
@@ -119,9 +127,12 @@ class EnergyVariance(MeasurableObservable):
         # we cannot save computation, by selecting 1 here for first order perturbations (unclear, what goes of of that range)
         # see test setup in ./compareenergyvariance.py
 
-        super().__init__()
+        if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
+            raise Exception(
+                "The Observable implementation requires a HomogenousInitialSystemState as a pre-requirement"
+            )
 
-    def eval_variance_op(
+    def eval_vv_difference_for_s(
         self,
         time: float,
         system_state: state.SystemState,
@@ -280,11 +291,11 @@ class EnergyVariance(MeasurableObservable):
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
     ) -> np.complex128:
-        variance_sum_aggregator = np.complex128(0)
+        vv_difference_aggregator = np.complex128(0)
         for sigma_up in [True, False]:
             for mu_up in [True, False]:
                 for l, m, a, b in self.geometry.get_index_overlap_circle_tuples():
-                    variance_sum_aggregator += self.eval_variance_op(
+                    vv_difference_aggregator += self.eval_vv_difference_for_s(
                         system_state=system_state,
                         l=l,
                         m=m,
@@ -295,9 +306,20 @@ class EnergyVariance(MeasurableObservable):
                         time=time,
                     )
 
-        return (
-            self.hamiltonian.J * self.hamiltonian.J * variance_sum_aggregator
-        ) / self.number_of_sites
+        s_VV_s = self.hamiltonian.J * self.hamiltonian.J * vv_difference_aggregator
+        s_V_s = self.get_s_V_s(
+            time=time,
+            system_state=system_state,
+        )
+        s_VV_s_square = s_V_s**2
+
+        return np.array([s_VV_s + s_VV_s_square, s_VV_s_square])
+
+    def post_process_necessary(self) -> bool:
+        return True
+
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        return (value[0] - value[1]) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy Variance per site"
