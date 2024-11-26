@@ -93,7 +93,7 @@ class Energy(MeasurableObservable):
                             )
                             v_aggregator += np.exp(-e_diff) / psi_fact
 
-        return self.hamiltonian.J * v_aggregator
+        return -self.hamiltonian.J * v_aggregator
 
     def get_expectation_value(
         self, time: float, system_state: state.SystemState
