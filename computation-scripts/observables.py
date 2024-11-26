@@ -311,14 +311,16 @@ class EnergyVariance(Energy):
             time=time,
             system_state=system_state,
         )
+        s_H0_s = self.hamiltonian.get_base_energy(system_state=system_state)
 
-        return np.array([s_VV_s + s_V_s**2, s_V_s])
+        return np.array([s_VV_s + s_V_s**2, s_V_s, s_H0_s**2, s_H0_s, s_H0_s * s_V_s])
 
     def post_process_necessary(self) -> bool:
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        return (value[0] - value[1] ** 2) / self.number_of_sites
+        VV, V, H0H0, H0, H0V = value
+        return (VV - V**2 + H0H0 - H0**2 + 2 * (H0V - H0 * V)) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy Variance per site"

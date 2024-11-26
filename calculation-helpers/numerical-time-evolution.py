@@ -117,7 +117,7 @@ def numerically_calculate_time_evolution(
     # Example Hamiltonian for a linear chain of length n with 2 spin degrees
     basis = generate_basis(chain_length * 2)
     print("done generating basis")
-    H = np.array(
+    H_0 = np.array(
         [
             [
                 +U
@@ -148,7 +148,15 @@ def numerically_calculate_time_evolution(
                         ]
                     )
                 )
-                - J
+                for ket_state in basis
+            ]
+            for bra_state in basis
+        ]
+    )
+    V = np.array(
+        [
+            [
+                -J
                 * np.sum(
                     np.array(
                         [
@@ -180,6 +188,7 @@ def numerically_calculate_time_evolution(
             for bra_state in basis
         ]
     )
+    H = H_0 + V
     print("done generating hamiltonian")
     if not np.all(np.conjugate(H.T) == H):
         print("H not hermetian")
@@ -268,6 +277,9 @@ def numerically_calculate_time_evolution(
     one_up_occupation_operator = get_occupation_operator(1, True)
     one_down_occupation_operator = get_occupation_operator(1, False)
     H_squared_operator = H @ H
+    V_squared_operator = V @ V
+    H0_squared_operator = H_0 @ H_0
+    H0_V_operator = H_0 @ V
 
     measurements = []
     for step_index in range(number_of_time_steps):
@@ -286,6 +298,20 @@ def numerically_calculate_time_evolution(
         expectation_value_energy_variance = (
             np.vdot(psi_t, np.dot(H_squared_operator, psi_t))
             - (expectation_value_energy * chain_length) ** 2
+        ) / chain_length
+        expectation_value_energy_variance_2 = (
+            np.vdot(psi_t, np.dot(V_squared_operator, psi_t))
+            - np.vdot(psi_t, np.dot(V, psi_t)) ** 2
+        ) / chain_length
+        expectation_value_energy_variance_3 = (
+            expectation_value_energy_variance_2 * chain_length
+            + np.vdot(psi_t, np.dot(H0_squared_operator, psi_t))
+            - np.vdot(psi_t, np.dot(H_0, psi_t)) ** 2
+            + 2
+            * (
+                np.vdot(psi_t, np.dot(H0_V_operator, psi_t))
+                - np.vdot(psi_t, np.dot(H_0, psi_t)) * np.vdot(psi_t, np.dot(V, psi_t))
+            )
         ) / chain_length
         expectation_value_current_up = np.vdot(
             psi_t, np.dot(current_operator_up, psi_t)
@@ -332,6 +358,8 @@ def numerically_calculate_time_evolution(
         data = [
             # expectation_value_energy,
             # expectation_value_energy_variance,
+            # expectation_value_energy_variance_2,
+            # expectation_value_energy_variance_3,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
             expectation_value_purity,
@@ -370,6 +398,8 @@ def numerically_calculate_time_evolution(
     observables = [
         # {"type": "Energy", "label": "Energy per site"},
         # {"type": "EnergyVariance", "label": "Energy Variance per site"},
+        # {"type": "EnergyVariance", "label": "V only - Energy Variance per site"},
+        # {"type": "EnergyVariance", "label": "Composite - Energy Variance per site"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},
