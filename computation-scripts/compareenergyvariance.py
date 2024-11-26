@@ -362,7 +362,7 @@ def main():
         intermediate_result = observable_var.get_expectation_value(
             time=measurement_time, system_state=use_state
         )
-        result_implementation = intermediate_result[0] - intermediate_result[1]
+        result_implementation = intermediate_result[0] - intermediate_result[1] ** 2
         end = measure() * 1000
         total_time_implementation += end - start
 

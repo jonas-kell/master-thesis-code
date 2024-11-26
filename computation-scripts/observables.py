@@ -311,15 +311,14 @@ class EnergyVariance(Energy):
             time=time,
             system_state=system_state,
         )
-        s_VV_s_square = s_V_s**2
 
-        return np.array([s_VV_s + s_VV_s_square, s_VV_s_square])
+        return np.array([s_VV_s + s_V_s**2, s_V_s])
 
     def post_process_necessary(self) -> bool:
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        return (value[0] - value[1]) / self.number_of_sites
+        return (value[0] - value[1] ** 2) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy Variance per site"
