@@ -70,30 +70,32 @@ class Energy(MeasurableObservable):
         v_aggregator = np.complex128(0)
         for l in range(self.number_of_sites):
             for m in system_state.get_nearest_neighbor_indices(l):
-                for spin_up in [True, False]:
-                    if spin_up:
-                        use_l = l
-                        use_m = m
-                    else:
-                        use_l = system_state.get_opposite_spin_index(l)
-                        use_m = system_state.get_opposite_spin_index(m)
+                # this is a single-neighbor sum only -> restrict to either larger or smaller m than l
+                if l < m:
+                    for spin_up in [True, False]:
+                        if spin_up:
+                            use_l = l
+                            use_m = m
+                        else:
+                            use_l = system_state.get_opposite_spin_index(l)
+                            use_m = system_state.get_opposite_spin_index(m)
 
-                    if (
-                        system_state.get_state_array()[use_l]
-                        != system_state.get_state_array()[use_m]
-                    ):
-                        # add the psi difference
-                        e_diff, psi_fact = (
-                            self.hamiltonian.get_H_eff_difference_double_flipping(
-                                time=time,
-                                flipping1_up=spin_up,
-                                flipping1_index=l,
-                                flipping2_up=spin_up,
-                                flipping2_index=m,
-                                before_swap_system_state=system_state,
+                        if (
+                            system_state.get_state_array()[use_l]
+                            != system_state.get_state_array()[use_m]
+                        ):
+                            # add the psi difference
+                            e_diff, psi_fact = (
+                                self.hamiltonian.get_H_eff_difference_double_flipping(
+                                    time=time,
+                                    flipping1_up=spin_up,
+                                    flipping1_index=l,
+                                    flipping2_up=spin_up,
+                                    flipping2_index=m,
+                                    before_swap_system_state=system_state,
+                                )
                             )
-                        )
-                        v_aggregator += np.exp(-e_diff) / psi_fact
+                            v_aggregator += np.exp(-e_diff) / psi_fact
 
         return (E_0 - self.hamiltonian.J * v_aggregator) / self.number_of_sites
 

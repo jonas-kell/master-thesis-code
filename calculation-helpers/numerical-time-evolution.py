@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import expm
 import os
 import threading
-from partialTrace import partial_trace_out_b
+from partialtrace import partial_trace_out_b
 from datetime import datetime
 import json
 from commonsettings import get_full_file_path, scaler_switch
@@ -281,6 +281,7 @@ def numerically_calculate_time_evolution(
             print("No longer normalized time evolved state")
 
         # expectation value
+        expectation_value_energy = np.vdot(psi_t, np.dot(H, psi_t)) / chain_length
         expectation_value_current_up = np.vdot(
             psi_t, np.dot(current_operator_up, psi_t)
         )
@@ -324,6 +325,7 @@ def numerically_calculate_time_evolution(
         expectation_value_concurrence = calculate_concurrence(rho_reduced)
 
         data = [
+            # expectation_value_energy,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
             expectation_value_purity,
@@ -360,6 +362,7 @@ def numerically_calculate_time_evolution(
         )
 
     observables = [
+        # {"type": "Energy", "label": "Energy per site"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},

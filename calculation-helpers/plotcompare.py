@@ -263,13 +263,19 @@ if __name__ == "__main__":
     #     [(0, 1), (0, 2), (0, 3)],
     # )
 
-    # Concurrence proof of concept verification
+    # # Concurrence proof of concept verification
 
-    diagonal = "diagonal"
-    diagonalsampled = "diagonal-sampled"
-    perturbationo0 = "perturbation-o0"
-    perturbationo1 = "perturbation-o1"
-    perturbationo2 = "perturbation-o2"
+    # diagonal = "diagonal"
+    # diagonalsampled = "diagonal-sampled"
+    # perturbationo0 = "perturbation-o0"
+    # perturbationo1 = "perturbation-o1"
+    # perturbationo2 = "perturbation-o2"
+    # plot_experiment_comparison(
+    #     [diagonal, diagonalsampled, perturbationo0, perturbationo1, perturbationo2],
+    # )
+
+    # Energy for real
+    diagonalization = "diagonalization_measurements_2024-11-26__11,44,27"
     plot_experiment_comparison(
-        [diagonal, diagonalsampled, perturbationo0, perturbationo1, perturbationo2],
+        [diagonalization],
     )
