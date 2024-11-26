@@ -3,6 +3,7 @@ import state
 import systemgeometry
 import numpy as np
 import hamiltonian
+import observables
 from randomgenerator import RandomGenerator
 
 
@@ -72,13 +73,13 @@ def get_efficienter_4_way_flip_exp(
         use_b_index = use_state.get_opposite_spin_index(b)
 
     # this might never get called with use_l_index == use_a_index or use_m_index == use_b_index
-    # thant must be filtered out earlier
+    # that must be filtered out earlier
     if use_l_index == use_a_index or use_m_index == use_b_index:
-        raise Exception("This should not happen")  # TODO remove, when algo is correct
+        # check can be removed, when algo is correct (in real implementation)
+        raise Exception("This should not happen")
 
-    if use_l_index == use_b_index and use_m_index == use_a_index:
-        return 1.0  # exp^0
-    elif use_l_index == use_b_index:  # use_m_index != use_a_index
+    if use_l_index == use_b_index:  # use_m_index != use_a_index
+        # also handles both equal cases here
         return np.exp(
             -ham.get_H_eff_difference_double_flipping(
                 time=measurement_time,
@@ -146,7 +147,7 @@ def eval_variance_op(
 ) -> np.complex128:
     if sigma_up:
         initial_occ_l = use_state.get_state_array()[l]
-        initial_occ_m = use_state.get_state_array()[l]
+        initial_occ_m = use_state.get_state_array()[m]
     else:
         initial_occ_l = use_state.get_state_array()[
             use_state.get_opposite_spin_index(l)
@@ -243,7 +244,7 @@ def main():
 
     random = RandomGenerator(str(measure()))
 
-    system_geometry = systemgeometry.SquareSystemNonPeriodicState(n)
+    system_geometry = systemgeometry.LinearChainNonPeriodicState(n)
     system_geometry.init_index_overlap_circle_cache(2)
 
     initial_system_state = state.HomogenousInitialSystemState(system_geometry)
@@ -274,10 +275,14 @@ def main():
     # )
 
     use_state = state.SystemState(system_geometry, initial_system_state)
+    observable_var = observables.EnergyVariance(
+        ham=use_hamiltonian, geometry=system_geometry
+    )
 
     total_time_all_aggregation = 0
     total_time_only_overlap_aggregation = 0
     total_time_only_overlap_aggregation_eff_flip = 0
+    total_time_implementation = 0
     iterations = 1
     for iter_index in range(iterations):
         use_state.init_random_filling(random)
@@ -351,21 +356,40 @@ def main():
         end = measure() * 1000
         total_time_only_overlap_aggregation_eff_flip += end - start
 
+        start = measure() * 1000
+        result_implementation = (
+            observable_var.get_expectation_value(
+                time=measurement_time, system_state=use_state
+            )  # needs renormalization away from number of sites
+            * system_geometry.get_number_sites_wo_spin_degree()
+        )
+        end = measure() * 1000
+        total_time_implementation += end - start
+
         if np.abs(all_aggregator - only_overlap_aggregator) > 1e-6:
             print(all_aggregator)
             print(only_overlap_aggregator)
             raise Exception("Should be the same")
 
-        if np.abs(only_overlap_aggregator - only_overlap_aggregator_eff_flip) > 1e-6:
-            print(only_overlap_aggregator)
+        if np.abs(all_aggregator - only_overlap_aggregator_eff_flip) > 1e-6:
+            print(all_aggregator)
             print(only_overlap_aggregator_eff_flip)
             raise Exception("Should be the same")
+
+        if np.abs(all_aggregator - result_implementation) > 1e-6:
+            print(all_aggregator)
+            print(result_implementation)
+            raise Exception("Should be the same finally")
 
     print("All aggregation ms:", total_time_all_aggregation)
     print("Overlap aggregation ms:", total_time_only_overlap_aggregation)
     print(
         "Overlap aggregation better flipping:",
         total_time_only_overlap_aggregation_eff_flip,
+    )
+    print(
+        "Final implementation:",
+        total_time_implementation,
     )
 
 

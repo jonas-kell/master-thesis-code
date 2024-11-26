@@ -53,6 +53,257 @@ class HamiltonianProperty(Observable):
         self.hamiltonian = ham
 
 
+class Energy(MeasurableObservable):
+    def __init__(
+        self, ham: hamiltonian.Hamiltonian, geometry: systemgeometry.SystemGeometry
+    ):
+        self.hamiltonian = ham
+        self.number_of_sites = geometry.get_number_sites_wo_spin_degree()
+
+        super().__init__()
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        E_0 = self.hamiltonian.get_base_energy(system_state=system_state)
+
+        v_aggregator = np.complex128(0)
+        for l in range(self.number_of_sites):
+            for m in system_state.get_nearest_neighbor_indices(l):
+                for spin_up in [True, False]:
+                    if spin_up:
+                        use_l = l
+                        use_m = m
+                    else:
+                        use_l = system_state.get_opposite_spin_index(l)
+                        use_m = system_state.get_opposite_spin_index(m)
+
+                    if (
+                        system_state.getget_state_array()[use_l]
+                        != system_state.get_state_array()[use_m]
+                    ):
+                        # add the psi difference
+                        e_diff, psi_fact = (
+                            self.hamiltonian.get_H_eff_difference_double_flipping(
+                                time=time,
+                                flipping1_up=spin_up,
+                                flipping1_index=l,
+                                flipping2_up=spin_up,
+                                flipping2_index=m,
+                                before_swap_system_state=system_state,
+                            )
+                        )
+                        v_aggregator += np.exp(-e_diff) / psi_fact
+
+        return (E_0 - self.hamiltonian.J * v_aggregator) / self.number_of_sites
+
+    def get_label(self) -> str:
+        return "Energy per site"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {"type": "Energy", "label": self.get_label()}
+
+
+class EnergyVariance(MeasurableObservable):
+    def __init__(
+        self, ham: hamiltonian.Hamiltonian, geometry: systemgeometry.SystemGeometry
+    ):
+        self.hamiltonian = ham
+        self.number_of_sites = geometry.get_number_sites_wo_spin_degree()
+        self.geometry = geometry
+        geometry.init_index_overlap_circle_cache(2)
+        # 2 is known to be a good value for all apptoximations we do here
+        # for approximations to higher degrees, it might be necessary to change this
+        # we cannot save computation, by selecting 1 here for first order perturbations (unclear, what goes of of that range)
+        # see test setup in ./compareenergyvariance.py
+
+        super().__init__()
+
+    def eval_variance_op(
+        self,
+        time: float,
+        system_state: state.SystemState,
+        l: int,
+        m: int,
+        a: int,
+        b: int,
+        sigma_up: bool,
+        mu_up: bool,
+    ) -> np.complex128:
+        # extract the relevant occupations from the array
+        if sigma_up:
+            use_l_index = l
+            use_m_index = m
+        else:
+            use_l_index = system_state.get_opposite_spin_index(l)
+            use_m_index = system_state.get_opposite_spin_index(m)
+        if mu_up:
+            use_a_index = a
+            use_b_index = b
+        else:
+            use_a_index = system_state.get_opposite_spin_index(a)
+            use_b_index = system_state.get_opposite_spin_index(b)
+
+        initial_occ_l = system_state.get_state_array()[use_l_index]
+        initial_occ_m = system_state.get_state_array()[use_m_index]
+        initial_occ_a = system_state.get_state_array()[use_a_index]
+        initial_occ_b = system_state.get_state_array()[use_b_index]
+
+        # positive part: 4-way flips
+        final_occ_l_square = initial_occ_l
+        final_occ_m_square = initial_occ_m
+        final_occ_a_square = initial_occ_a
+        final_occ_b_square = initial_occ_b
+        # lm might influence the ab occupations, because in hte f-way op it is left-er and they act left
+        if sigma_up == mu_up:
+            if l == a or m == a:
+                final_occ_a_square = 1 - final_occ_a_square
+            if l == b or m == b:
+                final_occ_b_square = 1 - final_occ_b_square
+
+        # negative part: 2 x 2-way flip
+        final_occ_l_double = initial_occ_l
+        final_occ_m_double = initial_occ_m
+        final_occ_a_double = initial_occ_a
+        final_occ_b_double = initial_occ_b
+        # both are separate, l<->m, a<->b, so no modifications necessary
+
+        # evaluate the exp-differences here (do not do expensive exp calculation, if control term is 0)
+        factor_square = (
+            final_occ_l_square
+            * (1 - final_occ_m_square)
+            * final_occ_a_square
+            * (1 - final_occ_b_square)
+        )
+        exp_JJ = 0
+        if factor_square:
+            # "get_exp_H_eff_difference_quadruple_flipping":
+            # (inlined to avoid re-computation of use_indices)
+
+            # it can never be (external and logical assertion) use_l_index == use_a_index or use_m_index == use_b_index
+
+            if use_l_index == use_b_index and use_m_index == use_a_index:
+                # nothing happens, because the operators revert their changes cross-wise
+                exp_JJ = 1.0  # exp^0
+            elif use_l_index == use_b_index:  # use_m_index != use_a_index
+                # l and b effect cancels -> reduced to a two-way flipping computation
+                exp_JJ = np.exp(
+                    -self.hamiltonian.get_H_eff_difference_double_flipping(
+                        time=time,
+                        flipping1_up=sigma_up,
+                        flipping1_index=m,
+                        flipping2_up=mu_up,
+                        flipping2_index=a,
+                        before_swap_system_state=system_state,
+                    )[0]
+                )
+            elif use_m_index == use_a_index:  # use_l_index != use_b_index
+                # m and a effect cancels -> reduced to a two-way flipping computation
+                exp_JJ = np.exp(
+                    -self.hamiltonian.get_H_eff_difference_double_flipping(
+                        time=time,
+                        flipping1_up=sigma_up,
+                        flipping1_index=l,
+                        flipping2_up=mu_up,
+                        flipping2_index=b,
+                        before_swap_system_state=system_state,
+                    )[0]
+                )
+            else:
+                # all use_indices use_l, use_m, use_a, use_b are different -> the true 4-way flip
+
+                # ! this substitutes two two way flip differences, to avoid needing to implement 4-way flip logic
+                modify_arr = system_state.get_state_array()
+
+                # N(4-flip) - N(no flip) = [N(4-flip) - N(2-flip)] + [N(no flip) - N(2-flip)]
+
+                # flip in-place for computation
+                modify_arr[use_l_index] = 1 - modify_arr[use_l_index]
+                modify_arr[use_m_index] = 1 - modify_arr[use_m_index]
+                a_result = self.hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    flipping1_up=mu_up,
+                    flipping1_index=a,
+                    flipping2_up=mu_up,
+                    flipping2_index=b,
+                    before_swap_system_state=system_state,  # this was changed by reference
+                )[0]
+                # flip back, function doesn't modify state permanently, change is only in this section
+                modify_arr[use_l_index] = 1 - modify_arr[use_l_index]
+                modify_arr[use_m_index] = 1 - modify_arr[use_m_index]
+                b_result = self.hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    flipping1_up=sigma_up,
+                    flipping1_index=l,
+                    flipping2_up=sigma_up,
+                    flipping2_index=m,
+                    before_swap_system_state=system_state,
+                )[0]
+
+                exp_JJ = np.exp(-a_result - b_result)
+
+            # END of "get_exp_H_eff_difference_quadruple_flipping"
+        factor_double = (
+            final_occ_l_double
+            * (1 - final_occ_m_double)
+            * final_occ_a_double
+            * (1 - final_occ_b_double)
+        )
+        exp_lm = 0
+        exp_ab = 0
+        if factor_double:
+            exp_lm = np.exp(
+                -self.hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    flipping1_up=sigma_up,
+                    flipping1_index=l,
+                    flipping2_up=sigma_up,
+                    flipping2_index=m,
+                    before_swap_system_state=system_state,
+                )[0]
+            )
+            exp_ab = np.exp(
+                -self.hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    flipping1_up=mu_up,
+                    flipping1_index=a,
+                    flipping2_up=mu_up,
+                    flipping2_index=b,
+                    before_swap_system_state=system_state,
+                )[0]
+            )
+
+        return (exp_JJ) - (exp_lm * exp_ab)
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        variance_sum_aggregator = np.complex128(0)
+        for sigma_up in [True, False]:
+            for mu_up in [True, False]:
+                for l, m, a, b in self.geometry.get_index_overlap_circle_tuples():
+                    variance_sum_aggregator += self.eval_variance_op(
+                        system_state=system_state,
+                        l=l,
+                        m=m,
+                        a=a,
+                        b=b,
+                        sigma_up=sigma_up,
+                        mu_up=mu_up,
+                        time=time,
+                    )
+
+        return (
+            self.hamiltonian.J * self.hamiltonian.J * variance_sum_aggregator
+        ) / self.number_of_sites
+
+    def get_label(self) -> str:
+        return "Energy Variance per site"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {"type": "EnergyVariance", "label": self.get_label()}
+
+
 class DoubleOccupationFraction(MeasurableObservable):
     def __init__(
         self,
