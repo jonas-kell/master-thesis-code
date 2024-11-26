@@ -79,7 +79,7 @@ class Energy(MeasurableObservable):
                         use_m = system_state.get_opposite_spin_index(m)
 
                     if (
-                        system_state.getget_state_array()[use_l]
+                        system_state.get_state_array()[use_l]
                         != system_state.get_state_array()[use_m]
                     ):
                         # add the psi difference

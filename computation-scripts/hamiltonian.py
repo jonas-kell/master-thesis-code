@@ -417,11 +417,34 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
         self,
         system_state: state.SystemState,
     ) -> float:
-        _ = system_state
+        # for sampling the energy of exact hamiltonian
+        u_count = 0.0
+        eps_collector = 0.0
 
-        raise Exception(
-            "This should not be called, as we do not support accessing the base energy directly on the exact version"
-        )
+        for index in range(system_state.get_number_sites_wo_spin_degree()):
+            # index is correctly clamped to 0<=index<domain_size
+
+            # opposite spin
+            index_os = system_state.get_opposite_spin_index(index)
+
+            # count number of double occupancies
+            u_count += (
+                system_state.get_state_array()[index]
+                * system_state.get_state_array()[index_os]
+            )
+
+            # collect epsilon values
+            eps_collector += system_state.get_state_array()[
+                index
+            ] * system_state.get_eps_multiplier(
+                index=index, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+            ) + system_state.get_state_array()[
+                index_os
+            ] * system_state.get_eps_multiplier(  # eps multiplier explicitly allows for getting inputs > domain size
+                index=index_os, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+            )
+
+        return self.U * u_count + self.E * eps_collector
 
     def get_H_n(
         self,
