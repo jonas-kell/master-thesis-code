@@ -223,8 +223,7 @@ if __name__ == "__main__":
     )
 
     observable_set: Literal[
-        "current_and_occupation",
-        "concurrence_and_pauli",
+        "current_and_occupation", "concurrence_and_pauli", "energy_and_variance"
     ] = cast(str, get_argument(args, "observable_set", str, "current_and_occupation"))
 
     # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
@@ -478,6 +477,18 @@ if __name__ == "__main__":
                 )
             ]
             obs += obs_generated
+    elif observable_set == "energy_and_variance":
+        obs_hard_coded: List[observables.Observable] = [
+            observables.Energy(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+            observables.EnergyVariance(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+        ]
+        obs += obs_hard_coded
     else:
         raise Exception("Invalid arguments")
 

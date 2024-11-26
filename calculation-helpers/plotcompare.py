@@ -41,6 +41,10 @@ def scale_and_prepare_data(
         pass
     elif observable_type == "VCNFactor":
         pass
+    elif observable_type == "Energy":
+        pass
+    elif observable_type == "EnergyVariance":
+        pass
     else:
         raise Exception(f"Unknown Preparation Measurement {observable_type}")
 

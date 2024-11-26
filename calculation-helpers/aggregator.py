@@ -84,9 +84,12 @@ def main():
     # ! arg parse section end
 
     experiment: Literal[
-        "j_sweep", "concurrence_from_spin", "monte_carlo_variance_test"
-    ] = cast(str, get_argument(args, "experiment", str, "j_sweep"))
-    plotting = False
+        "j_sweep",
+        "concurrence_from_spin",
+        "monte_carlo_variance_test",
+        "energy_behavior",
+    ] = cast(str, get_argument(args, "experiment", str, "energy_behavior"))
+    plotting = True
 
     print("Running aggregator script for experiment:", experiment)
 
@@ -201,6 +204,40 @@ def main():
 
         zip_filename_base = str(num_monte_carlo_samples) + "samples"
 
+    elif experiment == "energy_behavior":
+        # ! energy-behavior
+        U = 1.0
+        E = 2.5
+        J = 0.1
+        n = 4
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_diagonalization = True
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        compare_type_hamiltonians = [
+            ("base_energy_only", "o0"),
+            ("both_optimizations", "o1"),
+            ("both_optimizations_second_order", "o2"),
+        ]
+
+        variational_step_fraction_multiplier = 100  # not switched on
+        init_sigma = 0.0001  # not switched on
+
+        record_hamiltonian_properties: bool = False
+        observable_set = "energy_and_variance"
+
+        scaler = 1 / J
+        num_samples_over_timespan = 50
+        target_time_in_1_over_u = scaler * 1
+
+        zip_filename_base = str(num_monte_carlo_samples) + "samples"
+
     else:
         raise Exception("Unknown Experiment Specification")
 
@@ -277,7 +314,7 @@ def main():
     print(zip_filename)
     zip_files(file_names_list, zip_filename)
 
-    if plotting:
+    if plotting and not is_hpc:
         plot_experiment_comparison(file_names_list)
 
 
