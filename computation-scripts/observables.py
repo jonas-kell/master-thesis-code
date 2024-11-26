@@ -101,7 +101,7 @@ class Energy(MeasurableObservable):
         E_0 = self.hamiltonian.get_base_energy(system_state=system_state)
 
         return (
-            E_0 - self.get_s_V_s(time=time, system_state=system_state)
+            E_0 + self.get_s_V_s(time=time, system_state=system_state)
         ) / self.number_of_sites
 
     def get_label(self) -> str:
