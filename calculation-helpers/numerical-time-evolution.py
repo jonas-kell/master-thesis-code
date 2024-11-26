@@ -267,6 +267,7 @@ def numerically_calculate_time_evolution(
     zero_down_occupation_operator = get_occupation_operator(0, False)
     one_up_occupation_operator = get_occupation_operator(1, True)
     one_down_occupation_operator = get_occupation_operator(1, False)
+    H_squared_operator = H @ H
 
     measurements = []
     for step_index in range(number_of_time_steps):
@@ -282,6 +283,10 @@ def numerically_calculate_time_evolution(
 
         # expectation value
         expectation_value_energy = np.vdot(psi_t, np.dot(H, psi_t)) / chain_length
+        expectation_value_energy_variance = (
+            np.vdot(psi_t, np.dot(H_squared_operator, psi_t))
+            - (expectation_value_energy * chain_length) ** 2
+        ) / chain_length
         expectation_value_current_up = np.vdot(
             psi_t, np.dot(current_operator_up, psi_t)
         )
@@ -326,6 +331,7 @@ def numerically_calculate_time_evolution(
 
         data = [
             # expectation_value_energy,
+            # expectation_value_energy_variance,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
             expectation_value_purity,
@@ -363,6 +369,7 @@ def numerically_calculate_time_evolution(
 
     observables = [
         # {"type": "Energy", "label": "Energy per site"},
+        # {"type": "EnergyVariance", "label": "Energy Variance per site"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
         {"type": "Purity", "label": "Purity on site 0-1 up"},
@@ -503,8 +510,8 @@ def main():
 
     print(filename_for_main_thread, filename_for_diagonalization_thread)
     plot_experiment_comparison(
-        [filename_for_main_thread, filename_for_diagonalization_thread],
-        ["Perturbation", "Diagonalization"],
+        [filename_for_diagonalization_thread, filename_for_main_thread],
+        ["Diagonalization", "Perturbation"],
     )
 
 
