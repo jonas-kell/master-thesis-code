@@ -236,7 +236,7 @@ def main():
         num_samples_over_timespan = 150
         target_time_in_1_over_u = scaler * 1.25
 
-        zip_filename_base = str(num_monte_carlo_samples) + "samples"
+        zip_filename_base = "energy-variance"
 
     else:
         raise Exception("Unknown Experiment Specification")
