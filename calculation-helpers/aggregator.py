@@ -88,7 +88,10 @@ def main():
         "concurrence_from_spin",
         "monte_carlo_variance_test",
         "energy_behavior",
-    ] = cast(str, get_argument(args, "experiment", str, "energy_behavior"))
+        "variational_classical_networks",
+    ] = cast(
+        str, get_argument(args, "experiment", str, "variational_classical_networks")
+    )
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -123,6 +126,7 @@ def main():
 
         variational_step_fraction_multiplier = 100
         init_sigma = 0.0001
+        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
         observable_set = "current_and_occupation"
@@ -160,6 +164,7 @@ def main():
 
         record_hamiltonian_properties: bool = False
         observable_set = "concurrence_and_pauli"
+        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         scaler = 1 / J
         target_time_in_1_over_u = scaler * 1
@@ -194,6 +199,7 @@ def main():
 
         variational_step_fraction_multiplier = 100  # not switched on
         init_sigma = 0.0001  # not switched on
+        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
         observable_set = "current_and_occupation"
@@ -228,6 +234,7 @@ def main():
 
         variational_step_fraction_multiplier = 100  # not switched on
         init_sigma = 0.0001  # not switched on
+        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
         observable_set = "energy_and_variance"
@@ -237,6 +244,40 @@ def main():
         target_time_in_1_over_u = scaler * 1.25
 
         zip_filename_base = "energy-variance"
+
+    elif experiment == "variational_classical_networks":
+        # ! energy-behavior
+        U = 1.0
+        E = 2.5
+        J = 0.05
+        n = 3
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_diagonalization = False
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        compare_type_hamiltonians = [
+            ("variational_classical_networks", "vcn"),
+            ("variational_classical_networks_analytical_factors", "vcn_analytical"),
+        ]
+
+        variational_step_fraction_multiplier = 10
+        init_sigma = 0.0001
+        pseudo_inverse_cutoff = 1e-5
+
+        record_hamiltonian_properties: bool = True
+        observable_set = "energy_and_variance"
+
+        scaler = 1 / U
+        num_samples_over_timespan = 10
+        target_time_in_1_over_u = scaler * 3
+
+        zip_filename_base = "vcn-param-tests"
 
     else:
         raise Exception("Unknown Experiment Specification")
@@ -267,6 +308,7 @@ def main():
         "init_sigma": init_sigma,
         "system_geometry_type": system_geometry_type,
         "observable_set": observable_set,
+        "pseudo_inverse_cutoff": pseudo_inverse_cutoff,
     }
 
     if do_exact_diagonalization:

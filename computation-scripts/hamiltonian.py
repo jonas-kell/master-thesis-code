@@ -1946,6 +1946,7 @@ class VCNHardCoreBosonicHamiltonian(
         eta_calculation_sampler: "sampler.GeneralSampler",
         pseudo_inverse_cutoff: float,
         variational_step_fraction_multiplier: int,
+        time_step_size: float,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1970,6 +1971,14 @@ class VCNHardCoreBosonicHamiltonian(
         self.current_time_cache = -12352343
         self.is_initializing = False
         self.pseudo_inverse_cutoff = pseudo_inverse_cutoff
+
+        self.effective_time_step_size = (
+            time_step_size / self.variational_step_fraction_multiplier
+        )
+        print(
+            "VCN calculation with effective time step size:",
+            self.effective_time_step_size,
+        )
 
     def get_base_energy_difference_l_to_m_hopping(
         self,
@@ -2021,6 +2030,8 @@ class VCNHardCoreBosonicHamiltonian(
             if time == 0:
                 self.eta_vec = self.get_initialized_eta_vec()
                 self.current_time_cache = 0
+                self.is_initializing = False
+                return  # no need to step in this case
             else:
                 raise Exception(
                     "The VCN Hamiltonian must start from a known set of eta params (t=0)"
@@ -2227,6 +2238,7 @@ class VCNHardCoreBosonicHamiltonian(
                 "random_generator": self.random_generator.get_log_info(),
                 "init_sigma": self.init_sigma,
                 "pseudo_inverse_cutoff": self.pseudo_inverse_cutoff,
+                "effective_time_step_size": self.effective_time_step_size,
                 "variational_step_fraction_multiplier": self.variational_step_fraction_multiplier,
                 **additional_info,
             }
@@ -2251,6 +2263,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         eta_calculation_sampler: "sampler.GeneralSampler",
         pseudo_inverse_cutoff: float,
         variational_step_fraction_multiplier: int,
+        time_step_size: float,
     ):
         super().__init__(
             U,
@@ -2264,6 +2277,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
             eta_calculation_sampler,
             pseudo_inverse_cutoff,
             variational_step_fraction_multiplier,
+            time_step_size,
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):

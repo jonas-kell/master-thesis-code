@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("--system_geometry_type", required=False)
     parser.add_argument("--variational_step_fraction_multiplier", required=False)
     parser.add_argument("--init_sigma", required=False)
+    parser.add_argument("--pseudo_inverse_cutoff", required=False)
     parser.add_argument("--observable_set", required=False)
 
     args = vars(parser.parse_args())
@@ -216,7 +217,9 @@ if __name__ == "__main__":
     # ! VCN settings
     record_hamiltonian_properties: bool = args["record_hamiltonian_properties"]
     init_sigma: float = cast(float, get_argument(args, "init_sigma", float, 0.001))
-    pseudo_inverse_cutoff: float = 1e-10
+    pseudo_inverse_cutoff: float = cast(
+        float, get_argument(args, "pseudo_inverse_cutoff", float, 1e-10)
+    )
     psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
     variational_step_fraction_multiplier: int = cast(
         int, get_argument(args, "variational_step_fraction_multiplier", int, 1)
@@ -340,6 +343,7 @@ if __name__ == "__main__":
             eta_calculation_sampler=eta_calculation_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
+            time_step_size=time_step,
         )
     elif hamiltonian_type == "variational_classical_networks_analytical_factors":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
@@ -354,6 +358,7 @@ if __name__ == "__main__":
             eta_calculation_sampler=eta_calculation_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
+            time_step_size=time_step,
         )
     else:
         raise Exception("Invalid arguments")
