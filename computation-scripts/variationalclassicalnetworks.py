@@ -23,15 +23,11 @@ class PSISelection(ABC):
     def eval_PSIs_on_state(self, system_state: SystemState) -> npt.NDArray[np.float64]:
         pass
 
-    # this can be extended to be optimized if desired
-    def eval_PSI_differences_on_l_to_m_hopped_state(
+    def eval_PSI_differences_double_flipping(
         self, before_swap_system_state: SystemState, l: int, m: int, spins_up: bool
     ) -> float:
         """
         CAUTION: modifies the state array intermediately
-
-        Will return 0, if occ(sigma, l) != 1 and occ(sigma, m) != 0
-        NO GENERAL HOPPING
         """
         domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
 
@@ -44,27 +40,19 @@ class PSISelection(ABC):
 
         state_array = before_swap_system_state.get_state_array()
 
-        occ_l = state_array[use_index_l]
-        occ_m = state_array[use_index_m]
-
-        if occ_l != 1 or occ_m != 0:
-            # Either they are the same -> hopping does not change state, difference must be 0
-            # OR because this is specifically l->m hopping test, that is a prefactor making it 0
-            return np.zeros(self.get_number_of_PSIs(), dtype=np.float64)
-
         first_val = self.eval_PSIs_on_state(system_state=before_swap_system_state)
-        state_array[[use_index_l, use_index_m]] = state_array[
-            [use_index_m, use_index_l]
-        ]  # swap the two
+        state_array[[use_index_l, use_index_m]] = (
+            1 - state_array[[use_index_l, use_index_m]]
+        )  # double flip
         second_val = self.eval_PSIs_on_state(system_state=before_swap_system_state)
-        state_array[[use_index_l, use_index_m]] = state_array[
-            [use_index_m, use_index_l]
-        ]  # swap them back
+        state_array[[use_index_l, use_index_m]] = (
+            1 - state_array[[use_index_l, use_index_m]]
+        )  # double flip back
 
         # Caution, in most cases, this needs would be needed inverted one more time
         return first_val - second_val
 
-    # TODO: implement flip, double_flip, general_swapping optimization for this (swapping optimization can then be used to do function above)
+    # TODO: implement flip optimization for this (swapping optimization can be done with the function above)
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}

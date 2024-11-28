@@ -1947,6 +1947,7 @@ class VCNHardCoreBosonicHamiltonian(
         pseudo_inverse_cutoff: float,
         variational_step_fraction_multiplier: int,
         time_step_size: float,
+        number_workers: int,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1969,8 +1970,9 @@ class VCNHardCoreBosonicHamiltonian(
         self.eta_vec = None
 
         self.current_time_cache = -12352343
-        self.is_initializing = False
         self.pseudo_inverse_cutoff = pseudo_inverse_cutoff
+
+        self.number_workers = number_workers
 
         self.effective_time_step_size = (
             time_step_size / self.variational_step_fraction_multiplier
@@ -1979,194 +1981,6 @@ class VCNHardCoreBosonicHamiltonian(
             "VCN calculation with effective time step size:",
             self.effective_time_step_size,
         )
-
-    def get_base_energy_difference_l_to_m_hopping(
-        self,
-        l: int,
-        m: int,
-        spins_up: bool,
-        before_swap_system_state: state.SystemState,
-    ) -> float:
-        domain_size = before_swap_system_state.get_number_sites_wo_spin_degree()
-
-        use_l_index = l % domain_size
-        use_m_index = m % domain_size
-
-        l_occ = before_swap_system_state.get_state_array()[use_l_index]
-        m_occ = before_swap_system_state.get_state_array()[use_m_index]
-        l_occ_os = before_swap_system_state.get_state_array()[
-            before_swap_system_state.get_opposite_spin_index(use_l_index)
-        ]
-        m_occ_os = before_swap_system_state.get_state_array()[
-            before_swap_system_state.get_opposite_spin_index(use_m_index)
-        ]
-
-        if (spins_up and (l_occ != 1 or m_occ != 0)) or (
-            not spins_up and (l_occ_os != 1 or m_occ_os != 0)
-        ):
-            # Either they are the same -> hopping does not change state, difference must be 0
-            # OR because this is specifically l->m hopping test, that is a prefactor making it 0
-            return 0
-
-        return self.get_base_energy_difference_swapping(
-            sw1_up=spins_up,
-            sw1_index=use_l_index,
-            sw1_occupation=l_occ,
-            sw1_occupation_os=l_occ_os,
-            sw2_up=spins_up,
-            sw2_index=use_m_index,
-            sw2_occupation=m_occ,
-            sw2_occupation_os=m_occ_os,
-            before_swap_system_state=before_swap_system_state,
-        )
-
-    def initialize(
-        self,
-        time: float,
-    ):
-        self.is_initializing = True
-
-        if self.eta_vec is None:
-            if time == 0:
-                self.eta_vec = self.get_initialized_eta_vec()
-                self.current_time_cache = 0
-                self.is_initializing = False
-                return  # no need to step in this case
-            else:
-                raise Exception(
-                    "The VCN Hamiltonian must start from a known set of eta params (t=0)"
-                )
-
-        num_etas = self.get_number_of_eta_parameters()
-
-        prev_time = self.current_time_cache
-        for intermediate_step_index in range(self.variational_step_fraction_multiplier):
-            intermediate_step_time = (
-                prev_time
-                + (intermediate_step_index + 1)
-                * (time - prev_time)
-                / self.variational_step_fraction_multiplier
-            )
-
-            sample_generator_object = self.eta_calculation_sampler.sample_generator(
-                time=intermediate_step_time,
-                worker_index=0,
-                num_workers=1,  # TODO training multithreaded
-                random_generator=self.random_generator,
-            )
-
-            requires_probability_adjustment = (
-                self.eta_calculation_sampler.requires_probability_adjustment()
-            )
-
-            normalization_factor = 0.0
-            OO_averager = np.zeros(
-                (
-                    num_etas,
-                    num_etas,
-                ),
-                dtype=np.complex128,
-            )
-            O_averager = np.zeros(
-                (num_etas,),
-                dtype=np.complex128,
-            )
-            EO_averager = np.zeros(
-                (num_etas,),
-                dtype=np.complex128,
-            )
-            E_averager = np.complex128(0)
-            while True:
-                try:
-                    sampled_state_n = next(sample_generator_object)
-
-                    if requires_probability_adjustment:
-                        # sampled state needs to be scaled
-
-                        # get_exp_H_eff is the most expensive calculation. Only do if absolutely necessary
-                        h_eff = self.get_exp_H_eff(
-                            time=intermediate_step_time, system_state=sampled_state_n
-                        )
-                        psi_n = sampled_state_n.get_Psi_of_N()
-
-                        state_probability: float = np.real(np.conjugate(h_eff) * h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
-                            np.conjugate(psi_n) * psi_n
-                        )
-                    else:
-                        # e.g. Monte Carlo. Normalization is only division by number of monte carlo samples
-                        state_probability = 1.0
-
-                    normalization_factor += state_probability
-
-                    O_vector, E_loc = self.calculate_O_k_and_E_loc(
-                        time=intermediate_step_time, system_state=sampled_state_n
-                    )
-
-                    O_vector_scaled = O_vector * state_probability
-                    E_loc_scaled = E_loc * state_probability
-
-                    OO_averager += np.outer(O_vector_scaled.conj(), O_vector_scaled)
-                    O_averager += O_vector_scaled
-                    EO_averager += E_loc_scaled * O_vector_scaled.conj()
-                    E_averager += E_loc_scaled
-
-                except StopIteration:
-                    break
-
-            O_averager_normed = O_averager / normalization_factor
-
-            S_matrix = (OO_averager / normalization_factor) - np.outer(
-                O_averager_normed.conj(), O_averager_normed
-            )
-            F_vector = (
-                EO_averager / normalization_factor
-                - (E_averager / normalization_factor) * O_averager_normed.conj()
-            )
-
-            pinv = np.linalg.pinv(
-                S_matrix, hermitian=True, rcond=self.pseudo_inverse_cutoff
-            )
-            eta_derivative = -1j * (pinv @ F_vector)
-
-            # now we have the derivative. Step with explicit euler integration # TODO better approximator
-            self.eta_vec += eta_derivative
-
-        # finished and the result is that trained self.eta_vec
-        self.current_time_cache = time
-        self.is_initializing = False
-
-    def calculate_O_k_and_E_loc(
-        self,
-        time: float,
-        system_state: state.SystemState,
-    ):
-        O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
-
-        E_loc = self.get_base_energy(
-            system_state=system_state
-        ) + self.eval_V_n_expectation(
-            time=time, eta_vec=self.eta_vec, system_state=system_state
-        )
-
-        return O_vector, E_loc
-
-    def get_H_n(
-        self,
-        time: float,
-        system_state: state.SystemState,
-    ) -> np.complex128:
-        #! We require the scaling of the samples. Because of that while initializing, this check can not run
-        if (
-            not self.is_initializing and self.current_time_cache != time
-        ):  # float comparison is ok, because float stems from same float normally, so this is bit-accurate
-            raise Exception("The Hamiltonian is not initialized for the requested time")
-
-        PSI_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
-
-        # must this include the scaling factor psi_0? -> NO, as we divide at the appropriate places, which is equivalent to doing the ln addition
-        # and all other places the psi_0's cancel in the differences, because of uniform initial state assumption
-        # E_0 will be inserted because the E_heff call does that
-        return np.dot(self.eta_vec, PSI_vector)
 
     def get_number_of_eta_parameters(self) -> int:
         # each eta has one PSI
@@ -2190,7 +2004,146 @@ class VCNHardCoreBosonicHamiltonian(
 
         return real_part + 1j * complex_part
 
-    def eval_V_n_expectation(
+    def initialize(
+        self,
+        time: float,
+    ):
+        if self.eta_vec is None:
+            if time == 0:
+                self.eta_vec = self.get_initialized_eta_vec()
+                self.current_time_cache = 0
+                return  # no need to step in this case
+            else:
+                raise Exception(
+                    "The VCN Hamiltonian must start from a known set of eta params (t=0)"
+                )
+
+        prev_time = self.current_time_cache
+        for intermediate_step_index in range(self.variational_step_fraction_multiplier):
+            intermediate_step_time = (
+                prev_time
+                + (intermediate_step_index + 1)
+                * (time - prev_time)
+                / self.variational_step_fraction_multiplier
+            )
+
+            # Step with explicit euler integration # TODO better approximator
+            eta_derivative = self.calculate_eta_dot(
+                eta_vec=self.eta_vec,
+                time=intermediate_step_time,
+            )
+            self.eta_vec += eta_derivative
+
+        # finished and stepped etas are stored internally
+        self.current_time_cache = time
+
+    def calculate_eta_dot(
+        self,
+        time: float,
+        eta_vec: ETAVecType,
+    ):
+        num_etas = self.get_number_of_eta_parameters()
+
+        sample_generator_object = self.eta_calculation_sampler.sample_generator(
+            time=time,
+            worker_index=0,
+            num_workers=1,  # TODO training multithreaded
+            random_generator=self.random_generator,
+        )
+
+        requires_probability_adjustment = (
+            self.eta_calculation_sampler.requires_probability_adjustment()
+        )
+
+        normalization_factor = 0.0
+        OO_averager = np.zeros(
+            (
+                num_etas,
+                num_etas,
+            ),
+            dtype=np.complex128,
+        )
+        O_averager = np.zeros(
+            (num_etas,),
+            dtype=np.complex128,
+        )
+        EO_averager = np.zeros(
+            (num_etas,),
+            dtype=np.complex128,
+        )
+        E_averager = np.complex128(0)
+        while True:
+            try:
+                sampled_state_n = next(sample_generator_object)
+
+                if requires_probability_adjustment:
+                    # sampled state needs to be scaled
+
+                    # Most expensive calculation. Only do if absolutely necessary -> do manually, to not use basic functions like get_exp_heff, that could depend on un-initialized state
+
+                    H_n = np.dot(
+                        self.eta_vec,
+                        self.psi_selection.eval_PSIs_on_state(
+                            system_state=sampled_state_n
+                        ),
+                    )
+                    E_zero_n = self.get_base_energy(system_state=sampled_state_n)
+                    exp_H_eff = np.exp(H_n - (1j * E_zero_n * time))
+                    psi_n = sampled_state_n.get_Psi_of_N()
+
+                    state_probability: float = np.real(np.conjugate(exp_H_eff * psi_n) * exp_H_eff * psi_n)  # type: ignore -> this returns a scalar for sure
+                else:
+                    # e.g. Monte Carlo. Normalization is only division by number of monte carlo samples
+                    state_probability = 1.0
+
+                normalization_factor += state_probability
+
+                O_vector, E_loc = self.calculate_O_k_and_E_loc(
+                    time=time, system_state=sampled_state_n, eta_vec=eta_vec
+                )
+
+                O_vector_scaled = O_vector * state_probability
+                E_loc_scaled = E_loc * state_probability
+
+                OO_averager += np.outer(O_vector_scaled.conj(), O_vector_scaled)
+                O_averager += O_vector_scaled
+                EO_averager += E_loc_scaled * O_vector_scaled.conj()
+                E_averager += E_loc_scaled
+
+            except StopIteration:
+                break
+
+        O_averager_normed = O_averager / normalization_factor
+
+        S_matrix = (OO_averager / normalization_factor) - np.outer(
+            O_averager_normed.conj(), O_averager_normed
+        )
+        F_vector = (
+            EO_averager / normalization_factor
+            - (E_averager / normalization_factor) * O_averager_normed.conj()
+        )
+
+        pinv = np.linalg.pinv(
+            S_matrix, hermitian=True, rcond=self.pseudo_inverse_cutoff
+        )
+
+        return -1j * (pinv @ F_vector)
+
+    def calculate_O_k_and_E_loc(
+        self,
+        time: float,
+        system_state: state.SystemState,
+        eta_vec: ETAVecType,
+    ):
+        O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
+
+        E_loc = self.get_base_energy(system_state=system_state) + self.eval_V_n(
+            time=time, eta_vec=eta_vec, system_state=system_state
+        )
+
+        return O_vector, E_loc
+
+    def eval_V_n(
         self, time: float, eta_vec: ETAVecType, system_state: state.SystemState
     ):
         collecting_sum = np.complex128(0)
@@ -2199,33 +2152,76 @@ class VCNHardCoreBosonicHamiltonian(
             self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
         ):
             for m in self.psi_selection.system_geometry.get_nearest_neighbor_indices(l):
-                for up in [True, False]:
-                    # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
-                    # H_VCN is missing ln(psi_0) part: as all psi_0 are equal, they cancel
+                if l > m:
+                    for up in [True, False]:
+                        state_array = system_state.get_state_array()
 
-                    collecting_sum += np.exp(
-                        np.dot(
-                            eta_vec,
-                            # needs minus, because formula and convention here inverted
-                            -self.psi_selection.eval_PSI_differences_on_l_to_m_hopped_state(
-                                before_swap_system_state=system_state,
-                                l=l,
-                                m=m,
-                                spins_up=up,
-                            ),
-                        )
-                        # needs minus, because formula and convention here inverted, but cancels with the -i
-                        + 1j
-                        * time
-                        * self.get_base_energy_difference_l_to_m_hopping(
-                            before_swap_system_state=system_state,
-                            l=l,
-                            m=m,
-                            spins_up=up,
-                        )
-                    )
+                        occ_l = state_array[l]
+                        occ_m = state_array[m]
+                        occ_l_os = state_array[
+                            self.psi_selection.system_geometry.get_opposite_spin_index(
+                                l
+                            )
+                        ]
+                        occ_m_os = state_array[
+                            self.psi_selection.system_geometry.get_opposite_spin_index(
+                                m
+                            )
+                        ]
+
+                        if (up and (occ_l != occ_m)) or (
+                            not up and (occ_l_os != occ_m_os)
+                        ):
+                            # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
+                            # H_VCN is missing ln(psi_0) part: as all psi_0 are equal, they cancel
+
+                            collecting_sum += np.exp(
+                                np.dot(
+                                    eta_vec,
+                                    # needs minus, because formula and convention here inverted
+                                    -self.psi_selection.eval_PSI_differences_double_flipping(
+                                        before_swap_system_state=system_state,
+                                        l=l,
+                                        m=m,
+                                        spins_up=up,
+                                    ),
+                                )
+                                # needs minus, because formula and convention here inverted, but cancels with the -i
+                                + 1j
+                                * time
+                                * self.get_base_energy_difference_double_flipping(
+                                    before_swap_system_state=system_state,
+                                    flipping1_up=up,
+                                    flipping1_index=l,
+                                    flipping1_occupation_before_flip=occ_l,
+                                    flipping1_occupation_before_flip_os=occ_l_os,
+                                    flipping2_up=up,
+                                    flipping2_index=l,
+                                    flipping2_occupation_before_flip=occ_m,
+                                    flipping2_occupation_before_flip_os=occ_m_os,
+                                )
+                            )
 
         return -self.psi_selection.J * collecting_sum
+
+    # All typical H_eff implementations add their E_0 contributions own their own.
+    # Only H_n is a learned quantity here
+    def get_H_n(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        if (
+            self.current_time_cache != time
+        ):  # float comparison is ok, because float stems from same float normally, so this is bit-accurate
+            raise Exception("The Hamiltonian is not initialized for the requested time")
+
+        PSI_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
+
+        # must this include the scaling factor psi_0? -> NO, as we divide at the appropriate places, which is equivalent to doing the ln addition
+        # and all other places the psi_0's cancel in the differences, because of uniform initial state assumption
+        # E_0 will be inserted because the E_heff call does that
+        return np.dot(self.eta_vec, PSI_vector)
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
@@ -2239,6 +2235,7 @@ class VCNHardCoreBosonicHamiltonian(
                 "init_sigma": self.init_sigma,
                 "pseudo_inverse_cutoff": self.pseudo_inverse_cutoff,
                 "effective_time_step_size": self.effective_time_step_size,
+                "number_workers": self.number_workers,
                 "variational_step_fraction_multiplier": self.variational_step_fraction_multiplier,
                 **additional_info,
             }
@@ -2266,18 +2263,19 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         time_step_size: float,
     ):
         super().__init__(
-            U,
-            E,
-            J,
-            phi,
-            initial_system_state,
-            psi_selection,
-            random_generator,
-            init_sigma,
-            eta_calculation_sampler,
-            pseudo_inverse_cutoff,
-            variational_step_fraction_multiplier,
-            time_step_size,
+            U=U,
+            E=E,
+            J=J,
+            phi=phi,
+            initial_system_state=initial_system_state,
+            psi_selection=psi_selection,
+            random_generator=random_generator,
+            init_sigma=init_sigma,
+            eta_calculation_sampler=eta_calculation_sampler,
+            pseudo_inverse_cutoff=pseudo_inverse_cutoff,
+            variational_step_fraction_multiplier=variational_step_fraction_multiplier,
+            time_step_size=time_step_size,
+            number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
@@ -2289,8 +2287,6 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         self,
         time: float,
     ):
-        self.is_initializing = True
-
         # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
         eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
             0, self.phi, self.sin_phi, self.cos_phi
@@ -2315,7 +2311,6 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
 
         # finished and the result is that trained self.eta_vec
         self.current_time_cache = time
-        self.is_initializing = False
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}

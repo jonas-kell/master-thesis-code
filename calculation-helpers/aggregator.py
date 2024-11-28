@@ -267,8 +267,8 @@ def main():
         ]
 
         variational_step_fraction_multiplier = 10
-        init_sigma = 0.0001
-        pseudo_inverse_cutoff = 1e-5
+        init_sigma = 0.000001
+        pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
         observable_set = "energy_and_variance"
