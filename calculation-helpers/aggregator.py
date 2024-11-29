@@ -266,19 +266,30 @@ def main():
             ("variational_classical_networks_analytical_factors", "vcn_analytical"),
         ]
 
-        variational_step_fraction_multiplier = 10
-        init_sigma = 0.000001
+        effective_timestep_step_in_1_over_u = 2 * 1e-4
+        init_sigma = 0.0001
         pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
         observable_set = "energy_and_variance"
 
         scaler = 1 / U
-        num_samples_over_timespan = 10
+        num_samples_over_timespan = 50
         target_time_in_1_over_u = scaler * 3
 
         zip_filename_base = "vcn-param-tests"
 
+        # the step fraction multiplier is calculated in this experiment
+        variational_step_fraction_multiplier = int(
+            np.ceil(
+                (target_time_in_1_over_u / (num_samples_over_timespan))
+                / effective_timestep_step_in_1_over_u
+            )
+        )
+        print(
+            "Calculated variational_step_fraction_multiplier of:",
+            variational_step_fraction_multiplier,
+        )
     else:
         raise Exception("Unknown Experiment Specification")
 

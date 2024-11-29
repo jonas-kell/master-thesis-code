@@ -2035,7 +2035,7 @@ class VCNHardCoreBosonicHamiltonian(
             eta_derivative = self.calculate_eta_dot(
                 time=intermediate_step_time,
             )
-            self.eta_vec += eta_derivative
+            self.eta_vec += eta_derivative * self.effective_time_step_size
 
         # finished and stepped etas are stored internally
         self.current_time_cache = time
