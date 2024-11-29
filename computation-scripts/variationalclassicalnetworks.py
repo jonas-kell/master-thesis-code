@@ -26,9 +26,6 @@ class PSISelection(ABC):
     def eval_PSI_differences_double_flipping(
         self, before_swap_system_state: SystemState, l: int, m: int, spins_up: bool
     ) -> float:
-        """
-        CAUTION: modifies the state array intermediately
-        """
         domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
 
         if spins_up:
@@ -38,16 +35,16 @@ class PSISelection(ABC):
             use_index_l = self.system_geometry.get_opposite_spin_index(l % domain_size)
             use_index_m = self.system_geometry.get_opposite_spin_index(m % domain_size)
 
-        state_array = before_swap_system_state.get_state_array()
+        system_state_copy = (
+            before_swap_system_state.get_editable_copy()
+        )  # TODO difference-optimization will not need copy
+        state_array = system_state_copy.get_state_array()
 
-        first_val = self.eval_PSIs_on_state(system_state=before_swap_system_state)
+        first_val = self.eval_PSIs_on_state(system_state=system_state_copy)
         state_array[[use_index_l, use_index_m]] = (
             1 - state_array[[use_index_l, use_index_m]]
-        )  # double flip
-        second_val = self.eval_PSIs_on_state(system_state=before_swap_system_state)
-        state_array[[use_index_l, use_index_m]] = (
-            1 - state_array[[use_index_l, use_index_m]]
-        )  # double flip back
+        )  # double flip on copy
+        second_val = self.eval_PSIs_on_state(system_state=system_state_copy)
 
         # Caution, in most cases, this needs would be needed inverted one more time
         return first_val - second_val
