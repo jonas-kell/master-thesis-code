@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING, TypeAlias
 import numpy.typing as npt
+import multiprocessing
 from enum import Enum
 from abc import ABC, abstractmethod
 import state
@@ -2046,10 +2047,75 @@ class VCNHardCoreBosonicHamiltonian(
     ):
         num_etas = self.get_number_of_eta_parameters()
 
+        global_normalization_factor = 0.0
+        global_OO_averager = np.zeros(
+            (
+                num_etas,
+                num_etas,
+            ),
+            dtype=np.complex128,
+        )
+        global_O_averager = np.zeros(
+            (num_etas,),
+            dtype=np.complex128,
+        )
+        global_EO_averager = np.zeros(
+            (num_etas,),
+            dtype=np.complex128,
+        )
+        global_E_averager = np.complex128(0)
+
+        # aggregate-sample the E_loc and O values
+        pool = multiprocessing.Pool(processes=self.number_workers)
+
+        tasks = [(job_number, time) for job_number in range(self.number_workers)]
+
+        results = pool.starmap(self.worker_thread, tasks)
+        pool.close()
+        pool.join()
+        for (
+            worker_normalization_factor,
+            worker_OO_averager,
+            worker_O_averager,
+            worker_EO_averager,
+            worker_E_averager,
+        ) in results:
+            global_normalization_factor += worker_normalization_factor
+            global_OO_averager += worker_OO_averager
+            global_O_averager += worker_O_averager
+            global_EO_averager += worker_EO_averager
+            global_E_averager += worker_E_averager
+
+        # worker results have been aggregated, compute the relevant matrices
+
+        global_O_averager_normed = global_O_averager / global_normalization_factor
+
+        S_matrix = (global_OO_averager / global_normalization_factor) - np.outer(
+            global_O_averager_normed.conj(), global_O_averager_normed
+        )
+        F_vector = (
+            global_EO_averager / global_normalization_factor
+            - (global_E_averager / global_normalization_factor)
+            * global_O_averager_normed.conj()
+        )
+
+        pinv = np.linalg.pinv(
+            S_matrix, hermitian=True, rcond=self.pseudo_inverse_cutoff
+        )
+
+        return -1j * (pinv @ F_vector)
+
+    def worker_thread(
+        self,
+        worker_index: int,
+        time: float,
+    ) -> Tuple[float, np.array, np.array, np.array, np.complex128]:
+        num_etas = self.get_number_of_eta_parameters()
+
         sample_generator_object = self.eta_calculation_sampler.sample_generator(
             time=time,
-            worker_index=0,
-            num_workers=1,  # TODO training multithreaded
+            worker_index=worker_index,
+            num_workers=self.number_workers,
             random_generator=self.random_generator,
         )
 
@@ -2109,21 +2175,13 @@ class VCNHardCoreBosonicHamiltonian(
             except StopIteration:
                 break
 
-        O_averager_normed = O_averager / normalization_factor
-
-        S_matrix = (OO_averager / normalization_factor) - np.outer(
-            O_averager_normed.conj(), O_averager_normed
+        return (
+            normalization_factor,
+            OO_averager,
+            O_averager,
+            EO_averager,
+            E_averager,
         )
-        F_vector = (
-            EO_averager / normalization_factor
-            - (E_averager / normalization_factor) * O_averager_normed.conj()
-        )
-
-        pinv = np.linalg.pinv(
-            S_matrix, hermitian=True, rcond=self.pseudo_inverse_cutoff
-        )
-
-        return -1j * (pinv @ F_vector)
 
     def calculate_O_k_and_E_loc(
         self,
