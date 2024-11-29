@@ -19,14 +19,26 @@ def main():
     # ]
 
     # needs: --array=0-4
-    experiment = "monte_carlo_variance_test"
+    # experiment = "monte_carlo_variance_test"
+    # parameter_array: List[Any] = [
+    #     # param is here num mc-samples
+    #     400,
+    #     2000,
+    #     4000,
+    #     20000,
+    #     40000,
+    # ]
+
+    # needs: --array=0-5
+    experiment = "variational_classical_networks"
     parameter_array: List[Any] = [
-        # param is here num mc-samples
-        400,
-        2000,
-        4000,
-        20000,
-        40000,
+        # param is here effective time-steps in 1/U
+        0,  # this does the exact calculations
+        0.06,
+        0.06 * 1e-1,
+        0.06 * 1e-2,
+        0.06 * 1e-3,
+        0.06 * 1e-4,
     ]
 
     # !! use to configure parameter

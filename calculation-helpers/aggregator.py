@@ -246,7 +246,11 @@ def main():
         zip_filename_base = "energy-variance"
 
     elif experiment == "variational_classical_networks":
-        # ! energy-behavior
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 2 * 1e-2)
+        )  # parameter is for deciding effective_timestep_step_in_1_over_u
+
+        # ! test the effective step-size of the variational-classical network
         U = 1.0
         E = 2.5
         J = 0.05
@@ -257,16 +261,25 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        do_exact_diagonalization = False
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
-        compare_type_hamiltonians = [
-            ("variational_classical_networks", "vcn"),
-            ("variational_classical_networks_analytical_factors", "vcn_analytical"),
-        ]
+        if parameter == 0:
+            # do the "exact" comparisons
+            do_exact_diagonalization = True
+            compare_type_hamiltonians = [
+                ("both_optimizations", "o1"),
+                ("both_optimizations_second_order", "o2"),
+                ("variational_classical_networks_analytical_factors", "vcn_analytical"),
+            ]
+        else:
+            do_exact_diagonalization = False
+            # do the VCN EXPERIMENT
+            compare_type_hamiltonians = [
+                ("variational_classical_networks", "vcn"),
+            ]
 
-        effective_timestep_step_in_1_over_u = 2 * 1e-4
+        effective_timestep_step_in_1_over_u = parameter
         init_sigma = 0.0001
         pseudo_inverse_cutoff = 1e-10
 
@@ -277,8 +290,6 @@ def main():
         num_samples_over_timespan = 50
         target_time_in_1_over_u = scaler * 3
 
-        zip_filename_base = "vcn-param-tests"
-
         # the step fraction multiplier is calculated in this experiment
         variational_step_fraction_multiplier = int(
             np.ceil(
@@ -286,6 +297,10 @@ def main():
                 / effective_timestep_step_in_1_over_u
             )
         )
+        zip_filename_base = (
+            f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u)}"
+        )
+
         print(
             "Calculated variational_step_fraction_multiplier of:",
             variational_step_fraction_multiplier,
