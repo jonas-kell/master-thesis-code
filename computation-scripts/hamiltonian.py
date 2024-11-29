@@ -1957,6 +1957,7 @@ class VCNHardCoreBosonicHamiltonian(
         super().__init__(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
+        self.is_initializing = False
 
         self.psi_selection = psi_selection
 
@@ -2018,6 +2019,8 @@ class VCNHardCoreBosonicHamiltonian(
                     "The VCN Hamiltonian must start from a known set of eta params (t=0)"
                 )
 
+        self.is_initializing = True
+
         prev_time = self.current_time_cache
         for intermediate_step_index in range(self.variational_step_fraction_multiplier):
             intermediate_step_time = (
@@ -2029,18 +2032,17 @@ class VCNHardCoreBosonicHamiltonian(
 
             # Step with explicit euler integration # TODO better approximator
             eta_derivative = self.calculate_eta_dot(
-                eta_vec=self.eta_vec,
                 time=intermediate_step_time,
             )
             self.eta_vec += eta_derivative
 
         # finished and stepped etas are stored internally
         self.current_time_cache = time
+        self.is_initializing = False
 
     def calculate_eta_dot(
         self,
         time: float,
-        eta_vec: ETAVecType,
     ):
         num_etas = self.get_number_of_eta_parameters()
 
@@ -2080,15 +2082,9 @@ class VCNHardCoreBosonicHamiltonian(
                     # sampled state needs to be scaled
 
                     # Most expensive calculation. Only do if absolutely necessary -> do manually, to not use basic functions like get_exp_heff, that could depend on un-initialized state
-
-                    H_n = np.dot(
-                        self.eta_vec,
-                        self.psi_selection.eval_PSIs_on_state(
-                            system_state=sampled_state_n
-                        ),
+                    exp_H_eff = self.get_exp_H_eff(
+                        time=time, system_state=sampled_state_n
                     )
-                    E_zero_n = self.get_base_energy(system_state=sampled_state_n)
-                    exp_H_eff = np.exp(H_n - (1j * E_zero_n * time))
                     psi_n = sampled_state_n.get_Psi_of_N()
 
                     state_probability: float = np.real(np.conjugate(exp_H_eff * psi_n) * exp_H_eff * psi_n)  # type: ignore -> this returns a scalar for sure
@@ -2099,7 +2095,7 @@ class VCNHardCoreBosonicHamiltonian(
                 normalization_factor += state_probability
 
                 O_vector, E_loc = self.calculate_O_k_and_E_loc(
-                    time=time, system_state=sampled_state_n, eta_vec=eta_vec
+                    time=time, system_state=sampled_state_n
                 )
 
                 O_vector_scaled = O_vector * state_probability
@@ -2133,19 +2129,16 @@ class VCNHardCoreBosonicHamiltonian(
         self,
         time: float,
         system_state: state.SystemState,
-        eta_vec: ETAVecType,
     ):
         O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
 
         E_loc = self.get_base_energy(system_state=system_state) + self.eval_V_n(
-            time=time, eta_vec=eta_vec, system_state=system_state
+            time=time, system_state=system_state
         )
 
         return O_vector, E_loc
 
-    def eval_V_n(
-        self, time: float, eta_vec: ETAVecType, system_state: state.SystemState
-    ):
+    def eval_V_n(self, time: float, system_state: state.SystemState):
         collecting_sum = np.complex128(0)
 
         for l in range(
@@ -2177,7 +2170,7 @@ class VCNHardCoreBosonicHamiltonian(
 
                             collecting_sum += np.exp(
                                 np.dot(
-                                    eta_vec,
+                                    self.eta_vec,
                                     # needs minus, because formula and convention here inverted
                                     -self.psi_selection.eval_PSI_differences_double_flipping(
                                         before_swap_system_state=system_state,
@@ -2212,7 +2205,7 @@ class VCNHardCoreBosonicHamiltonian(
         system_state: state.SystemState,
     ) -> np.complex128:
         if (
-            self.current_time_cache != time
+            not self.is_initializing and self.current_time_cache != time
         ):  # float comparison is ok, because float stems from same float normally, so this is bit-accurate
             raise Exception("The Hamiltonian is not initialized for the requested time")
 
