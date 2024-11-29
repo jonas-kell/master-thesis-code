@@ -247,7 +247,7 @@ def main():
 
     elif experiment == "variational_classical_networks":
         parameter = cast(
-            int, get_argument(args, "parameter", int, 2 * 1e-2)
+            float, get_argument(args, "parameter", float, 2 * 1e-2)
         )  # parameter is for deciding effective_timestep_step_in_1_over_u
 
         # ! test the effective step-size of the variational-classical network
@@ -291,15 +291,17 @@ def main():
         target_time_in_1_over_u = scaler * 3
 
         # the step fraction multiplier is calculated in this experiment
-        variational_step_fraction_multiplier = int(
-            np.ceil(
-                (target_time_in_1_over_u / (num_samples_over_timespan))
-                / effective_timestep_step_in_1_over_u
+        if parameter != 0:
+            variational_step_fraction_multiplier = int(
+                np.ceil(
+                    (target_time_in_1_over_u / (num_samples_over_timespan))
+                    / effective_timestep_step_in_1_over_u
+                )
             )
-        )
-        zip_filename_base = (
-            f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u)}"
-        )
+            zip_filename_base = f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u)}"
+        else:
+            variational_step_fraction_multiplier = 1  # is deactiavted
+            zip_filename_base = "vcn-param-tests-exact"
 
         print(
             "Calculated variational_step_fraction_multiplier of:",
