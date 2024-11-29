@@ -298,7 +298,7 @@ def main():
                     / effective_timestep_step_in_1_over_u
                 )
             )
-            zip_filename_base = f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u)}"
+            zip_filename_base = f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u).replace(".", "")}"
         else:
             variational_step_fraction_multiplier = 1  # is deactiavted
             zip_filename_base = "vcn-param-tests-exact"
