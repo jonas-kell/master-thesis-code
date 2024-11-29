@@ -279,7 +279,8 @@ def numerically_calculate_time_evolution(
     H_squared_operator = H @ H
     V_squared_operator = V @ V
     H0_squared_operator = H_0 @ H_0
-    H0_V_operator = H_0 @ V
+    H0_V_matrix = H_0 @ V
+    V_HO_matrix = V @ H_0
 
     measurements = []
     for step_index in range(number_of_time_steps):
@@ -299,19 +300,17 @@ def numerically_calculate_time_evolution(
             np.vdot(psi_t, np.dot(H_squared_operator, psi_t))
             - (expectation_value_energy * chain_length) ** 2
         ) / chain_length
-        expectation_value_energy_variance_2 = (
-            np.vdot(psi_t, np.dot(V_squared_operator, psi_t))
+        expectation_value_energy_variance_composite = (
+            +np.vdot(psi_t, np.dot(V_squared_operator, psi_t))
             - np.vdot(psi_t, np.dot(V, psi_t)) ** 2
-        ) / chain_length
-        expectation_value_energy_variance_3 = (
-            expectation_value_energy_variance_2 * chain_length
             + np.vdot(psi_t, np.dot(H0_squared_operator, psi_t))
             - np.vdot(psi_t, np.dot(H_0, psi_t)) ** 2
-            + 2
-            * (
-                np.vdot(psi_t, np.dot(H0_V_operator, psi_t))
-                - np.vdot(psi_t, np.dot(H_0, psi_t)) * np.vdot(psi_t, np.dot(V, psi_t))
+            + (
+                np.vdot(psi_t, np.dot(H0_V_matrix, psi_t))
+                + np.vdot(psi_t, np.dot(V_HO_matrix, psi_t))
             )
+            - 2
+            * (np.vdot(psi_t, np.dot(H_0, psi_t)) * np.vdot(psi_t, np.dot(V, psi_t)))
         ) / chain_length
         expectation_value_current_up = np.vdot(
             psi_t, np.dot(current_operator_up, psi_t)
@@ -358,8 +357,7 @@ def numerically_calculate_time_evolution(
         data = [
             # expectation_value_energy,
             # expectation_value_energy_variance,
-            # expectation_value_energy_variance_2,
-            # expectation_value_energy_variance_3,
+            # expectation_value_energy_variance_composite,
             expectation_value_concurrence,
             expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
             expectation_value_purity,
@@ -398,7 +396,6 @@ def numerically_calculate_time_evolution(
     observables = [
         # {"type": "Energy", "label": "Energy per site"},
         # {"type": "EnergyVariance", "label": "Energy Variance per site"},
-        # {"type": "EnergyVariance", "label": "V only - Energy Variance per site"},
         # {"type": "EnergyVariance", "label": "Composite - Energy Variance per site"},
         {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
         {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},

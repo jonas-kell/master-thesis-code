@@ -313,14 +313,26 @@ class EnergyVarianceDirect(Energy):
         )
         s_H0_s = self.hamiltonian.get_base_energy(system_state=system_state)
 
-        return np.array([s_VV_s + s_V_s**2, s_V_s, s_H0_s**2, s_H0_s, s_H0_s * s_V_s])
+        # s_H0_s is strictly real. For that reason in the below ONLY s_V_s technically needs to respect the conjugate
+        return np.array(
+            [
+                s_VV_s + s_V_s**2,
+                s_V_s,
+                s_H0_s * np.conj(s_H0_s),  # not entirely necessary to conjugate a real
+                s_H0_s,
+                s_H0_s * s_V_s,
+                np.conj(s_V_s) * s_H0_s,
+            ]
+        )
 
     def post_process_necessary(self) -> bool:
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        VV, V, H0H0, H0, H0V = value
-        return (VV - V**2 + H0H0 - H0**2 + 2 * (H0V - H0 * V)) / self.number_of_sites
+        VV, V, H0H0, H0, H0V, VH0 = value
+        return (
+            VV - V**2 + H0H0 - H0**2 + (H0V + VH0) - 2 * (H0 * V)
+        ) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy Variance per site"
@@ -346,17 +358,26 @@ class EnergyVariance(Energy):
         )
         s_H0_s = self.hamiltonian.get_base_energy(system_state=system_state)
 
-        # s_H0_s is strictly real. For that reason in the below ONLY s_V_s**2 needs to respect the conjugate. The other terms all luckily work like this
+        # s_H0_s is strictly real. For that reason in the below ONLY s_V_s technically needs to respect the conjugate
         return np.array(
-            [s_V_s * np.conj(s_V_s), s_V_s, s_H0_s**2, s_H0_s, s_H0_s * s_V_s]
+            [
+                s_V_s * np.conj(s_V_s),
+                s_V_s,
+                s_H0_s * np.conj(s_H0_s),  # not entirely necessary to conjugate a real
+                s_H0_s,
+                s_H0_s * s_V_s,
+                np.conj(s_V_s) * s_H0_s,
+            ]
         )
 
     def post_process_necessary(self) -> bool:
         return True
 
     def post_process(self, value: np.ndarray) -> np.complex128:
-        VV, V, H0H0, H0, H0V = value
-        return (VV - V**2 + H0H0 - H0**2 + 2 * (H0V - H0 * V)) / self.number_of_sites
+        VV, V, H0H0, H0, H0V, VH0 = value
+        return (
+            VV - V**2 + H0H0 - H0**2 + (H0V + VH0) - 2 * (H0 * V)
+        ) / self.number_of_sites
 
     def get_label(self) -> str:
         return "Energy Variance per site"
