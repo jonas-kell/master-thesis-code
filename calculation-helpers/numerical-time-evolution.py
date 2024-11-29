@@ -493,8 +493,10 @@ def main():
     if np.abs(J) < scaler_switch:
         # if J interaction "deactivated", scale with U
         scaler_factor = U
+        main_program_j_input_rescaler = J / U
     else:
         scaler_factor = J
+        main_program_j_input_rescaler = 1
 
     target_time: float = (1 / np.abs(scaler_factor)) * target_time_in_one_over_scaler
     time_step: float = (target_time - start_time) / number_of_time_steps
@@ -526,7 +528,8 @@ def main():
             "phi": phi,
             "start_time": start_time,
             "number_of_time_steps": number_of_time_steps,
-            "target_time_in_one_over_j": target_time_in_one_over_scaler,
+            "target_time_in_one_over_j": target_time_in_one_over_scaler
+            * main_program_j_input_rescaler,
             "chain_length": chain_length,
             "set_number_workers_to_one": set_number_workers_to_one,
             "file_name": filename_for_main_thread,
