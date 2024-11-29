@@ -111,7 +111,7 @@ class Energy(MeasurableObservable):
         return {"type": "Energy", "label": self.get_label()}
 
 
-class EnergyVariance(Energy):
+class EnergyVarianceDirect(Energy):
     def __init__(
         self,
         ham: hamiltonian.Hamiltonian,
@@ -314,6 +314,42 @@ class EnergyVariance(Energy):
         s_H0_s = self.hamiltonian.get_base_energy(system_state=system_state)
 
         return np.array([s_VV_s + s_V_s**2, s_V_s, s_H0_s**2, s_H0_s, s_H0_s * s_V_s])
+
+    def post_process_necessary(self) -> bool:
+        return True
+
+    def post_process(self, value: np.ndarray) -> np.complex128:
+        VV, V, H0H0, H0, H0V = value
+        return (VV - V**2 + H0H0 - H0**2 + 2 * (H0V - H0 * V)) / self.number_of_sites
+
+    def get_label(self) -> str:
+        return "Energy Variance per site"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {"type": "EnergyVarianceDirect", "label": self.get_label()}
+
+
+class EnergyVariance(Energy):
+    def __init__(
+        self,
+        ham: hamiltonian.Hamiltonian,
+        geometry: systemgeometry.SystemGeometry,
+    ):
+        super().__init__(geometry=geometry, ham=ham)
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        s_V_s = self.get_s_V_s(
+            time=time,
+            system_state=system_state,
+        )
+        s_H0_s = self.hamiltonian.get_base_energy(system_state=system_state)
+
+        # s_H0_s is strictly real. For that reason in the below ONLY s_V_s**2 needs to respect the conjugate. The other terms all luckily work like this
+        return np.array(
+            [s_V_s * np.conj(s_V_s), s_V_s, s_H0_s**2, s_H0_s, s_H0_s * s_V_s]
+        )
 
     def post_process_necessary(self) -> bool:
         return True

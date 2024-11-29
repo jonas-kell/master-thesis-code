@@ -275,17 +275,23 @@ def main():
     # )
 
     use_state = state.SystemState(system_geometry, initial_system_state)
-    observable_var = observables.EnergyVariance(
+    observable_var_direct = observables.EnergyVarianceDirect(
         ham=use_hamiltonian,
         geometry=system_geometry,
         initial_system_state=initial_system_state,
+    )
+
+    observable_var_fast = observables.EnergyVariance(
+        ham=use_hamiltonian,
+        geometry=system_geometry,
     )
 
     total_time_all_aggregation = 0
     total_time_only_overlap_aggregation = 0
     total_time_only_overlap_aggregation_eff_flip = 0
     total_time_implementation = 0
-    iterations = 1
+    total_time_implementation_fast = 0
+    iterations = 10
     for iter_index in range(iterations):
         use_state.init_random_filling(random)
 
@@ -359,12 +365,24 @@ def main():
         total_time_only_overlap_aggregation_eff_flip += end - start
 
         start = measure() * 1000
-        intermediate_result = observable_var.get_expectation_value(
+        intermediate_result_direct = observable_var_direct.get_expectation_value(
             time=measurement_time, system_state=use_state
         )
-        result_implementation = intermediate_result[0] - intermediate_result[1] ** 2
+        result_implementation_direct = (
+            intermediate_result_direct[0] - intermediate_result_direct[1] ** 2
+        )
         end = measure() * 1000
         total_time_implementation += end - start
+
+        start = measure() * 1000
+        intermediate_result_fast = observable_var_fast.get_expectation_value(
+            time=measurement_time, system_state=use_state
+        )
+        _result_implementation_fast = intermediate_result_fast[
+            0
+        ]  # other maths, not comparable in terms of value, unless summed
+        end = measure() * 1000
+        total_time_implementation_fast += end - start
 
         if np.abs(all_aggregator - only_overlap_aggregator) > 1e-6:
             print(all_aggregator)
@@ -376,10 +394,10 @@ def main():
             print(only_overlap_aggregator_eff_flip)
             raise Exception("Should be the same")
 
-        if np.abs(all_aggregator - result_implementation) > 1e-6:
+        if np.abs(all_aggregator - result_implementation_direct) > 1e-6:
             print(all_aggregator)
-            print(result_implementation)
-            raise Exception("Should be the same finally")
+            print(intermediate_result_direct)
+            raise Exception("Should be the same")
 
     print("All aggregation ms:", total_time_all_aggregation)
     print("Overlap aggregation ms:", total_time_only_overlap_aggregation)
@@ -390,6 +408,10 @@ def main():
     print(
         "Final implementation:",
         total_time_implementation,
+    )
+    print(
+        "Final implementation fast:",
+        total_time_implementation_fast,
     )
 
 
