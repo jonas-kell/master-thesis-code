@@ -2037,19 +2037,6 @@ class VCNHardCoreBosonicHamiltonian(
             )
             self.eta_vec += eta_derivative
 
-            # Hermetization attempt (#TODO remove)
-            # [ 0.03711659+0.1687149j   1.10334572-0.51585645j  0.57346463+0.00243719j
-            # -0.03711659+0.1687149j  -0.57346463+0.00243719j -1.10334572-0.51585645j]
-            #
-            # ap, bp, cp, am, bm, cm = self.eta_vec
-            # nap = (np.real(ap) - np.real(am)) / 2 + 1j * (np.imag(ap) + np.imag(am)) / 2
-            # nam = -np.conj(nap)
-            # nbp = (np.real(bp) - np.real(cm)) / 2 + 1j * (np.imag(bp) + np.imag(cm)) / 2
-            # ncp = (np.real(cp) - np.real(bm)) / 2 + 1j * (np.imag(cp) + np.imag(bm)) / 2
-            # nbm = -np.conj(ncp)
-            # ncm = -np.conj(nbp)
-            # self.eta_vec = np.array([nap, nbp, ncp, nam, nbm, ncm])
-
         # finished and stepped etas are stored internally
         self.current_time_cache = time
         self.is_initializing = False
