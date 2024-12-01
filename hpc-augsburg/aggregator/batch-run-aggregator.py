@@ -29,7 +29,7 @@ def main():
     #     40000,
     # ]
 
-    # needs: --array=0-5
+    # needs: --array=0-4
     experiment = "variational_classical_networks"
     parameter_array: List[Any] = [
         # param is here effective time-steps in 1/U
