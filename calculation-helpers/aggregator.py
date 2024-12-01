@@ -253,15 +253,15 @@ def main():
 
     elif experiment == "variational_classical_networks":
         parameter = cast(
-            float, get_argument(args, "parameter", float, 2 * 1e-2)
+            float, get_argument(args, "parameter", float, 0)
         )  # parameter is for deciding effective_timestep_step_in_1_over_u
         effective_timestep_step_in_1_over_u = parameter
 
         # ! test the effective step-size of the variational-classical network
         U = 1.0
         E = 2.5
-        J = 0.05
-        n = 3
+        J = 0.1
+        n = 6
         phi = 0.1
         system_geometry_type = "chain"
 
@@ -271,16 +271,15 @@ def main():
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         if parameter == 0:
             # do the "exact" comparisons
-            do_exact_diagonalization = True
             compare_type_hamiltonians = [
                 ("both_optimizations", "o1"),
                 ("both_optimizations_second_order", "o2"),
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ]
         else:
-            do_exact_diagonalization = False
             # do the VCN EXPERIMENT
             compare_type_hamiltonians = [
                 (
