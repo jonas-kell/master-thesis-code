@@ -25,6 +25,7 @@ def main_measurement_function(
     file_name_overwrite: str | None = None,
     check_obs_imag: bool = False,
     check_obs_imag_threshold: float = 1e-2,
+    record_imag_part: bool = False,
 ) -> Tuple[List[float], List[List[float]], List[observablesImport.Observable]]:
     time_list: List[float] = []
     values_list: List[List[float]] = []
@@ -140,6 +141,7 @@ def main_measurement_function(
 
         # scale and convert observables
         total_sums: List[float] = [0.0] * num_measurable_observables
+        total_sums_imag: List[float] = [0.0] * num_measurable_observables
         for i, measurable_observable in enumerate(measurable_observables):
             measurement = total_sums_complex[i] * inverse_normalization_factor
 
@@ -156,6 +158,7 @@ def main_measurement_function(
                 else:
                     print("Warning:", message)
             total_sums[i] = real_part_of_observable
+            total_sums_imag[i] = imag_part_of_observable
 
         # hamiltonian properties do not require being re-scaled by the energies/probabilities
         hamiltonian_property_measurements: List[float] = [
@@ -169,6 +172,7 @@ def main_measurement_function(
             )
 
         total_measurements = total_sums + hamiltonian_property_measurements
+        total_measurements_imag = total_sums_imag + [0.0] * num_hamiltonian_properties
 
         if default_prints:
             print(
@@ -181,13 +185,23 @@ def main_measurement_function(
             with open(current_file_path, mode="w", newline="") as file:
                 measurements: List[Dict[Any, Any]] = data["measurements"]  # type: ignore
 
-                measurements.append(
-                    {
-                        "time": time,
-                        "step_sample_count": step_sample_count,
-                        "data": total_measurements,
-                    }
-                )
+                if record_imag_part:
+                    measurements.append(
+                        {
+                            "time": time,
+                            "step_sample_count": step_sample_count,
+                            "data": total_measurements,
+                            "data_imag": total_measurements_imag,  # shomewhat ugly to append this extra, but format is established for this tool
+                        }
+                    )
+                else:
+                    measurements.append(
+                        {
+                            "time": time,
+                            "step_sample_count": step_sample_count,
+                            "data": total_measurements,
+                        }
+                    )
 
                 data["measurements"] = measurements
                 data["realworld_total_calculation_time"] = float(

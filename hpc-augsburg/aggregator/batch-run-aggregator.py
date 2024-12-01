@@ -34,11 +34,10 @@ def main():
     parameter_array: List[Any] = [
         # param is here effective time-steps in 1/U
         0,  # this does the exact calculations
-        0.06,
-        0.06 * 1e-1,
-        0.06 * 1e-2,
-        0.06 * 1e-3,
-        0.06 * 1e-4,
+        6e-2,
+        2e-2,
+        6e-3,
+        2e-3,
     ]
 
     # !! use to configure parameter

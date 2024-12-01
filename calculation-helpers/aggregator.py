@@ -51,14 +51,16 @@ def generate_random_string(length=8):
     return "".join(random.choice(letters) for _ in range(length))
 
 
-def run_experiment(data, is_hpc: bool, record_hamiltonian_properties: bool):
+def run_experiment(
+    data, is_hpc: bool, record_hamiltonian_properties: bool, record_imag_part: bool
+):
     arguments_string = "--do_not_plot do_not_plot"
     for key, val in data.items():
         arguments_string += " --" + key + " " + str(val)
 
     python_executable = "python"
     os.system(
-        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''}"
+        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''} {'--record_imag_part' if record_imag_part else ''}"
     )
 
 
@@ -129,6 +131,7 @@ def main():
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
+        record_imag_part: bool = False
         observable_set = "current_and_occupation"
 
         scaler = 1
@@ -163,6 +166,7 @@ def main():
         init_sigma = 0.0001  # not switched on
 
         record_hamiltonian_properties: bool = False
+        record_imag_part: bool = False
         observable_set = "concurrence_and_pauli"
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
@@ -202,6 +206,7 @@ def main():
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
+        record_imag_part: bool = False
         observable_set = "current_and_occupation"
 
         scaler = 50
@@ -237,6 +242,7 @@ def main():
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
+        record_imag_part: bool = False
         observable_set = "energy_and_variance"
 
         scaler = 1 / J
@@ -249,6 +255,7 @@ def main():
         parameter = cast(
             float, get_argument(args, "parameter", float, 2 * 1e-2)
         )  # parameter is for deciding effective_timestep_step_in_1_over_u
+        effective_timestep_step_in_1_over_u = parameter
 
         # ! test the effective step-size of the variational-classical network
         U = 1.0
@@ -270,20 +277,23 @@ def main():
             compare_type_hamiltonians = [
                 ("both_optimizations", "o1"),
                 ("both_optimizations_second_order", "o2"),
-                ("variational_classical_networks_analytical_factors", "vcn_analytical"),
+                ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ]
         else:
             do_exact_diagonalization = False
             # do the VCN EXPERIMENT
             compare_type_hamiltonians = [
-                ("variational_classical_networks", "vcn"),
+                (
+                    "variational_classical_networks",
+                    f"vcn{float_to_str(effective_timestep_step_in_1_over_u).replace('.', '')}",
+                ),
             ]
 
-        effective_timestep_step_in_1_over_u = parameter
         init_sigma = 0.0001
         pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
         scaler = 1 / U
@@ -298,7 +308,7 @@ def main():
                     / effective_timestep_step_in_1_over_u
                 )
             )
-            zip_filename_base = f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u).replace(".", "")}"
+            zip_filename_base = f"vcn-param-tests-ets{float_to_str(effective_timestep_step_in_1_over_u).replace('.', '')}"
         else:
             variational_step_fraction_multiplier = 1  # is deactiavted
             zip_filename_base = "vcn-param-tests-exact"
@@ -349,7 +359,9 @@ def main():
             "sampling_strategy": "exact",
             **experiment_base_data,
         }
-        run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
+        run_experiment(
+            experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+        )
 
     if do_exact_comparison:
         for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
@@ -362,7 +374,9 @@ def main():
                 "number_workers": num_multithread_workers,
                 **experiment_base_data,
             }
-            run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
+            run_experiment(
+                experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+            )
 
     for i in range(different_monte_carlo_tests):
         for compare_type_hamiltonian, order_slug in compare_type_hamiltonians:
@@ -378,7 +392,9 @@ def main():
                 "number_workers": num_multithread_workers,
                 **experiment_base_data,
             }
-            run_experiment(experiment_data, is_hpc, record_hamiltonian_properties)
+            run_experiment(
+                experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+            )
 
     zip_filename = f"{run_file_name_base}.zip"
     print(zip_filename)

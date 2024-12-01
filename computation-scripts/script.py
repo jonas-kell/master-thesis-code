@@ -43,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--record_hamiltonian_properties", action="store_true", required=False
     )
+    parser.add_argument("--record_imag_part", action="store_true", required=False)
     parser.add_argument("--U", required=False)
     parser.add_argument("--E", required=False)
     parser.add_argument("--J", required=False)
@@ -216,6 +217,7 @@ if __name__ == "__main__":
 
     # ! VCN settings
     record_hamiltonian_properties: bool = args["record_hamiltonian_properties"]
+    record_imag_part: bool = args["record_imag_part"]
     init_sigma: float = cast(float, get_argument(args, "init_sigma", float, 0.001))
     pseudo_inverse_cutoff: float = cast(
         float, get_argument(args, "pseudo_inverse_cutoff", float, 1e-10)
@@ -611,6 +613,7 @@ if __name__ == "__main__":
             file_name_overwrite=file_name_overwrite,
             check_obs_imag=check_observable_imag,
             check_obs_imag_threshold=check_observable_imag_threshold,
+            record_imag_part=record_imag_part,
         )
     )
 
