@@ -91,9 +91,8 @@ def main():
         "monte_carlo_variance_test",
         "energy_behavior",
         "variational_classical_networks",
-    ] = cast(
-        str, get_argument(args, "experiment", str, "variational_classical_networks")
-    )
+        "seed_and_init_spread",
+    ] = cast(str, get_argument(args, "experiment", str, "seed_and_init_spread"))
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -316,6 +315,53 @@ def main():
             "Calculated variational_step_fraction_multiplier of:",
             variational_step_fraction_multiplier,
         )
+
+    elif experiment == "seed_and_init_spread":
+        parameter = cast(
+            float, get_argument(args, "parameter", float, 0.1)
+        )  # parameter is for deciding seed and init_sigma size
+
+        # overwrites the seed so that different init_sigma also have different seeds
+        seed_string = f"{float_to_str(parameter)}{float_to_str(parameter)}{float_to_str(parameter)}"
+
+        # ! test the effective step-size of the variational-classical network
+        U = 1.0
+        E = 2.5
+        J = 0.1
+        n = 8
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        do_exact_diagonalization = False
+        compare_type_hamiltonians = [
+            (
+                "variational_classical_networks",
+                f"vcn-sigma{float_to_str(parameter).replace('.', '')}",
+            ),
+        ]
+
+        init_sigma = parameter
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
+        observable_set = "energy_and_variance"
+
+        scaler = 1 / U
+        num_samples_over_timespan = 20
+        target_time_in_1_over_u = scaler * 1.5
+
+        variational_step_fraction_multiplier = 3
+        zip_filename_base = (
+            f"vcn-init-tests-sigma{float_to_str(init_sigma).replace('.', '')}"
+        )
+
     else:
         raise Exception("Unknown Experiment Specification")
 
