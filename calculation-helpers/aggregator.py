@@ -98,6 +98,7 @@ def main():
     print("Running aggregator script for experiment:", experiment)
 
     seed_string = "experiment_main_seed"
+    randomness_seed = "very_nice_seed"
 
     # !! configure experiment settings below this
     if experiment == "j_sweep":
@@ -322,7 +323,7 @@ def main():
         )  # parameter is for deciding seed and init_sigma size
 
         # overwrites the seed so that different init_sigma also have different seeds
-        seed_string = f"{float_to_str(parameter)}{float_to_str(parameter)}{float_to_str(parameter)}"
+        randomness_seed = f"{float_to_str(parameter)}{float_to_str(parameter)}{float_to_str(parameter)}"
 
         # ! test the effective step-size of the variational-classical network
         U = 1.0
@@ -392,17 +393,18 @@ def main():
         "system_geometry_type": system_geometry_type,
         "observable_set": observable_set,
         "pseudo_inverse_cutoff": pseudo_inverse_cutoff,
+        "randomness_seed": randomness_seed,
     }
 
     if do_exact_diagonalization:
         exact_name = run_file_name_base + "-exact-exact"
         file_names_list.append(exact_name)
         experiment_data = {
+            **experiment_base_data,
             "number_workers": 1,  # this is faster without multithreading
             "hamiltonian_type": "exact",
             "file_name_overwrite": exact_name,
             "sampling_strategy": "exact",
-            **experiment_base_data,
         }
         run_experiment(
             experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
@@ -413,11 +415,11 @@ def main():
             compare_exact_name = run_file_name_base + f"-compare{order_slug}-exact"
             file_names_list.append(compare_exact_name)
             experiment_data = {
+                **experiment_base_data,
                 "hamiltonian_type": compare_type_hamiltonian,
                 "file_name_overwrite": compare_exact_name,
                 "sampling_strategy": "exact",
                 "number_workers": num_multithread_workers,
-                **experiment_base_data,
             }
             run_experiment(
                 experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
@@ -428,6 +430,7 @@ def main():
             mc_name = run_file_name_base + f"-compare{order_slug}-mc{i}"
             file_names_list.append(mc_name)
             experiment_data = {
+                **experiment_base_data,
                 "hamiltonian_type": compare_type_hamiltonian,
                 "file_name_overwrite": mc_name,
                 "randomness_seed": generate_random_string(),
@@ -435,7 +438,6 @@ def main():
                 "num_monte_carlo_samples": num_monte_carlo_samples,
                 "sampling_strategy": "monte_carlo",
                 "number_workers": num_multithread_workers,
-                **experiment_base_data,
             }
             run_experiment(
                 experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
