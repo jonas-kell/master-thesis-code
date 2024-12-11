@@ -92,7 +92,8 @@ def main():
         "energy_behavior",
         "variational_classical_networks",
         "seed_and_init_spread",
-    ] = cast(str, get_argument(args, "experiment", str, "seed_and_init_spread"))
+        "first_vcn_step",
+    ] = cast(str, get_argument(args, "experiment", str, "first_vcn_step"))
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -362,6 +363,43 @@ def main():
         zip_filename_base = (
             f"vcn-init-tests-sigma{float_to_str(init_sigma).replace('.', '')}"
         )
+
+    elif experiment == "first_vcn_step":
+        # ! test the effective step-size of the variational-classical network
+        U = 1.0
+        E = 2.5
+        J = 0.1
+        n = 2
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        compare_type_hamiltonians = [
+            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+            ("variational_classical_networks", "vcn"),
+        ]
+
+        init_sigma = 0.0
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
+        observable_set = "energy_and_variance"
+
+        multiplier = 1
+
+        scaler = 1 / U
+        num_samples_over_timespan = 3 * multiplier
+        target_time_in_1_over_u = scaler * 0.16 * multiplier
+
+        variational_step_fraction_multiplier = 2  # is deactiavted
+        zip_filename_base = "vcn-first-step"
 
     else:
         raise Exception("Unknown Experiment Specification")
