@@ -44,6 +44,13 @@ ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     variational_step_fraction_multiplier=1,
     time_step_size=0,
 )
+ham_first_order = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+    U=U,
+    E=E,
+    J=J,
+    phi=phi,
+    initial_system_state=initial_system_state,
+)
 
 energy_observable = observables.Energy(ham=ham, geometry=system_geometry)
 
@@ -72,3 +79,10 @@ for _ in range(number_tests):
     if np.abs(energy_eloc_vcn - energy_obs) > 1e-6:
         print(energy_obs)
         print(energy_eloc_vcn)
+
+    h_eff_o1 = ham_first_order.get_H_eff(time=measurement_time, system_state=use_state)
+    h_eff_vcn_analytic = ham.get_H_eff(time=measurement_time, system_state=use_state)
+
+    if np.abs(h_eff_o1 - h_eff_vcn_analytic) > 1e-6:
+        print(h_eff_o1)
+        print(h_eff_vcn_analytic)
