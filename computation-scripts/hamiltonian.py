@@ -2247,7 +2247,7 @@ class VCNHardCoreBosonicHamiltonian(
                                     flipping1_occupation_before_flip=occ_l,
                                     flipping1_occupation_before_flip_os=occ_l_os,
                                     flipping2_up=up,
-                                    flipping2_index=l,
+                                    flipping2_index=m,
                                     flipping2_occupation_before_flip=occ_m,
                                     flipping2_occupation_before_flip_os=occ_m_os,
                                 )
