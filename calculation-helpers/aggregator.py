@@ -385,20 +385,20 @@ def main():
             ("variational_classical_networks", "vcn"),
         ]
 
-        init_sigma = 0.0
-        pseudo_inverse_cutoff = 1e-10
+        init_sigma = 0.001
+        pseudo_inverse_cutoff = 1e-8
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
-        multiplier = 1
+        multiplier = 20
 
         scaler = 1 / U
         num_samples_over_timespan = 3 * multiplier
         target_time_in_1_over_u = scaler * 0.16 * multiplier
 
-        variational_step_fraction_multiplier = 2  # is deactiavted
+        variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
 
     else:
