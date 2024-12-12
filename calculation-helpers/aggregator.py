@@ -385,14 +385,14 @@ def main():
             ("variational_classical_networks", "vcn"),
         ]
 
-        init_sigma = 0.001
+        init_sigma = 0.0001
         pseudo_inverse_cutoff = 1e-8
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
-        multiplier = 20
+        multiplier = 10
 
         scaler = 1 / U
         num_samples_over_timespan = 3 * multiplier

@@ -2169,7 +2169,10 @@ class VCNHardCoreBosonicHamiltonian(
 
                 OO_averager += np.outer(O_vector_scaled.conj(), O_vector_scaled)
                 O_averager += O_vector_scaled
-                EO_averager += E_loc_scaled * O_vector_scaled.conj()
+                # We need to provide the conjugate of the energy, as the sign convention follows the formulas in "Variational classical Networks for dynamics in interacting quantum matter"
+                # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefor acts to the left and needs one additional *.
+                EO_averager += E_loc_scaled.conj() * O_vector_scaled.conj()
+                # This is irrelevant for the energy averager, because that one is a hermitian operator and the result after combination is real anyway
                 E_averager += E_loc_scaled
 
             except StopIteration:
