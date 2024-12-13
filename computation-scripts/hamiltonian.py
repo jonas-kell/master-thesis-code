@@ -2095,8 +2095,8 @@ class VCNHardCoreBosonicHamiltonian(
         )
         F_vector = (
             global_EO_averager / global_normalization_factor
-            - (global_E_averager / global_normalization_factor)
-            * global_O_averager_normed.conj()
+            - global_O_averager_normed.conj()
+            * (global_E_averager / global_normalization_factor)
         )
 
         pinv = np.linalg.pinv(
@@ -2171,7 +2171,8 @@ class VCNHardCoreBosonicHamiltonian(
                 O_averager += O_vector_scaled
                 # We need to provide the conjugate of the energy, as the sign convention follows the formulas in "Variational classical Networks for dynamics in interacting quantum matter"
                 # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefor acts to the left and needs one additional *.
-                EO_averager += E_loc_scaled.conj() * O_vector_scaled.conj()
+                # TODO if the psi are multiplied with exp_heff_diff, then conjugating E or not doesn't matter
+                EO_averager += O_vector_scaled.conj() * E_loc_scaled
                 # This is irrelevant for the energy averager, because that one is a hermitian operator and the result after combination is real anyway
                 E_averager += E_loc_scaled
 
