@@ -60,11 +60,6 @@ number_tests = 1000
 for _ in range(number_tests):
     use_state.init_random_filling(random_generator=random_generator)
 
-    # state_array = use_state.get_state_array()
-    # print(state_array[0:n])
-    # print(state_array[n:])
-    # print(vcn_chain.eval_PSIs_on_state(use_state))
-
     ham.initialize(time=measurement_time)
     energy_obs = (
         energy_observable.get_expectation_value(
