@@ -2193,8 +2193,9 @@ class VCNHardCoreBosonicHamiltonian(
         system_state: state.SystemState,
     ):
         O_vector = self.psi_selection.eval_PSIs_on_state(
-            system_state=system_state, include_heff_rescaling=True, ham=self, time=time
+            system_state=system_state, include_heff_rescaling=False, ham=self, time=time
         )
+        # TODO heff rescaling is not correct, remove it again
 
         E_loc = self.get_base_energy(system_state=system_state) + self.eval_V_n(
             time=time, system_state=system_state
