@@ -137,6 +137,8 @@ def main_measurement_function(
                 total_sums_complex[i] += worker_sums[i]
         # ! Collected branched out jobs from worker-functions
 
+        print("Global normalization factor", normalization_factor)
+
         inverse_normalization_factor = 1 / normalization_factor
 
         # scale and convert observables
@@ -283,6 +285,7 @@ def run_worker_chain(
                 state_probability: float = np.real(np.conjugate(exp_H_eff) * exp_H_eff) * np.real(  # type: ignore -> this returns a scalar for sure
                     np.conjugate(psi_n) * psi_n
                 )
+                print(exp_H_eff * psi_n)
             else:
                 # e.g. Monte Carlo. Normalization is only division by number of monte carlo samples
                 state_probability = 1.0

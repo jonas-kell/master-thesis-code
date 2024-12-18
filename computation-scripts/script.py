@@ -172,7 +172,15 @@ if __name__ == "__main__":
         "variational_classical_networks",
         "variational_classical_networks_analytical_factors",
         "base_energy_only",
-    ] = cast(str, get_argument(args, "hamiltonian_type", str, "exact"))
+    ] = cast(
+        str,
+        get_argument(
+            args,
+            "hamiltonian_type",
+            str,
+            "variational_classical_networks_analytical_factors",
+        ),
+    )
     sampling_strategy: Literal["exact", "monte_carlo"] = cast(
         str, get_argument(args, "sampling_strategy", str, "exact")
     )
@@ -229,7 +237,7 @@ if __name__ == "__main__":
 
     observable_set: Literal[
         "current_and_occupation", "concurrence_and_pauli", "energy_and_variance"
-    ] = cast(str, get_argument(args, "observable_set", str, "current_and_occupation"))
+    ] = cast(str, get_argument(args, "observable_set", str, "energy_and_variance"))
 
     # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
     # !!!!!!! BELOW THIS, THE VALUES GET USED, NO LONGER CHANGE THEM ONLY COMPUTE WITH THEM !!!!!!!!!!!

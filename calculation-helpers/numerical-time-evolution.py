@@ -291,11 +291,36 @@ def numerically_calculate_time_evolution(
 
         # Time evolved state
         psi_t = np.dot(U_t, psi_0)
+
+        psi_t = np.array(
+            [
+                (0.23026524850072128 - 0.09735458557716264j),
+                (0.2273605101026645 - 0.10112674453963139j),
+                (0.277133907184388 + 0.015819003297244453j),
+                (0.277133907184388 + 0.015819003297244453j),
+                (0.25 + 0j),
+                (0.2507592095956007 + 0.009599010374244984j),
+                (0.2390023809371257 + 0.0778851566218896j),
+                (0.2273605101026645 - 0.10112674453963139j),
+                (0.26846692921906706 + 0.07056168430733269j),
+                (0.25 + 0j),
+                (0.2507592095956007 + 0.009599010374244984j),
+                (0.24291921973572914 - 0.05394138205786188j),
+                (0.26846692921906706 + 0.07056168430733269j),
+                (0.19815366192504494 - 0.14707316918206723j),
+                (0.25 + 0j),
+                (0.24291921973572914 - 0.05394138205786188j),
+            ]
+        )
+
+        psi_t = psi_t / np.sqrt(1.0559197245052674)
+
         if np.abs(np.sum(np.square(np.abs(psi_t))) - 1) > 1e-2:
             print("No longer normalized time evolved state")
 
         # expectation value
-        expectation_value_energy = np.vdot(psi_t, np.dot(H, psi_t)) / chain_length
+        expectation_value_energy = np.vdot(psi_t, np.dot(H_0, psi_t)) / chain_length
+        print("ENERGY:::", expectation_value_energy)
         expectation_value_energy_variance = (
             np.vdot(psi_t, np.dot(H_squared_operator, psi_t))
             - (expectation_value_energy * chain_length) ** 2
@@ -355,12 +380,12 @@ def numerically_calculate_time_evolution(
         expectation_value_concurrence = calculate_concurrence(rho_reduced)
 
         data = [
-            # expectation_value_energy,
-            # expectation_value_energy_variance,
+            expectation_value_energy,
+            expectation_value_energy_variance,
             # expectation_value_energy_variance_composite,
-            expectation_value_concurrence,
-            expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
-            expectation_value_purity,
+            # expectation_value_concurrence,
+            # expectation_value_concurrence,  # because obviously symm=asymm for our measurement, but not if the pauli measurements are taken wrong
+            # expectation_value_purity,
             # expectation_value_current_up,
             # expectation_value_current_down,
             # expectation_value_zero_double_occupation,
@@ -394,12 +419,12 @@ def numerically_calculate_time_evolution(
         )
 
     observables = [
-        # {"type": "Energy", "label": "Energy per site"},
-        # {"type": "EnergyVariance", "label": "Energy Variance per site"},
+        {"type": "Energy", "label": "Energy per site"},
+        {"type": "EnergyVariance", "label": "Energy Variance per site"},
         # {"type": "EnergyVariance", "label": "Composite - Energy Variance per site"},
-        {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
-        {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
-        {"type": "Purity", "label": "Purity on site 0-1 up"},
+        # {"type": "Concurrence", "label": "Concurrence on site 0-1 up"},
+        # {"type": "ConcurrenceAsymm", "label": "Concurrence on site 0-1 up"},
+        # {"type": "Purity", "label": "Purity on site 0-1 up"},
         # {"type": "SpinCurrent", "label": "Current from site 0,1 up"},
         # {"type": "SpinCurrent", "label": "Current from site 0,1 down"},
         # {"type": "DoubleOccupationAtSite", "label": "Double occupation on site 0"},
@@ -475,15 +500,15 @@ def run_main_program(
 def main():
 
     U: float = 1
-    E: float = 0.5
+    E: float = 2.5
     J: float = 0.1
     phi: float = np.pi / 10
 
     start_time: float = 0
-    number_of_time_steps: int = 200
-    target_time_in_one_over_scaler: float = 10
+    number_of_time_steps: int = 2
+    target_time_in_one_over_scaler: float = 0.4
 
-    chain_length = 4
+    chain_length = 2
 
     set_number_workers_to_one = False
 

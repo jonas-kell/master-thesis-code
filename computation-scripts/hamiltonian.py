@@ -2354,7 +2354,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         )
         self.eta_vec = np.array(
             [
-                np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
+                np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1) + 1,
                 np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
                 / (eps_0 - eps_1 + self.U),
                 np.expm1(1j * (eps_0 - eps_1 - self.U) * time)

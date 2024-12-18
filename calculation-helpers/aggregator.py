@@ -382,7 +382,7 @@ def main():
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         compare_type_hamiltonians = [
             ("variational_classical_networks_analytical_factors", "vcnanalytical"),
-            ("variational_classical_networks", "vcn"),
+            # ("variational_classical_networks", "vcn"),
         ]
 
         init_sigma = 0.0001
@@ -392,11 +392,11 @@ def main():
         record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
-        multiplier = 10
+        multiplier = 1
 
         scaler = 1 / U
-        num_samples_over_timespan = 3 * multiplier
-        target_time_in_1_over_u = scaler * 0.16 * multiplier
+        num_samples_over_timespan = 2 * multiplier
+        target_time_in_1_over_u = scaler * 0.4 * multiplier
 
         variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
@@ -405,7 +405,7 @@ def main():
         raise Exception("Unknown Experiment Specification")
 
     # !! compute experiment settings below this
-    num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
+    num_multithread_workers = 1
 
     seed_random_generator(seed_string)
     run_file_name_base = (
