@@ -275,12 +275,12 @@ def run_worker_chain(
                 # sampled state needs to be scaled
 
                 # get_exp_H_eff is the most expensive calculation. Only do if absolutely necessary
-                exp_h_eff = hamiltonian.get_exp_H_eff(
+                exp_H_eff = hamiltonian.get_exp_H_eff(
                     time=time, system_state=sampled_state_n
                 )
                 psi_n = sampled_state_n.get_Psi_of_N()
 
-                state_probability: float = np.real(np.conjugate(exp_h_eff) * exp_h_eff) * np.real(  # type: ignore -> this returns a scalar for sure
+                state_probability: float = np.real(np.conjugate(exp_H_eff) * exp_H_eff) * np.real(  # type: ignore -> this returns a scalar for sure
                     np.conjugate(psi_n) * psi_n
                 )
             else:
