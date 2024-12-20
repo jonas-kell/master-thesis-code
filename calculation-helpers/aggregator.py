@@ -371,7 +371,7 @@ def main():
         # ! test the effective step-size of the variational-classical network
         U = 1.0
         E = 0.8
-        J = 1.3
+        J = 0.1
         n = 2
         phi = np.pi * 0.6
         system_geometry_type = "chain"
@@ -385,7 +385,7 @@ def main():
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         compare_type_hamiltonians = [
             ("variational_classical_networks_analytical_factors", "vcnanalytical"),
-            # ("variational_classical_networks", "vcn"),
+            ("variational_classical_networks", "vcn"),
         ]
 
         init_sigma = 0.0001
@@ -395,13 +395,13 @@ def main():
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        multiplier = 1
+        multiplier = 10
 
         scaler = 1 / U
         num_samples_over_timespan = 2 * multiplier
-        target_time_in_1_over_u = scaler * 1.2 * multiplier
+        target_time_in_1_over_u = scaler * 0.2 * multiplier
 
-        variational_step_fraction_multiplier = 1  # is deactiavted
+        variational_step_fraction_multiplier = 10  # is deactiavted
         zip_filename_base = "vcn-first-step"
 
         # this is a test, do not multithread for easier comparability

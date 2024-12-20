@@ -2179,7 +2179,7 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
                 O_averager += O_vector_scaled
                 # We need to provide the conjugate of the energy, as the sign convention follows the formulas in "Variational classical Networks for dynamics in interacting quantum matter"
                 # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefor acts to the left and needs one additional *.
-                # TODO if the psi are multiplied with exp_heff_diff, then conjugating E or not doesn't matter
+                # TODO for correct h_eff & h_eff_difference calculation this doesn't seem to matter (which is what we would expect)
                 EO_averager += O_vector_scaled.conj() * E_loc_scaled
                 # This is irrelevant for the energy averager, because that one is a hermitian operator and the result after combination is real anyway
                 E_averager += E_loc_scaled

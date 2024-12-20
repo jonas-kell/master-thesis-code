@@ -502,6 +502,14 @@ if __name__ == "__main__":
         obs += obs_hard_coded
     elif observable_set == "comparison_validation":
         obs_hard_coded: List[observables.Observable] = [
+            observables.Energy(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+            observables.EnergyVariance(
+                ham=ham,
+                geometry=system_geometry,
+            ),
             observables.NormalizationComparison(),
             observables.LocalKinEnergyEquivalent(
                 spin_up=True,
@@ -512,14 +520,6 @@ if __name__ == "__main__":
                 spin_up=False,
                 system_geometry=system_geometry,
                 system_hamiltonian=ham,
-            ),
-            observables.Energy(
-                ham=ham,
-                geometry=system_geometry,
-            ),
-            observables.EnergyVariance(
-                ham=ham,
-                geometry=system_geometry,
             ),
         ]
         obs += obs_hard_coded
