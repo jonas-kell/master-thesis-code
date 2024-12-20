@@ -14,7 +14,7 @@ measurement_time = 5 * (1 / J)
 
 random = RandomGenerator(str(time.time()))
 
-# BUG: breaks from linear Chain, n<=3
+# Caution: This breaks from linear Chain, n<=3 because then no 3 different comparison indices can be found
 system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
@@ -51,6 +51,12 @@ ham_second_order_optimized = (
         system_geometry=system_geometry,
     )
 )
+
+
+def compare_arrays(comp_a: np.ndarray, comp_b: np.ndarray):
+    if np.sum(np.abs(comp_a - comp_b)) > 1e-9:
+        raise Exception("Termination because arrays have been changed")
+
 
 use_state = state.SystemState(system_geometry, initial_system_state)
 
@@ -96,6 +102,8 @@ for _ in range(iterations):
     if sw3_index in system_geometry.get_nearest_neighbor_indices(sw1_index):
         raise Exception("Expected not to be a neighbor")
 
+    modification_check_comparearray = np.copy(use_state.get_state_array())
+
     # check spin-symmetry by swapping the occupation array and with that checking symmetry between up and down
     spin_inverted_copy = use_state.get_editable_copy()
     size_of_system = use_state.get_number_sites_wo_spin_degree()
@@ -108,6 +116,7 @@ for _ in range(iterations):
         time=measurement_time,
         system_state=use_state,
     )
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     inv = ham_canonical.get_H_eff(
         time=measurement_time,
         system_state=spin_inverted_copy,
@@ -125,6 +134,7 @@ for _ in range(iterations):
         sw2_index=sw2_index,
         before_swap_system_state=use_state,
     )[0]
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     inv_sw = ham_canonical.get_H_eff_difference_swapping(
         time=measurement_time,
         sw1_up=not sw1_up,
@@ -144,6 +154,7 @@ for _ in range(iterations):
         time=measurement_time,
         system_state=use_state,
     )
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     optimized_e2e = ham_second_order_optimized.get_H_eff(
         time=measurement_time,
         system_state=spin_inverted_copy,
@@ -167,6 +178,7 @@ for _ in range(iterations):
         system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_new += b - a
     total_time_legacy += c - b
     if np.abs(res_new - res_legacy) > 1e-6:
@@ -194,6 +206,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_swapping_un_optimized += b - a
     total_time_swapping_optimized += c - b
     if np.abs(res_a[0] - res_b[0]) > 1e-6:
@@ -220,6 +233,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_swapping_un_optimized += b - a
     total_time_swapping_optimized += c - b
     if np.abs(res_a_far[0] - res_b_far[0]) > 1e-6:
@@ -242,6 +256,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_flipping_un_optimized += b - a
     total_time_flipping_optimized += c - b
     if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
@@ -268,6 +283,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized += b - a
     total_time_double_flipping_optimized += c - b
     if np.abs(res_double_flip_a_same[0] - res_double_flip_b_same[0]) > 1e-6:
@@ -294,6 +310,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized += b - a
     total_time_double_flipping_optimized += c - b
     if np.abs(res_double_flip_a[0] - res_double_flip_b[0]) > 1e-6:
@@ -320,6 +337,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized += b - a
     total_time_double_flipping_optimized += c - b
     if np.abs(res_double_flip_a_far[0] - res_double_flip_b_far[0]) > 1e-6:
@@ -346,6 +364,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_swapping_un_optimized_second_order += b - a
     total_time_swapping_optimized_second_order += c - b
     if np.abs(res_a[0] - res_b[0]) > 1e-6:
@@ -372,6 +391,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_swapping_un_optimized_second_order += b - a
     total_time_swapping_optimized_second_order += c - b
     if np.abs(res_a_far[0] - res_b_far[0]) > 1e-6:
@@ -394,6 +414,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_flipping_un_optimized_second_order += b - a
     total_time_flipping_optimized_second_order += c - b
     if np.abs(res_flip_a[0] - res_flip_b[0]) > 1e-6:
@@ -424,6 +445,7 @@ for _ in range(iterations):
         )
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized_second_order += b - a
     total_time_double_flipping_optimized_second_order += c - b
     if np.abs(res_double_flip_a_same[0] - res_double_flip_b_same[0]) > 1e-6:
@@ -450,6 +472,7 @@ for _ in range(iterations):
         before_swap_system_state=use_state,
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized_second_order += b - a
     total_time_double_flipping_optimized_second_order += c - b
     if np.abs(res_double_flip_a[0] - res_double_flip_b[0]) > 1e-6:
@@ -480,6 +503,7 @@ for _ in range(iterations):
         )
     )
     c = measure() * 1000
+    compare_arrays(modification_check_comparearray, use_state.get_state_array())
     total_time_double_flipping_un_optimized_second_order += b - a
     total_time_double_flipping_optimized_second_order += c - b
     if np.abs(res_double_flip_a_far[0] - res_double_flip_b_far[0]) > 1e-6:
