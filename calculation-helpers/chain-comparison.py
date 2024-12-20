@@ -7,7 +7,7 @@ phi = np.pi * 0.6
 
 time = 0.6
 
-n = 3
+n = 2
 
 nr_sites = 2 * n
 nr_states = 2**nr_sites

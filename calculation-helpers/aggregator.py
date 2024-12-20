@@ -372,7 +372,7 @@ def main():
         U = 1.0
         E = 0.8
         J = 1.3
-        n = 3
+        n = 2
         phi = np.pi * 0.6
         system_geometry_type = "chain"
 
