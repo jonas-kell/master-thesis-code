@@ -407,7 +407,7 @@ for _ in range(iterations):
     val_from_manual_caculation = ham_canonical.get_H_eff(
         time=measurement_time, system_state=use_state
     ) - ham_canonical.get_H_eff(
-        time=measurement_time, system_state=adjacent_double_flipped_copy
+        time=measurement_time, system_state=far_double_flipped_copy
     )
     if np.abs(res_double_flip_a_far[0] - val_from_manual_caculation) > 1e-6:
         print("Difference for far Double Flipping with manual")
