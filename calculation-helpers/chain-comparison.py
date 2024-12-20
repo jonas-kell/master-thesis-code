@@ -5,7 +5,7 @@ E = 1.0
 J = 1.0
 phi = np.pi / 2
 
-time = 1.0
+time = 0.6
 
 n = 2
 
