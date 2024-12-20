@@ -370,10 +370,10 @@ def main():
     elif experiment == "first_vcn_step":
         # ! test the effective step-size of the variational-classical network
         U = 1.0
-        E = 1.0
-        J = 1.0
-        n = 2
-        phi = np.pi / 2
+        E = 0.8
+        J = 1.3
+        n = 3
+        phi = np.pi * 0.6
         system_geometry_type = "chain"
 
         num_monte_carlo_samples = 1  # not switched on

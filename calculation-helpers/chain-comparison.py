@@ -1,13 +1,13 @@
 import numpy as np
 
 U = 1.0
-E = 1.0
-J = 1.0
-phi = np.pi / 2
+E = 0.8
+J = 1.3
+phi = np.pi * 0.6
 
 time = 0.6
 
-n = 2
+n = 3
 
 nr_sites = 2 * n
 nr_states = 2**nr_sites
@@ -43,7 +43,7 @@ def psib(state: np.array):
 
 
 def eps(index: int):
-    return E * np.cos(phi) * index
+    return E * np.cos(phi) * ((index % (nr_sites // 2)) - (nr_sites // 2 - 1) / 2)
 
 
 def energy_zero(state: np.array):
@@ -72,7 +72,7 @@ def hN(state: np.array):
     res += lama() * psia(state=state)
     res += lamb() * psib(state=state)
 
-    return J * res
+    return res
 
 
 def heff(state: np.array):
@@ -90,15 +90,16 @@ def main():
         print("state:", state)
         # start state computation
 
-        # print("psia", psia(state=state))
-        # print("psib", psib(state=state))
-        # print("E_0", energy_zero(state=state))
-        # print("H_n", hN(state=state))
         # print("eps0", eps(0))
         # print("eps1", eps(1))
+
+        # print("psia", psia(state=state))
+        # print("psib", psib(state=state))
         # print("lam a", lama())
         # print("lam b", lamb())
 
+        # print("E_0", energy_zero(state=state))
+        # print("H_n", hN(state=state))
         print("heff", heff(state=state))
 
         print()
