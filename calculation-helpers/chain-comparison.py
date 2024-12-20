@@ -13,7 +13,7 @@ nr_sites = 2 * n
 nr_states = 2**nr_sites
 
 
-def psia(state: np.array):
+def psia(state: np.ndarray):
     res = 0
 
     for l in range(nr_sites // 2 - 1):
@@ -27,7 +27,7 @@ def psia(state: np.array):
     return res * J
 
 
-def psib(state: np.array):
+def psib(state: np.ndarray):
     res = 0
 
     for l in range(nr_sites // 2 - 1):
@@ -46,7 +46,7 @@ def eps(index: int):
     return E * np.cos(phi) * ((index % (nr_sites // 2)) - (nr_sites // 2 - 1) / 2)
 
 
-def energy_zero(state: np.array):
+def energy_zero(state: np.ndarray):
     res = np.complex128(0)
 
     for l in range(nr_sites // 2):
@@ -66,7 +66,7 @@ def lamb():
     return (np.exp(1j * (eps(1) - eps(0)) * time) - 1) / (eps(1) - eps(0))
 
 
-def hN(state: np.array):
+def hN(state: np.ndarray):
     res = np.complex128(0)
 
     res += lama() * psia(state=state)
@@ -75,8 +75,21 @@ def hN(state: np.array):
     return res
 
 
-def heff(state: np.array):
+def heff(state: np.ndarray):
     return -1j * energy_zero(state=state) * time + hN(state=state)
+
+
+def ekinlocalobs(state: np.ndarray):
+
+    if state[0] == state[1]:
+        return 0
+    else:
+        modified_state = state.copy()
+
+        modified_state[0] = state[1]
+        modified_state[1] = state[0]
+
+        return np.exp(heff(state=modified_state) - heff(state=state))
 
 
 def main():
@@ -100,7 +113,9 @@ def main():
 
         # print("E_0", energy_zero(state=state))
         # print("H_n", hN(state=state))
-        print("heff", heff(state=state))
+        # print("heff", heff(state=state))
+
+        print("e kin loc", ekinlocalobs(state=state))
 
         print()
 

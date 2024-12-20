@@ -9,12 +9,13 @@ from time import time as measure
 U = 0.3
 E = -0.5
 J = 1.1
-phi = np.pi / 3
+phi = np.pi / 3.1
 measurement_time = 5 * (1 / J)
 
 random = RandomGenerator(str(time.time()))
 
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(4)
+# BUG: breaks from linear Chain, n<=3
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
