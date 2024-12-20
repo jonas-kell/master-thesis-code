@@ -399,7 +399,7 @@ def main():
 
         scaler = 1 / U
         num_samples_over_timespan = 2 * multiplier
-        target_time_in_1_over_u = scaler * 0.80 * multiplier
+        target_time_in_1_over_u = scaler * 2.0 * multiplier
 
         variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
