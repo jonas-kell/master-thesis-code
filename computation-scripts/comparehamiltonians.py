@@ -97,6 +97,45 @@ for _ in range(iterations):
             0, use_state.get_number_sites_wo_spin_degree() - 1
         )
 
+    # start manually modifying array copies for external comparison
+    direct_access_sw1_index = (
+        sw1_index + sw1_up * use_state.get_number_sites_wo_spin_degree()
+    )
+    direct_access_sw2_index = (
+        sw2_index + sw2_up * use_state.get_number_sites_wo_spin_degree()
+    )
+    direct_access_same_site_index = (  # special test, both sw1
+        sw1_index + sw2_up * use_state.get_number_sites_wo_spin_degree()
+    )
+    direct_access_sw3_index = (
+        sw3_index + sw3_up * use_state.get_number_sites_wo_spin_degree()
+    )
+
+    samesite_double_flipped_copy = use_state.get_editable_copy()
+    samesite_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
+        1 - use_state.get_state_array()[direct_access_sw1_index]
+    )
+    samesite_double_flipped_copy.get_state_array()[direct_access_same_site_index] = (
+        1 - use_state.get_state_array()[direct_access_same_site_index]
+    )
+
+    adjacent_double_flipped_copy = use_state.get_editable_copy()
+    adjacent_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
+        1 - use_state.get_state_array()[direct_access_sw1_index]
+    )
+    adjacent_double_flipped_copy.get_state_array()[direct_access_sw2_index] = (
+        1 - use_state.get_state_array()[direct_access_sw2_index]
+    )
+
+    far_double_flipped_copy = use_state.get_editable_copy()
+    far_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
+        1 - use_state.get_state_array()[direct_access_sw1_index]
+    )
+    far_double_flipped_copy.get_state_array()[direct_access_sw3_index] = (
+        1 - use_state.get_state_array()[direct_access_sw3_index]
+    )
+    # end manually modifying array copies for external comparison
+
     if sw2_index not in system_geometry.get_nearest_neighbor_indices(sw1_index):
         raise Exception("Expect to be neighbor")
     if sw3_index in system_geometry.get_nearest_neighbor_indices(sw1_index):
@@ -291,6 +330,16 @@ for _ in range(iterations):
         print(res_double_flip_a_same[0])
         print(res_double_flip_b_same[0])
 
+    val_from_manual_caculation = ham_canonical.get_H_eff(
+        time=measurement_time, system_state=use_state
+    ) - ham_canonical.get_H_eff(
+        time=measurement_time, system_state=samesite_double_flipped_copy
+    )
+    if np.abs(res_double_flip_a_same[0] - val_from_manual_caculation) > 1e-6:
+        print("Difference for Double Flipping Same Site with manual")
+        print(val_from_manual_caculation)
+        print(res_double_flip_a_same[0])
+
     a = measure() * 1000
     res_double_flip_a = ham_canonical.get_H_eff_difference_double_flipping(
         time=measurement_time,
@@ -318,6 +367,16 @@ for _ in range(iterations):
         print(res_double_flip_a[0])
         print(res_double_flip_b[0])
 
+    val_from_manual_caculation = ham_canonical.get_H_eff(
+        time=measurement_time, system_state=use_state
+    ) - ham_canonical.get_H_eff(
+        time=measurement_time, system_state=adjacent_double_flipped_copy
+    )
+    if np.abs(res_double_flip_a[0] - val_from_manual_caculation) > 1e-6:
+        print("Difference for Double Flipping with manual")
+        print(val_from_manual_caculation)
+        print(res_double_flip_a[0])
+
     a = measure() * 1000
     res_double_flip_a_far = ham_canonical.get_H_eff_difference_double_flipping(
         time=measurement_time,
@@ -344,6 +403,16 @@ for _ in range(iterations):
         print("Difference for far Double Flipping")
         print(res_double_flip_a_far[0])
         print(res_double_flip_b_far[0])
+
+    val_from_manual_caculation = ham_canonical.get_H_eff(
+        time=measurement_time, system_state=use_state
+    ) - ham_canonical.get_H_eff(
+        time=measurement_time, system_state=adjacent_double_flipped_copy
+    )
+    if np.abs(res_double_flip_a_far[0] - val_from_manual_caculation) > 1e-6:
+        print("Difference for far Double Flipping with manual")
+        print(val_from_manual_caculation)
+        print(res_double_flip_a_far[0])
 
     a = measure() * 1000
     res_a = ham_canonical_second_order.get_H_eff_difference_swapping(
