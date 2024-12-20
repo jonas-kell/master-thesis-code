@@ -390,13 +390,13 @@ def main():
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
-        observable_set = "energy_and_variance"
+        observable_set = "comparison_validation"
 
-        multiplier = 10
+        multiplier = 1
 
         scaler = 1 / U
-        num_samples_over_timespan = 3 * multiplier
-        target_time_in_1_over_u = scaler * 0.16 * multiplier
+        num_samples_over_timespan = 2 * multiplier
+        target_time_in_1_over_u = scaler * 0.80 * multiplier
 
         variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"

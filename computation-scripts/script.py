@@ -228,7 +228,10 @@ if __name__ == "__main__":
     )
 
     observable_set: Literal[
-        "current_and_occupation", "concurrence_and_pauli", "energy_and_variance"
+        "current_and_occupation",
+        "concurrence_and_pauli",
+        "energy_and_variance",
+        "comparison_validation",
     ] = cast(str, get_argument(args, "observable_set", str, "current_and_occupation"))
 
     # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
@@ -487,6 +490,29 @@ if __name__ == "__main__":
             obs += obs_generated
     elif observable_set == "energy_and_variance":
         obs_hard_coded: List[observables.Observable] = [
+            observables.Energy(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+            observables.EnergyVariance(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+        ]
+        obs += obs_hard_coded
+    elif observable_set == "comparison_validation":
+        obs_hard_coded: List[observables.Observable] = [
+            observables.NormalizationComparison(),
+            observables.LocalKinEnergyEquivalent(
+                spin_up=True,
+                system_geometry=system_geometry,
+                system_hamiltonian=ham,
+            ),
+            observables.LocalKinEnergyEquivalent(
+                spin_up=False,
+                system_geometry=system_geometry,
+                system_hamiltonian=ham,
+            ),
             observables.Energy(
                 ham=ham,
                 geometry=system_geometry,

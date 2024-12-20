@@ -45,6 +45,10 @@ def scale_and_prepare_data(
         pass
     elif observable_type == "EnergyVariance":
         pass
+    elif observable_type == "NormalizationComparison":
+        pass
+    elif observable_type == "LocalKinEnergyEquivalent":
+        pass
     else:
         raise Exception(f"Unknown Preparation Measurement {observable_type}")
 

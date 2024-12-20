@@ -655,6 +655,83 @@ class SpinCurrentFlipping(SpinCurrent):
         }
 
 
+class LocalKinEnergyEquivalent(MeasurableObservable):
+    def __init__(
+        self,
+        spin_up: bool,
+        system_hamiltonian: hamiltonian.Hamiltonian,
+        system_geometry: systemgeometry.SystemGeometry,
+    ):
+        super().__init__()
+
+        self.spin_up = spin_up
+
+        self.site_index_from_save = 0
+        self.site_index_to_save = 1
+
+        self.occ_site_index_from = 0
+        self.occ_site_index_to = 1
+
+        if not self.spin_up:
+            self.occ_site_index_from = system_geometry.get_opposite_spin_index(0)
+            self.occ_site_index_to = system_geometry.get_opposite_spin_index(1)
+
+        self.system_hamiltonian = system_hamiltonian
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        system_state_array = system_state.get_state_array()
+
+        site_occ_l = system_state_array[self.occ_site_index_from]
+        site_occ_m = system_state_array[self.occ_site_index_to]
+
+        res: np.complex128 = np.complex128(0)
+        if site_occ_l != site_occ_m:
+            H_eff_difference, psi_factor = (
+                self.system_hamiltonian.get_H_eff_difference_double_flipping(
+                    time=time,
+                    before_swap_system_state=system_state,
+                    flipping1_index=self.site_index_from_save,
+                    flipping2_index=self.site_index_to_save,
+                    flipping1_up=self.spin_up,
+                    flipping2_up=self.spin_up,
+                )
+            )
+
+            # notice minus for e^H_eff_tilde-H_eff factors: difference is wrong way round from function. need (swapped - original)
+            # therefore also (x/psi) not (x*psi)
+            res += np.exp(-H_eff_difference) / psi_factor
+
+        return res
+
+    def get_label(self) -> str:
+        return f"Local Kin. Energy ({'up' if self.spin_up else 'down'})"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "LocalKinEnergyEquivalent",
+            "label": self.get_label(),
+            "spin_up": self.spin_up,
+        }
+
+
+class NormalizationComparison(MeasurableObservable):
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128:
+        return np.complex128(1.0)
+
+    def get_label(self) -> str:
+        return "Normalization Comparison"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "NormalizationComparison",
+            "label": self.get_label(),
+        }
+
+
 class ReducedDensityMatrixMeasurement(MeasurableObservable):
 
     def __init__(
