@@ -15,7 +15,7 @@ measurement_time = 5 * (1 / J)
 random = RandomGenerator(str(time.time()))
 
 # Caution: This breaks from linear Chain, n<=3 because then no 3 different comparison indices can be found
-system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
+system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -99,16 +99,16 @@ for _ in range(iterations):
 
     # start manually modifying array copies for external comparison
     direct_access_sw1_index = (
-        sw1_index + sw1_up * use_state.get_number_sites_wo_spin_degree()
+        sw1_index + (not sw1_up) * use_state.get_number_sites_wo_spin_degree()
     )
     direct_access_sw2_index = (
-        sw2_index + sw2_up * use_state.get_number_sites_wo_spin_degree()
+        sw2_index + (not sw2_up) * use_state.get_number_sites_wo_spin_degree()
     )
     direct_access_same_site_index = (  # special test, both sw1
-        sw1_index + sw2_up * use_state.get_number_sites_wo_spin_degree()
+        sw1_index + (not sw2_up) * use_state.get_number_sites_wo_spin_degree()
     )
     direct_access_sw3_index = (
-        sw3_index + sw3_up * use_state.get_number_sites_wo_spin_degree()
+        sw3_index + (not sw3_up) * use_state.get_number_sites_wo_spin_degree()
     )
 
     samesite_double_flipped_copy = use_state.get_editable_copy()
