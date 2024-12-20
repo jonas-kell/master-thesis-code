@@ -101,6 +101,9 @@ def main():
     seed_string = "experiment_main_seed"
     randomness_seed = "very_nice_seed"
 
+    # worker number might get overwritten by the experiment
+    num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
+
     # !! configure experiment settings below this
     if experiment == "j_sweep":
         parameter = cast(
@@ -401,12 +404,13 @@ def main():
         variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
 
+        # this is a test, do not multithread for easier comparability
+        num_multithread_workers = 1
+
     else:
         raise Exception("Unknown Experiment Specification")
 
     # !! compute experiment settings below this
-    num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
-
     seed_random_generator(seed_string)
     run_file_name_base = (
         zip_filename_base
