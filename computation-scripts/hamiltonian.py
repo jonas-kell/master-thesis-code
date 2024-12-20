@@ -1928,10 +1928,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
 ETAVecType: TypeAlias = npt.NDArray[np.complex128]
 
 
-# We require the optimized difference and flipping cases for the base energy calculation
-class VCNHardCoreBosonicHamiltonian(
-    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
-):
+class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
     eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
 
     def __init__(
@@ -1982,6 +1979,17 @@ class VCNHardCoreBosonicHamiltonian(
         print(
             "VCN calculation with effective time step size:",
             self.effective_time_step_size,
+        )
+
+        # We require the optimized difference and flipping cases for the base energy calculation
+        self.base_energy_optimized_hamiltonian_reference = (
+            HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+                U=U,
+                E=E,
+                J=J,
+                phi=phi,
+                initial_system_state=initial_system_state,
+            )
         )
 
     def get_number_of_eta_parameters(self) -> int:
@@ -2197,9 +2205,9 @@ class VCNHardCoreBosonicHamiltonian(
         )
         # TODO heff rescaling is not correct, remove it again
 
-        E_loc = self.get_base_energy(system_state=system_state) + self.eval_V_n(
-            time=time, system_state=system_state
-        )
+        E_loc = self.base_energy_optimized_hamiltonian_reference.get_base_energy(
+            system_state=system_state
+        ) + self.eval_V_n(time=time, system_state=system_state)
 
         return O_vector, E_loc
 
@@ -2247,7 +2255,7 @@ class VCNHardCoreBosonicHamiltonian(
                                 # needs minus, because formula and convention here inverted, but cancels with the -i
                                 + 1j
                                 * time
-                                * self.get_base_energy_difference_double_flipping(
+                                * self.base_energy_optimized_hamiltonian_reference.get_base_energy_difference_double_flipping(
                                     before_swap_system_state=system_state,
                                     flipping1_up=up,
                                     flipping1_index=l,
