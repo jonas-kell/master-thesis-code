@@ -15,7 +15,7 @@ measurement_time = 5 * (1 / J)
 random = RandomGenerator(str(time.time()))
 
 # Caution: This breaks from linear Chain, n<=3 because then no 3 different comparison indices can be found
-system_geometry = systemgeometry.LinearChainNonPeriodicState(4)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
@@ -113,26 +113,27 @@ for _ in range(iterations):
 
     samesite_double_flipped_copy = use_state.get_editable_copy()
     samesite_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
-        1 - use_state.get_state_array()[direct_access_sw1_index]
+        1 - samesite_double_flipped_copy.get_state_array()[direct_access_sw1_index]
     )
     samesite_double_flipped_copy.get_state_array()[direct_access_same_site_index] = (
-        1 - use_state.get_state_array()[direct_access_same_site_index]
+        1
+        - samesite_double_flipped_copy.get_state_array()[direct_access_same_site_index]
     )
 
     adjacent_double_flipped_copy = use_state.get_editable_copy()
     adjacent_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
-        1 - use_state.get_state_array()[direct_access_sw1_index]
+        1 - adjacent_double_flipped_copy.get_state_array()[direct_access_sw1_index]
     )
     adjacent_double_flipped_copy.get_state_array()[direct_access_sw2_index] = (
-        1 - use_state.get_state_array()[direct_access_sw2_index]
+        1 - adjacent_double_flipped_copy.get_state_array()[direct_access_sw2_index]
     )
 
     far_double_flipped_copy = use_state.get_editable_copy()
     far_double_flipped_copy.get_state_array()[direct_access_sw1_index] = (
-        1 - use_state.get_state_array()[direct_access_sw1_index]
+        1 - far_double_flipped_copy.get_state_array()[direct_access_sw1_index]
     )
     far_double_flipped_copy.get_state_array()[direct_access_sw3_index] = (
-        1 - use_state.get_state_array()[direct_access_sw3_index]
+        1 - far_double_flipped_copy.get_state_array()[direct_access_sw3_index]
     )
     # end manually modifying array copies for external comparison
 
