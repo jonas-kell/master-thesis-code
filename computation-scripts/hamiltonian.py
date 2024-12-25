@@ -2200,10 +2200,7 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         time: float,
         system_state: state.SystemState,
     ):
-        O_vector = self.psi_selection.eval_PSIs_on_state(
-            system_state=system_state, include_heff_rescaling=False, ham=self, time=time
-        )
-        # TODO heff rescaling is not correct, remove it again
+        O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
 
         E_loc = self.base_energy_optimized_hamiltonian_reference.get_base_energy(
             system_state=system_state

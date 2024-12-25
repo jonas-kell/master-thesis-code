@@ -101,6 +101,9 @@ def main():
     seed_string = "experiment_main_seed"
     randomness_seed = "very_nice_seed"
 
+    # psi selection type might get overwritten by the experiment
+    psi_selection_type: Literal["chain_canonical", "chain_combined"] = "chain_canonical"
+
     # worker number might get overwritten by the experiment
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
 
@@ -384,7 +387,7 @@ def main():
 
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         compare_type_hamiltonians = [
-            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+            # ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ("variational_classical_networks", "vcn"),
         ]
 
@@ -395,13 +398,15 @@ def main():
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        multiplier = 10
+        multiplier = 1
 
         scaler = 1 / U
         num_samples_over_timespan = 2 * multiplier
         target_time_in_1_over_u = scaler * 0.2 * multiplier
 
-        variational_step_fraction_multiplier = 10  # is deactiavted
+        psi_selection_type = "chain_combined"
+
+        variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
 
         # this is a test, do not multithread for easier comparability
@@ -436,6 +441,7 @@ def main():
         "observable_set": observable_set,
         "pseudo_inverse_cutoff": pseudo_inverse_cutoff,
         "randomness_seed": randomness_seed,
+        "psi_selection_type": psi_selection_type,
     }
 
     if do_exact_diagonalization:

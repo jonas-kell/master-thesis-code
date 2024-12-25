@@ -69,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("--init_sigma", required=False)
     parser.add_argument("--pseudo_inverse_cutoff", required=False)
     parser.add_argument("--observable_set", required=False)
+    parser.add_argument("--psi_selection_type", required=False)
 
     args = vars(parser.parse_args())
 
@@ -222,7 +223,9 @@ if __name__ == "__main__":
     pseudo_inverse_cutoff: float = cast(
         float, get_argument(args, "pseudo_inverse_cutoff", float, 1e-10)
     )
-    psi_selection_type: Literal["chain_canonical"] = "chain_canonical"
+    psi_selection_type: Literal["chain_canonical", "chain_combined"] = cast(
+        str, get_argument(args, "psi_selection_type", str, "chain_canonical")
+    )
     variational_step_fraction_multiplier: int = cast(
         int, get_argument(args, "variational_step_fraction_multiplier", int, 1)
     )
@@ -260,10 +263,15 @@ if __name__ == "__main__":
     else:
         raise Exception("Invalid arguments")
 
-    # Psi-Selection (in case of)
     if psi_selection_type == "chain_canonical":  # type: ignore - switch is hard-coded.
         psi_selection = (
             variationalclassicalnetworks.ChainDirectionDependentAllSameFirstOrder(
+                J=J, system_geometry=system_geometry
+            )
+        )
+    elif psi_selection_type == "chain_combined":  # type: ignore - switch is hard-coded.
+        psi_selection = (
+            variationalclassicalnetworks.ChainNotDirectionDependentAllSameFirstOrder(
                 J=J, system_geometry=system_geometry
             )
         )
@@ -528,7 +536,9 @@ if __name__ == "__main__":
 
     if record_hamiltonian_properties:
         obs_ham_properties: List[observables.Observable] = []
-        num_etas = 6  # TODO lift this hard-coded number of constants
+        num_etas = 6
+        if isinstance(ham, hamiltonian.VCNHardCoreBosonicHamiltonian):
+            num_etas = ham.get_number_of_eta_parameters()
         for real_part_of_property in [True, False]:
             for eta_index in range(num_etas):
                 obs_ham_properties.append(
