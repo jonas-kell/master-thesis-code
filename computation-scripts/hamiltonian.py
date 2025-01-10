@@ -2034,7 +2034,9 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         for intermediate_step_index in range(self.variational_step_fraction_multiplier):
             intermediate_step_time = (
                 prev_time
-                + (intermediate_step_index + 1)
+                + (
+                    intermediate_step_index
+                )  # must be at t to calc the step, not t+delta
                 * (time - prev_time)
                 / self.variational_step_fraction_multiplier
             )

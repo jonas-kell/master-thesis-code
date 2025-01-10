@@ -387,7 +387,7 @@ def main():
 
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         compare_type_hamiltonians = [
-            # ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ("variational_classical_networks", "vcn"),
         ]
 
@@ -404,7 +404,7 @@ def main():
         num_samples_over_timespan = 2 * multiplier
         target_time_in_1_over_u = scaler * 0.2 * multiplier
 
-        psi_selection_type = "chain_combined"
+        psi_selection_type = "chain_canonical"
 
         variational_step_fraction_multiplier = 1  # is deactiavted
         zip_filename_base = "vcn-first-step"
