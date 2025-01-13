@@ -282,6 +282,7 @@ def main():
         if parameter == 0:
             # do the "exact" comparisons
             compare_type_hamiltonians = [
+                ("base_energy_only", "o0"),  # TODO integrate in plot
                 ("both_optimizations", "o1"),
                 ("both_optimizations_second_order", "o2"),
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
