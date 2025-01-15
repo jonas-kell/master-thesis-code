@@ -2289,6 +2289,8 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         # E_0 will be inserted because the E_heff call does that
         return np.dot(self.eta_vec, PSI_vector)
 
+    # TODO H_eff differences implementation in sublinear time
+
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
