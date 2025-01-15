@@ -2248,7 +2248,8 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
                                         before_swap_system_state=system_state,
                                         l=l,
                                         m=m,
-                                        spins_up=up,
+                                        spin_l_up=up,
+                                        spin_m_up=up,
                                     ),
                                 )
                                 # needs minus, because formula and convention here inverted, but cancels with the -i

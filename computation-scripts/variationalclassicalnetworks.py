@@ -1,13 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Union, Any, TYPE_CHECKING
+from typing import Dict, Union, Any, Tuple, List
 from state import SystemState
 from systemgeometry import SystemGeometry, LinearChainNonPeriodicState
 import numpy.typing as npt
 import numpy as np
-
-if TYPE_CHECKING:
-    # WTF python https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
-    import hamiltonian
 
 
 class PSISelection(ABC):
@@ -23,28 +19,95 @@ class PSISelection(ABC):
     def get_number_of_PSIs(self) -> int:
         pass
 
-    @abstractmethod
     def eval_PSIs_on_state(
         self,
         system_state: SystemState,
     ) -> npt.NDArray[np.complex128]:
+        psi_evals = np.zeros(self.get_number_of_PSIs(), dtype=np.complex128)
+
+        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
+
+        state_array = system_state.get_state_array()
+        for l in range(domain_size):
+
+            occ_l = state_array[l]
+            occ_l_os = state_array[l + domain_size]
+
+            for m in self.system_geometry.get_nearest_neighbor_indices(l):
+                occ_m = state_array[m]
+                occ_m_os = state_array[m + domain_size]
+
+                for contrib_index, contrib in self.PSI_contribution(
+                    l=l,
+                    m=m,
+                    occ_l=occ_l,
+                    occ_l_os=occ_l_os,
+                    occ_m=occ_m,
+                    occ_m_os=occ_m_os,
+                ):
+                    psi_evals[contrib_index] += contrib
+
+        # all are just * J - this is not relevant for the learned parameters, but makes the learned parameter scale match the Lambda_A,B,C from that analytical calculation
+        psi_evals *= self.J
+        return psi_evals
+
+    @abstractmethod
+    def PSI_contribution(
+        self,
+        l: int,
+        m: int,
+        occ_l: int,
+        occ_l_os: int,
+        occ_m: int,
+        occ_m_os: int,
+    ) -> List[Tuple[int, np.complex128]]:
         pass
 
-    def eval_PSI_differences_double_flipping(
-        self, before_swap_system_state: SystemState, l: int, m: int, spins_up: bool
+    def eval_PSI_differences_flipping_unoptimized(
+        self, before_swap_system_state: SystemState, l: int, spin_up: bool
     ) -> npt.NDArray[np.complex128]:
         domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
 
-        if spins_up:
+        if spin_up:
             use_index_l = l % domain_size
-            use_index_m = m % domain_size
         else:
             use_index_l = self.system_geometry.get_opposite_spin_index(l % domain_size)
+
+        system_state_copy = (
+            before_swap_system_state.get_editable_copy()
+        )  # difference-optimization will not need copy
+        state_array = system_state_copy.get_state_array()
+
+        first_val = self.eval_PSIs_on_state(system_state=system_state_copy)
+        state_array[use_index_l] = 1 - state_array[use_index_l]  # flip on copy
+        second_val = self.eval_PSIs_on_state(system_state=system_state_copy)
+
+        # Caution, in most cases, this needs would be needed inverted one more time
+        return first_val - second_val
+
+    def eval_PSI_differences_double_flipping_unoptimized(
+        self,
+        before_swap_system_state: SystemState,
+        l: int,
+        m: int,
+        spin_l_up: bool,
+        spin_m_up: bool,
+    ) -> npt.NDArray[np.complex128]:
+        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
+
+        if spin_l_up:
+            use_index_l = l % domain_size
+        else:
+            use_index_l = self.system_geometry.get_opposite_spin_index(l % domain_size)
+
+        if spin_m_up:
+            use_index_m = m % domain_size
+        else:
             use_index_m = self.system_geometry.get_opposite_spin_index(m % domain_size)
 
         system_state_copy = (
             before_swap_system_state.get_editable_copy()
-        )  # TODO difference-optimization will not need copy
+        )  # difference-optimization will not need copy
         state_array = system_state_copy.get_state_array()
 
         first_val = self.eval_PSIs_on_state(system_state=system_state_copy)
@@ -56,7 +119,152 @@ class PSISelection(ABC):
         # Caution, in most cases, this needs would be needed inverted one more time
         return first_val - second_val
 
-    # TODO: implement flip optimization for this (swapping optimization can be done with the function above)
+    def eval_PSI_differences_flipping(
+        self, before_swap_system_state: SystemState, l: int, spin_up: bool
+    ) -> npt.NDArray[np.complex128]:
+        psi_evals = np.zeros(self.get_number_of_PSIs(), dtype=np.complex128)
+
+        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
+
+        state_array = before_swap_system_state.get_state_array()
+
+        occ_l = state_array[l % domain_size]
+        occ_l_os = state_array[
+            l % domain_size + domain_size
+        ]  # doesn't use get_other_spin_index as it is terrrrribly slow
+
+        for m in self.system_geometry.get_nearest_neighbor_indices(l):
+            occ_m = state_array[m % domain_size]
+            occ_m_os = state_array[
+                m % domain_size + domain_size
+            ]  # doesn't use get_other_spin_index as it is terrrrribly slow
+
+            # before
+            for res_index, val in self.PSI_contribution(
+                l=l,
+                m=m,
+                occ_l=occ_l,
+                occ_l_os=occ_l_os,
+                occ_m=occ_m,
+                occ_m_os=occ_m_os,
+            ):
+                psi_evals[res_index] += val
+            for res_index, val in self.PSI_contribution(
+                l=m,
+                m=l,
+                occ_l=occ_m,
+                occ_l_os=occ_m_os,
+                occ_m=occ_l,
+                occ_m_os=occ_l_os,
+            ):
+                psi_evals[res_index] += val
+
+            # after
+            for res_index, val in self.PSI_contribution(
+                l=l,
+                m=m,
+                occ_l=(1 - occ_l if spin_up else occ_l),
+                occ_l_os=(1 - occ_l_os if not spin_up else occ_l_os),
+                occ_m=occ_m,
+                occ_m_os=occ_m_os,
+            ):
+                psi_evals[res_index] -= val
+            for res_index, val in self.PSI_contribution(
+                l=m,
+                m=l,
+                occ_l=occ_m,
+                occ_l_os=occ_m_os,
+                occ_m=(1 - occ_l if spin_up else occ_l),
+                occ_m_os=(1 - occ_l_os if not spin_up else occ_l_os),
+            ):
+                psi_evals[res_index] -= val
+
+        return psi_evals * self.J  # times J for consistency sake
+
+    def eval_PSI_differences_double_flipping(
+        self,
+        before_swap_system_state: SystemState,
+        l: int,
+        m: int,
+        spin_l_up: bool,
+        spin_m_up: bool,
+    ) -> npt.NDArray[np.complex128]:
+        psi_evals = np.zeros(self.get_number_of_PSIs(), dtype=np.complex128)
+
+        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
+
+        state_array = before_swap_system_state.get_state_array()
+
+        occ_l = state_array[l % domain_size]
+        occ_l_os = state_array[
+            l % domain_size + domain_size
+        ]  # doesn't use get_other_spin_index as it is terrrrribly slow
+        occ_m = state_array[m % domain_size]
+        occ_m_os = state_array[
+            m % domain_size + domain_size
+        ]  # doesn't use get_other_spin_index as it is terrrrribly slow
+
+        for sw_index, sw_up, other_index, other_up, occ_sw, occ_sw_os in [
+            (l, spin_l_up, m, spin_m_up, occ_l, occ_l_os),
+            (m, spin_m_up, l, spin_l_up, occ_m, occ_m_os),
+        ]:
+            for nb_index in self.system_geometry.get_nearest_neighbor_indices(sw_index):
+                occ_nb = state_array[nb_index % domain_size]
+                occ_nb_os = state_array[
+                    nb_index % domain_size + domain_size
+                ]  # doesn't use get_other_spin_index as it is terrrrribly slow
+
+                # before
+                for res_index, val in self.PSI_contribution(
+                    l=sw_index,
+                    m=nb_index,
+                    occ_l=occ_sw,
+                    occ_l_os=occ_sw_os,
+                    occ_m=occ_nb,
+                    occ_m_os=occ_nb_os,
+                ):
+                    psi_evals[res_index] += val
+                if other_index != nb_index:
+                    # avoid double counting
+                    for res_index, val in self.PSI_contribution(
+                        l=nb_index,
+                        m=sw_index,
+                        occ_l=occ_nb,
+                        occ_l_os=occ_nb_os,
+                        occ_m=occ_sw,
+                        occ_m_os=occ_sw_os,
+                    ):
+                        psi_evals[res_index] += val
+
+                # after
+                for res_index, val in self.PSI_contribution(
+                    l=sw_index,
+                    m=nb_index,
+                    occ_l=(1 - occ_sw if sw_up else occ_sw),
+                    occ_l_os=(1 - occ_sw_os if not sw_up else occ_sw_os),
+                    occ_m=(
+                        1 - occ_nb if nb_index == other_index and other_up else occ_nb
+                    ),
+                    occ_m_os=(
+                        1 - occ_nb_os
+                        if nb_index == other_index and not other_up
+                        else occ_nb_os
+                    ),
+                ):
+                    psi_evals[res_index] -= val
+                if other_index != nb_index:
+                    # avoid double counting
+                    for res_index, val in self.PSI_contribution(
+                        l=nb_index,
+                        m=sw_index,
+                        occ_l=occ_nb,  # here it is already not possible to have overlap
+                        occ_l_os=occ_nb_os,
+                        occ_m=(1 - occ_sw if sw_up else occ_sw),
+                        occ_m_os=(1 - occ_sw_os if not sw_up else occ_sw_os),
+                    ):
+                        psi_evals[res_index] -= val
+
+        return psi_evals * self.J  # times J for consistency sake
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
@@ -86,48 +294,39 @@ class ChainDirectionDependentAllSameFirstOrder(PSISelection):
         # one in each direction, for A,B,C parts of V
         return 6
 
-    def eval_PSIs_on_state(
+    def PSI_contribution(
         self,
-        system_state: SystemState,
-    ) -> npt.NDArray[np.complex128]:
-        psi_evals = np.zeros(self.get_number_of_PSIs(), dtype=np.complex128)
+        l: int,
+        m: int,
+        occ_l: int,
+        occ_l_os: int,
+        occ_m: int,
+        occ_m_os: int,
+    ) -> List[Tuple[int, np.complex128]]:
 
-        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
+        # index add determines the right/left neighbor interaction
+        if m > l:
+            index_add = 0
+        else:
+            index_add = 3
 
-        state_array = system_state.get_state_array()
-        for l in range(domain_size):
-
-            occ_l = state_array[l]
-            occ_l_os = state_array[l + domain_size]
-
-            for m in self.system_geometry.get_nearest_neighbor_indices(l):
-                # index add determines the right/left neighbor interaction
-                if m > l:
-                    index_add = 0
-                else:
-                    index_add = 3
-
-                occ_m = state_array[m]
-                occ_m_os = state_array[m + domain_size]
-
-                psi_evals[0 + index_add] += occ_l * (1 - occ_m) * (occ_l_os == occ_m_os)
-                psi_evals[0 + index_add] += occ_l_os * (1 - occ_m_os) * (occ_l == occ_m)
-                psi_evals[1 + index_add] += (
-                    occ_l * (1 - occ_m) * occ_l_os * (1 - occ_m_os)
-                )
-                psi_evals[1 + index_add] += (
-                    occ_l_os * (1 - occ_m_os) * occ_l * (1 - occ_m)
-                )
-                psi_evals[2 + index_add] += (
-                    occ_l * (1 - occ_m) * occ_m_os * (1 - occ_l_os)
-                )
-                psi_evals[2 + index_add] += (
-                    occ_l_os * (1 - occ_m_os) * occ_m * (1 - occ_l)
-                )
-
-        # all are just * J - this is not relevant for the learned parameters, but makes the learned parameter scale match the Lambda_A,B,C from that analytical calculation
-        psi_evals *= self.J
-        return psi_evals
+        return [
+            (
+                0 + index_add,
+                occ_l * (1 - occ_m) * (occ_l_os == occ_m_os)
+                + occ_l_os * (1 - occ_m_os) * (occ_l == occ_m),
+            ),
+            (
+                1 + index_add,
+                occ_l * (1 - occ_m) * occ_l_os * (1 - occ_m_os)
+                + occ_l_os * (1 - occ_m_os) * occ_l * (1 - occ_m),
+            ),
+            (
+                2 + index_add,
+                occ_l * (1 - occ_m) * occ_m_os * (1 - occ_l_os)
+                + occ_l_os * (1 - occ_m_os) * occ_m * (1 - occ_l),
+            ),
+        ]
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return super().get_log_info(
@@ -155,35 +354,33 @@ class ChainNotDirectionDependentAllSameFirstOrder(PSISelection):
         # one for A,B,C parts of V
         return 3
 
-    def eval_PSIs_on_state(
+    def PSI_contribution(
         self,
-        system_state: SystemState,
-    ) -> npt.NDArray[np.complex128]:
-        psi_evals = np.zeros(self.get_number_of_PSIs(), dtype=np.complex128)
+        l: int,
+        m: int,
+        occ_l: int,
+        occ_l_os: int,
+        occ_m: int,
+        occ_m_os: int,
+    ) -> List[Tuple[int, np.complex128]]:
 
-        domain_size = self.system_geometry.get_number_sites_wo_spin_degree()
-
-        state_array = system_state.get_state_array()
-        for l in range(domain_size):
-
-            occ_l = state_array[l]
-            occ_l_os = state_array[l + domain_size]
-
-            for m in self.system_geometry.get_nearest_neighbor_indices(l):
-                occ_m = state_array[m]
-                occ_m_os = state_array[m + domain_size]
-
-                psi_evals[0] += (occ_l * (1 - occ_m) * (occ_l_os == occ_m_os)) + (
-                    occ_l_os * (1 - occ_m_os) * (occ_l == occ_m)
-                )
-                psi_evals[1] += (occ_l * (1 - occ_m) * occ_l_os * (1 - occ_m_os)) + (
-                    occ_l_os * (1 - occ_m_os) * occ_l * (1 - occ_m)
-                )
-                psi_evals[2] += occ_l * (1 - occ_m) * occ_m_os * (1 - occ_l_os) + (
-                    occ_l_os * (1 - occ_m_os) * occ_m * (1 - occ_l)
-                )
-
-        return psi_evals
+        return [
+            (
+                0,
+                (occ_l * (1 - occ_m) * (occ_l_os == occ_m_os))
+                + (occ_l_os * (1 - occ_m_os) * (occ_l == occ_m)),
+            ),
+            (
+                1,
+                (occ_l * (1 - occ_m) * occ_l_os * (1 - occ_m_os))
+                + (occ_l_os * (1 - occ_m_os) * occ_l * (1 - occ_m)),
+            ),
+            (
+                2,
+                occ_l * (1 - occ_m) * occ_m_os * (1 - occ_l_os)
+                + (occ_l_os * (1 - occ_m_os) * occ_m * (1 - occ_l)),
+            ),
+        ]
 
     def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
         return super().get_log_info(
