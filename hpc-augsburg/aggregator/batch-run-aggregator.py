@@ -115,6 +115,10 @@ def main():
             f"{python_executable} ./../../calculation-helpers/aggregator.py --is_hpc --hpc_task_id {task_id_int_value} --number_workers {num_threads_int_value} --parameter {parameter} --experiment {experiment}"
         )
 
+    if len(relevant_parameters) == 0:
+        print(f"no relevant parameters for this runner with id {task_id_int_value}")
+        print(parameter_array)
+
 
 if __name__ == "__main__":
     main()
