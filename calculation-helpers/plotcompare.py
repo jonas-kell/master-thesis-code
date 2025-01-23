@@ -41,6 +41,8 @@ def scale_and_prepare_data(
         pass
     elif observable_type == "VCNFactor":
         pass
+    elif observable_type == "BaseEnergyFactor":
+        pass
     elif observable_type == "Energy":
         pass
     elif observable_type == "EnergyVariance":

@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, Literal, TypeAlias
 from abc import ABC, abstractmethod
 import state
 import systemgeometry
@@ -1102,4 +1102,84 @@ class VCNFactor(HamiltonianProperty):
             "param_real_part": self.param_real_part,
             "param_index": self.param_index,
             "can_return_value": self.can_return_value,
+        }
+
+
+kindType: TypeAlias = Literal["U", "eps"]
+
+
+class BaseEnergyFactor(HamiltonianProperty):
+
+    kindType: TypeAlias = kindType
+
+    def __init__(
+        self,
+        ham: hamiltonian.Hamiltonian,
+        param_index: int,
+        param_real_part: bool,
+        kind: kindType,
+    ):
+        super().__init__(ham)
+
+        self.param_index = param_index
+        self.param_real_part = param_real_part
+
+        self.can_return_value: bool = False
+        self.vcn_hamiltonian: hamiltonian.VCNHardCoreBosonicHamiltonian = None
+
+        self.kind = kind
+
+        if isinstance(self.hamiltonian, hamiltonian.VCNHardCoreBosonicHamiltonian):
+            self.can_return_value = True
+            self.vcn_hamiltonian = self.hamiltonian
+            self.number_parameters = (
+                self.vcn_hamiltonian.get_number_of_base_energy_parameters()
+            )
+
+            if kind == "U":
+                self.param_index = -1
+            elif kind == "eps":
+                if (
+                    self.param_index < 0
+                    or self.param_index > self.number_parameters - 1
+                ):
+                    raise Exception(
+                        f"VCN Hamiltonian has only {self.number_parameters - 1} parameters for epsilons. But index {self.param_index} was requested"
+                    )
+            else:
+                raise Exception("Unhandled type case")
+
+        else:
+            self.number_parameters = 0
+            print(
+                "Warning: the Hamiltonian has no VCN parameter, nothing will be measured"
+            )
+
+    def get_expectation_value(
+        self, time: float, system_state: state.SystemState
+    ) -> np.complex128 | np.ndarray:
+        _ = time
+        _ = system_state
+
+        if self.can_return_value:
+            params = self.vcn_hamiltonian.base_energy_params_vec
+
+            if self.param_real_part:
+                return np.real(params[self.param_index])
+            else:
+                return np.imag(params[self.param_index])
+        else:
+            return 0
+
+    def get_label(self) -> str:
+        return f"{'Re' if self.param_real_part else 'Im'}-Part of BE-Factor {'U' if self.kind == 'U' else 'eps-' + str(self.param_index)}"
+
+    def get_log_info(self) -> Dict[str, Union[float, str, bool, Dict[Any, Any]]]:
+        return {
+            "type": "BaseEnergyFactor",
+            "label": self.get_label(),
+            "param_real_part": self.param_real_part,
+            "param_index": self.param_index,
+            "can_return_value": self.can_return_value,
+            "kind": self.kind,
         }

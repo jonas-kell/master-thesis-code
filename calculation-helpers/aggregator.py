@@ -52,7 +52,11 @@ def generate_random_string(length=8):
 
 
 def run_experiment(
-    data, is_hpc: bool, record_hamiltonian_properties: bool, record_imag_part: bool
+    data,
+    is_hpc: bool,
+    record_hamiltonian_properties: bool,
+    record_imag_part: bool,
+    ue_might_change: bool,
 ):
     arguments_string = "--do_not_plot do_not_plot"
     for key, val in data.items():
@@ -60,7 +64,7 @@ def run_experiment(
 
     python_executable = "python"
     os.system(
-        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''} {'--record_imag_part' if record_imag_part else ''}"
+        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''} {'--record_imag_part' if record_imag_part else ''} {'--ue_might_change' if ue_might_change else ''}"
     )
 
 
@@ -106,6 +110,8 @@ def main():
 
     # worker number might get overwritten by the experiment
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
+    # Only necessary for VCN experimnts
+    ue_might_change = False
 
     # !! configure experiment settings below this
     if experiment == "j_sweep":
@@ -275,6 +281,8 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
+        ue_might_change = True
+
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
@@ -344,6 +352,8 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
+        ue_might_change = True
+
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
@@ -382,6 +392,8 @@ def main():
 
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
+
+        ue_might_change = True
 
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
@@ -456,7 +468,11 @@ def main():
             "sampling_strategy": "exact",
         }
         run_experiment(
-            experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+            experiment_data,
+            is_hpc,
+            record_hamiltonian_properties,
+            record_imag_part,
+            ue_might_change,
         )
 
     if do_exact_comparison:
@@ -471,7 +487,11 @@ def main():
                 "number_workers": num_multithread_workers,
             }
             run_experiment(
-                experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+                experiment_data,
+                is_hpc,
+                record_hamiltonian_properties,
+                record_imag_part,
+                ue_might_change,
             )
 
     for i in range(different_monte_carlo_tests):
@@ -489,7 +509,11 @@ def main():
                 "number_workers": num_multithread_workers,
             }
             run_experiment(
-                experiment_data, is_hpc, record_hamiltonian_properties, record_imag_part
+                experiment_data,
+                is_hpc,
+                record_hamiltonian_properties,
+                record_imag_part,
+                ue_might_change,
             )
 
     zip_filename = f"{run_file_name_base}.zip"

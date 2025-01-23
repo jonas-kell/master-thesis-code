@@ -442,7 +442,11 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
             ) + system_state.get_state_array()[
                 index_os
             ] * system_state.get_eps_multiplier(  # eps multiplier explicitly allows for getting inputs > domain size
-                index=index_os, phi=self.phi, sin_phi=self.sin_phi, cos_phi=self.cos_phi
+                # TODO yet this is super unnecessary, as giving a opposite-spin-index to this function will just take the mod again, making this whole computation unnecessary
+                index=index_os,
+                phi=self.phi,
+                sin_phi=self.sin_phi,
+                cos_phi=self.cos_phi,
             )
 
         return self.U * u_count + self.E * eps_collector
@@ -1928,7 +1932,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
 ETAVecType: TypeAlias = npt.NDArray[np.complex128]
 
 
-class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
+class VCNHardCoreBosonicHamiltonian(Hamiltonian):
     eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
 
     def __init__(
@@ -1946,15 +1950,14 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         variational_step_fraction_multiplier: int,
         time_step_size: float,
         number_workers: int,
+        ue_might_change: bool,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
                 "The VCN Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
             )
 
-        super().__init__(
-            U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
-        )
+        super().__init__(U=U, E=E, J=J, phi=phi)
         self.is_initializing = False
 
         self.psi_selection = psi_selection
@@ -1967,6 +1970,9 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         self.variational_step_fraction_multiplier = variational_step_fraction_multiplier
 
         self.eta_vec = None
+        self.base_energy_params_vec = None
+
+        self.ue_might_change = ue_might_change
 
         self.current_time_cache = -12352343
         self.pseudo_inverse_cutoff = pseudo_inverse_cutoff
@@ -1981,38 +1987,72 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
             self.effective_time_step_size,
         )
 
-        # We require the optimized difference and flipping cases for the base energy calculation
-        self.base_energy_optimized_hamiltonian_reference = (
-            HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
-                U=U,
-                E=E,
-                J=J,
-                phi=phi,
-                initial_system_state=initial_system_state,
-            )
+    def get_number_of_parameters(self) -> int:
+        return (
+            self.get_number_of_eta_parameters()
+            + self.get_number_of_base_energy_parameters()
         )
 
     def get_number_of_eta_parameters(self) -> int:
         # each eta has one PSI
         return self.psi_selection.get_number_of_PSIs()
 
+    def get_number_of_base_energy_parameters(self) -> int:
+        # then there is one U and one eps for each site
+        return 1 + self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
+
     def get_initialized_eta_vec(self) -> ETAVecType:
         real_part = np.array(
             [
                 self.random_generator.normal(sigma=self.init_sigma)
-                for _ in range(self.get_number_of_eta_parameters())
+                for _ in range(self.psi_selection.get_number_of_PSIs())
             ],
             dtype=np.complex128,
         )
         complex_part = np.array(
             [
                 self.random_generator.normal(sigma=self.init_sigma)
-                for _ in range(self.get_number_of_eta_parameters())
+                for _ in range(self.psi_selection.get_number_of_PSIs())
             ],
             dtype=np.complex128,
         )
 
         return real_part + 1j * complex_part
+
+    def get_initialized_base_energy_params_vec(self) -> ETAVecType:
+        real_part = np.array(
+            [
+                self.random_generator.normal(sigma=self.init_sigma)
+                for _ in range(self.get_number_of_base_energy_parameters())
+            ],
+            dtype=np.complex128,
+        )
+        complex_part = np.array(
+            [
+                self.random_generator.normal(sigma=self.init_sigma)
+                for _ in range(self.get_number_of_base_energy_parameters())
+            ],
+            dtype=np.complex128,
+        )
+
+        # random initialization on top of (now before adding the real value)
+        intermediate = real_part + 1j * complex_part
+
+        intermediate[-1] += self.U  # place U at the last index
+        # place the respective eps*E parameters into the first part of the array (no touching the last index)
+        for eps_index_into_param_array in range(
+            self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
+        ):
+            intermediate[
+                eps_index_into_param_array
+            ] += self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+                index=eps_index_into_param_array,
+                phi=self.phi,
+                sin_phi=self.sin_phi,
+                cos_phi=self.cos_phi,
+            )
+
+        return intermediate
 
     def initialize(
         self,
@@ -2021,6 +2061,9 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         if self.eta_vec is None:
             if time == 0:
                 self.eta_vec = self.get_initialized_eta_vec()
+                self.base_energy_params_vec = (
+                    self.get_initialized_base_energy_params_vec()
+                )
                 self.current_time_cache = 0
                 return  # no need to step in this case
             else:
@@ -2042,35 +2085,45 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
             )
 
             # Step with explicit euler integration # TODO better approximator
-            eta_derivative = self.calculate_eta_dot(
+            parameters_derivative = self.calculate_parameters_dot(  # this has first the etas, then the base energy params
                 time=intermediate_step_time,
             )
-            self.eta_vec += eta_derivative * self.effective_time_step_size
+            self.eta_vec += (
+                parameters_derivative[0 : self.get_number_of_eta_parameters()]
+                * self.effective_time_step_size
+            )
+            if self.ue_might_change:
+                self.base_energy_params_vec += (
+                    parameters_derivative[
+                        self.get_number_of_eta_parameters() :
+                    ]  # this is "the rest" of the available params
+                    * self.effective_time_step_size
+                )
 
         # finished and stepped etas are stored internally
         self.current_time_cache = time
         self.is_initializing = False
 
-    def calculate_eta_dot(
+    def calculate_parameters_dot(
         self,
         time: float,
     ):
-        num_etas = self.get_number_of_eta_parameters()
+        num_parameters = self.get_number_of_parameters()
 
         global_normalization_factor = 0.0
         global_OO_averager = np.zeros(
             (
-                num_etas,
-                num_etas,
+                num_parameters,
+                num_parameters,
             ),
             dtype=np.complex128,
         )
         global_O_averager = np.zeros(
-            (num_etas,),
+            (num_parameters,),
             dtype=np.complex128,
         )
         global_EO_averager = np.zeros(
-            (num_etas,),
+            (num_parameters,),
             dtype=np.complex128,
         )
         global_E_averager = np.complex128(0)
@@ -2120,7 +2173,7 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         worker_index: int,
         time: float,
     ) -> Tuple[float, np.array, np.array, np.array, np.complex128]:
-        num_etas = self.get_number_of_eta_parameters()
+        num_parameters = self.get_number_of_parameters()
 
         sample_generator_object = self.eta_calculation_sampler.sample_generator(
             time=time,
@@ -2136,17 +2189,17 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         normalization_factor = 0.0
         OO_averager = np.zeros(
             (
-                num_etas,
-                num_etas,
+                num_parameters,
+                num_parameters,
             ),
             dtype=np.complex128,
         )
         O_averager = np.zeros(
-            (num_etas,),
+            (num_parameters,),
             dtype=np.complex128,
         )
         EO_averager = np.zeros(
-            (num_etas,),
+            (num_parameters,),
             dtype=np.complex128,
         )
         E_averager = np.complex128(0)
@@ -2202,11 +2255,24 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
         time: float,
         system_state: state.SystemState,
     ):
-        O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
+        base_energy_factors = self.get_base_energy_factors(system_state=system_state)
 
-        E_loc = self.base_energy_optimized_hamiltonian_reference.get_base_energy(
-            system_state=system_state
-        ) + self.eval_V_n(time=time, system_state=system_state)
+        base_energy = np.dot(self.base_energy_params_vec, base_energy_factors)
+
+        # pylint: disable=E1123 it tells "dtype" is not an allowed argument, yet it clearly works
+        O_vector = np.concatenate(
+            (
+                self.psi_selection.eval_PSIs_on_state(system_state=system_state),
+                base_energy_factors
+                * 1j
+                * time,  # add base energy param differentiation behind Psis
+            ),
+            axis=0,
+            dtype=np.complex128,
+        )
+        # pylint: enable=E1123
+
+        E_loc = base_energy + self.eval_V_n(time=time, system_state=system_state)
 
         return O_vector, E_loc
 
@@ -2255,7 +2321,7 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
                                 # needs minus, because formula and convention here inverted, but cancels with the -i
                                 + 1j
                                 * time
-                                * self.base_energy_optimized_hamiltonian_reference.get_base_energy_difference_double_flipping(
+                                * self.get_base_energy_difference_double_flipping(
                                     before_swap_system_state=system_state,
                                     flipping1_up=up,
                                     flipping1_index=l,
@@ -2270,8 +2336,140 @@ class VCNHardCoreBosonicHamiltonian(HardcoreBosonicHamiltonian):
 
         return -self.psi_selection.J * collecting_sum
 
-    # All typical H_eff implementations add their E_0 contributions own their own.
-    # Only H_n is a learned quantity here
+    def get_base_energy_factors(
+        self,
+        system_state: state.SystemState,
+    ) -> np.ndarray:
+        """Has the U parameter in last, as per convention"""
+
+        factors = np.zeros(
+            (self.get_number_of_base_energy_parameters(),), dtype=np.float32
+        )
+
+        for index in range(system_state.get_number_sites_wo_spin_degree()):
+            # index is correctly clamped to 0<=index<domain_size
+
+            # opposite spin
+            index_os = system_state.get_opposite_spin_index(index)
+
+            # count number of double occupancies
+            factors[-1] += (
+                system_state.get_state_array()[index]
+                * system_state.get_state_array()[index_os]
+            )
+
+            # epsilon value
+            factors[index] = (
+                system_state.get_state_array()[index]
+                + system_state.get_state_array()[index_os]
+            )
+
+        return factors
+
+    def get_base_energy_factors_difference_double_flipping(
+        self,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping1_occupation_before_flip: int,
+        flipping1_occupation_before_flip_os: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        flipping2_occupation_before_flip: int,
+        flipping2_occupation_before_flip_os: int,
+    ) -> np.ndarray:
+        """Has the U parameter in last, as per convention"""
+
+        factors = np.zeros(
+            (self.get_number_of_base_energy_parameters(),), dtype=np.float32
+        )
+
+        # double occupations
+        if flipping1_index != flipping2_index:
+            # on differenc indices
+            if flipping1_up:
+                factors[-1] += flipping1_occupation_before_flip_os * (
+                    2 * flipping1_occupation_before_flip - 1
+                )
+            else:
+                factors[-1] += flipping1_occupation_before_flip * (
+                    2 * flipping1_occupation_before_flip_os - 1
+                )
+
+            if flipping2_up:
+                factors[-1] += flipping2_occupation_before_flip_os * (
+                    2 * flipping2_occupation_before_flip - 1
+                )
+            else:
+                factors[-1] += flipping2_occupation_before_flip * (
+                    2 * flipping2_occupation_before_flip_os - 1
+                )
+        else:
+            # flipping1_index == flipping2_index
+            if flipping1_up != flipping2_up:
+                factors[-1] += (
+                    flipping1_occupation_before_flip
+                    + flipping1_occupation_before_flip_os
+                    - 1
+                )
+
+            # if flipping the same index and same spin dir, nothing happens
+
+        # electrical field
+        if flipping1_index != flipping2_index or flipping1_up != flipping2_up:
+            i1_occupation = flipping1_occupation_before_flip
+            if not flipping1_up:
+                i1_occupation = flipping1_occupation_before_flip_os
+            factors[flipping1_index] += 2 * i1_occupation - 1
+
+            i2_occupation = flipping2_occupation_before_flip
+            if not flipping2_up:
+                i2_occupation = flipping2_occupation_before_flip_os
+            factors[flipping2_index] += 2 * i2_occupation - 1
+
+            # if flipping the same index and same spin dir, nothing happens
+
+        return factors
+
+    def get_base_energy(
+        self,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        """As this is now variational, this could indeed return a complex value"""
+        return np.dot(
+            self.base_energy_params_vec,
+            self.get_base_energy_factors(system_state=system_state),
+        )
+
+    def get_base_energy_difference_double_flipping(
+        self,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping1_occupation_before_flip: int,
+        flipping1_occupation_before_flip_os: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        flipping2_occupation_before_flip: int,
+        flipping2_occupation_before_flip_os: int,
+        before_swap_system_state: state.SystemState,
+    ) -> np.complex128:
+        """As this is now variational, this could indeed return a complex value"""
+
+        _ = before_swap_system_state  # keep for parameter consisteny sake
+
+        return np.dot(
+            self.base_energy_params_vec,
+            self.get_base_energy_factors_difference_double_flipping(
+                flipping1_up=flipping1_up,
+                flipping1_index=flipping1_index,
+                flipping1_occupation_before_flip=flipping1_occupation_before_flip,
+                flipping1_occupation_before_flip_os=flipping1_occupation_before_flip_os,
+                flipping2_up=flipping2_up,
+                flipping2_index=flipping2_index,
+                flipping2_occupation_before_flip=flipping2_occupation_before_flip,
+                flipping2_occupation_before_flip_os=flipping2_occupation_before_flip_os,
+            ),
+        )
+
     def get_H_n(
         self,
         time: float,
@@ -2329,6 +2527,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         pseudo_inverse_cutoff: float,
         variational_step_fraction_multiplier: int,
         time_step_size: float,
+        ue_might_change: bool,
     ):
         super().__init__(
             U=U,
@@ -2344,6 +2543,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
             time_step_size=time_step_size,
             number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
+            ue_might_change=ue_might_change,
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
@@ -2355,6 +2555,8 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         self,
         time: float,
     ):
+        self.base_energy_params_vec = self.get_initialized_base_energy_params_vec()
+
         # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
         eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
             0, self.phi, self.sin_phi, self.cos_phi

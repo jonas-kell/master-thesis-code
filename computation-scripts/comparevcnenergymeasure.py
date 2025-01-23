@@ -38,7 +38,7 @@ ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     initial_system_state=initial_system_state,
     psi_selection=vcn_chain,
     random_generator=random_generator,
-    init_sigma=0,
+    init_sigma=0,  # no noise added, because otherwise doesn't work for times != 0 in the base energy
     eta_calculation_sampler=exact_sampler,
     pseudo_inverse_cutoff=1e-10,
     variational_step_fraction_multiplier=1,
