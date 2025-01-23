@@ -2522,12 +2522,10 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         initial_system_state: state.InitialSystemState,
         psi_selection: PSISelection,
         random_generator: RandomGenerator,
-        init_sigma: float,
         eta_calculation_sampler: "sampler.GeneralSampler",
         pseudo_inverse_cutoff: float,
         variational_step_fraction_multiplier: int,
         time_step_size: float,
-        ue_might_change: bool,
     ):
         super().__init__(
             U=U,
@@ -2537,13 +2535,13 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
             initial_system_state=initial_system_state,
             psi_selection=psi_selection,
             random_generator=random_generator,
-            init_sigma=init_sigma,
+            init_sigma=0,  # no base energy waves
             eta_calculation_sampler=eta_calculation_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
             time_step_size=time_step_size,
             number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
-            ue_might_change=ue_might_change,
+            ue_might_change=False,  # base energy parameters must stay constant
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):

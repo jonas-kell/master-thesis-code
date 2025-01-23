@@ -371,12 +371,10 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             random_generator=random_generator,
             psi_selection=psi_selection,
-            init_sigma=init_sigma,
             eta_calculation_sampler=eta_calculation_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
             time_step_size=time_step,
-            ue_might_change=ue_might_change,
         )
     else:
         raise Exception("Invalid arguments")
