@@ -1951,6 +1951,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         time_step_size: float,
         number_workers: int,
         ue_might_change: bool,
+        ue_variational: bool,
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1972,7 +1973,13 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         self.eta_vec = None
         self.base_energy_params_vec = None
 
+        if not ue_variational and ue_might_change:
+            raise Exception(
+                "U and eps base-energy-parameters can only change if they are variational"
+            )
+
         self.ue_might_change = ue_might_change
+        self.ue_variational = ue_variational
 
         self.current_time_cache = -12352343
         self.pseudo_inverse_cutoff = pseudo_inverse_cutoff
@@ -1988,10 +1995,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         )
 
     def get_number_of_parameters(self) -> int:
-        return (
-            self.get_number_of_eta_parameters()
-            + self.get_number_of_base_energy_parameters()
-        )
+        return self.get_number_of_eta_parameters() + (
+            self.get_number_of_base_energy_parameters() if self.ue_variational else 0
+        )  # if no variational u and aps, they are no parameters
 
     def get_number_of_eta_parameters(self) -> int:
         # each eta has one PSI
@@ -2019,24 +2025,31 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
         return real_part + 1j * complex_part
 
-    def get_initialized_base_energy_params_vec(self) -> ETAVecType:
-        real_part = np.array(
-            [
-                self.random_generator.normal(sigma=self.init_sigma)
-                for _ in range(self.get_number_of_base_energy_parameters())
-            ],
-            dtype=np.complex128,
-        )
-        complex_part = np.array(
-            [
-                self.random_generator.normal(sigma=self.init_sigma)
-                for _ in range(self.get_number_of_base_energy_parameters())
-            ],
-            dtype=np.complex128,
-        )
+    def get_initialized_base_energy_params_vec(self, randomize: bool) -> ETAVecType:
+        if randomize:
+            real_part = np.array(
+                [
+                    self.random_generator.normal(sigma=self.init_sigma)
+                    for _ in range(self.get_number_of_base_energy_parameters())
+                ],
+                dtype=np.complex128,
+            )
+            complex_part = np.array(
+                [
+                    self.random_generator.normal(sigma=self.init_sigma)
+                    for _ in range(self.get_number_of_base_energy_parameters())
+                ],
+                dtype=np.complex128,
+            )
 
-        # random initialization on top of (now before adding the real value)
-        intermediate = real_part + 1j * complex_part
+            # random initialization on top of (now before adding the real value)
+            intermediate = real_part + 1j * complex_part
+        else:
+            # Do not tick the random generator
+            intermediate = np.zeros(
+                (self.get_number_of_base_energy_parameters(),),
+                dtype=np.complex128,
+            )
 
         intermediate[-1] += self.U  # place U at the last index
         # place the respective eps*E parameters into the first part of the array (no touching the last index)
@@ -2058,11 +2071,13 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
     ):
-        if self.eta_vec is None:
+        if self.eta_vec is None or self.base_energy_params_vec is None:
             if time == 0:
                 self.eta_vec = self.get_initialized_eta_vec()
                 self.base_energy_params_vec = (
-                    self.get_initialized_base_energy_params_vec()
+                    self.get_initialized_base_energy_params_vec(
+                        randomize=self.ue_variational
+                    )
                 )
                 self.current_time_cache = 0
                 return  # no need to step in this case
@@ -2085,14 +2100,14 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             )
 
             # Step with explicit euler integration # TODO better approximator
-            parameters_derivative = self.calculate_parameters_dot(  # this has first the etas, then the base energy params
+            parameters_derivative = self.calculate_parameters_dot(  # this has first the etas, then possibly the base energy params
                 time=intermediate_step_time,
             )
             self.eta_vec += (
                 parameters_derivative[0 : self.get_number_of_eta_parameters()]
                 * self.effective_time_step_size
             )
-            if self.ue_might_change:
+            if self.ue_might_change and self.ue_variational:
                 self.base_energy_params_vec += (
                     parameters_derivative[
                         self.get_number_of_eta_parameters() :
@@ -2108,7 +2123,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         self,
         time: float,
     ):
-        num_parameters = self.get_number_of_parameters()
+        num_parameters = (
+            self.get_number_of_parameters()
+        )  # this knows if the base-energy-params are variational
 
         global_normalization_factor = 0.0
         global_OO_averager = np.zeros(
@@ -2173,7 +2190,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         worker_index: int,
         time: float,
     ) -> Tuple[float, np.array, np.array, np.array, np.complex128]:
-        num_parameters = self.get_number_of_parameters()
+        num_parameters = (
+            self.get_number_of_parameters()
+        )  # this knows if the base-energy-params are variational
 
         sample_generator_object = self.eta_calculation_sampler.sample_generator(
             time=time,
@@ -2260,16 +2279,19 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         base_energy = np.dot(self.base_energy_params_vec, base_energy_factors)
 
         # pylint: disable=E1123 it tells "dtype" is not an allowed argument, yet it clearly works
-        O_vector = np.concatenate(
-            (
-                self.psi_selection.eval_PSIs_on_state(system_state=system_state),
-                base_energy_factors
-                * 1j
-                * time,  # add base energy param differentiation behind Psis
-            ),
-            axis=0,
-            dtype=np.complex128,
-        )
+        if self.ue_variational:
+            O_vector = np.concatenate(
+                (
+                    self.psi_selection.eval_PSIs_on_state(system_state=system_state),
+                    base_energy_factors
+                    * 1j
+                    * time,  # add base energy param differentiation behind Psis
+                ),
+                axis=0,
+                dtype=np.complex128,
+            )
+        else:
+            O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
         # pylint: enable=E1123
 
         E_loc = base_energy + self.eval_V_n(time=time, system_state=system_state)
@@ -2523,8 +2545,6 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         psi_selection: PSISelection,
         random_generator: RandomGenerator,
         eta_calculation_sampler: "sampler.GeneralSampler",
-        pseudo_inverse_cutoff: float,
-        variational_step_fraction_multiplier: int,
         time_step_size: float,
     ):
         super().__init__(
@@ -2537,11 +2557,12 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
             random_generator=random_generator,
             init_sigma=0,  # no base energy waves
             eta_calculation_sampler=eta_calculation_sampler,
-            pseudo_inverse_cutoff=pseudo_inverse_cutoff,
-            variational_step_fraction_multiplier=variational_step_fraction_multiplier,
+            pseudo_inverse_cutoff=0,  # deactivated
+            variational_step_fraction_multiplier=1,  # deactivated
             time_step_size=time_step_size,
             number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
             ue_might_change=False,  # base energy parameters must stay constant
+            ue_variational=False,  # base energy parameters must stay constant
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
@@ -2553,7 +2574,9 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         self,
         time: float,
     ):
-        self.base_energy_params_vec = self.get_initialized_base_energy_params_vec()
+        self.base_energy_params_vec = self.get_initialized_base_energy_params_vec(
+            randomize=False
+        )
 
         # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
         eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(

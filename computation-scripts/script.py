@@ -45,6 +45,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--record_imag_part", action="store_true", required=False)
     parser.add_argument("--ue_might_change", action="store_true", required=False)
+    parser.add_argument("--ue_variational", action="store_true", required=False)
     parser.add_argument("--U", required=False)
     parser.add_argument("--E", required=False)
     parser.add_argument("--J", required=False)
@@ -220,6 +221,7 @@ if __name__ == "__main__":
     # ! VCN settings
     record_hamiltonian_properties: bool = args["record_hamiltonian_properties"]
     ue_might_change: bool = args["ue_might_change"]
+    ue_variational: bool = args["ue_variational"]
     record_imag_part: bool = args["record_imag_part"]
     init_sigma: float = cast(float, get_argument(args, "init_sigma", float, 0.001))
     pseudo_inverse_cutoff: float = cast(
@@ -361,6 +363,7 @@ if __name__ == "__main__":
             time_step_size=time_step,
             number_workers=number_workers,
             ue_might_change=ue_might_change,
+            ue_variational=ue_variational,
         )
     elif hamiltonian_type == "variational_classical_networks_analytical_factors":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
@@ -372,8 +375,6 @@ if __name__ == "__main__":
             random_generator=random_generator,
             psi_selection=psi_selection,
             eta_calculation_sampler=eta_calculation_sampler,
-            pseudo_inverse_cutoff=pseudo_inverse_cutoff,
-            variational_step_fraction_multiplier=variational_step_fraction_multiplier,
             time_step_size=time_step,
         )
     else:

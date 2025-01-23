@@ -57,6 +57,7 @@ def run_experiment(
     record_hamiltonian_properties: bool,
     record_imag_part: bool,
     ue_might_change: bool,
+    ue_variational: bool,
 ):
     arguments_string = "--do_not_plot do_not_plot"
     for key, val in data.items():
@@ -64,7 +65,7 @@ def run_experiment(
 
     python_executable = "python"
     os.system(
-        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''} {'--record_imag_part' if record_imag_part else ''} {'--ue_might_change' if ue_might_change else ''}"
+        f"{python_executable} ./../{'../' if is_hpc else ''}computation-scripts/script.py {arguments_string} {'--record_hamiltonian_properties' if record_hamiltonian_properties else ''} {'--record_imag_part' if record_imag_part else ''} {'--ue_might_change' if ue_might_change else ''}  {'--ue_variational' if ue_variational else ''}"
     )
 
 
@@ -112,6 +113,7 @@ def main():
     num_multithread_workers = cast(int, get_argument(args, "number_workers", int, 6))
     # Only necessary for VCN experimnts
     ue_might_change = False
+    ue_variational = False
 
     # !! configure experiment settings below this
     if experiment == "j_sweep":
@@ -281,7 +283,8 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        ue_might_change = True
+        ue_might_change = False
+        ue_variational = False
 
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
@@ -290,7 +293,7 @@ def main():
         if parameter == 0:
             # do the "exact" comparisons
             compare_type_hamiltonians = [
-                ("base_energy_only", "o0"),  # TODO integrate in plot
+                ("base_energy_only", "o0"),
                 ("both_optimizations", "o1"),
                 ("both_optimizations_second_order", "o2"),
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
@@ -352,7 +355,8 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        ue_might_change = True
+        ue_might_change = False
+        ue_variational = False
 
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
@@ -393,7 +397,8 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        ue_might_change = True
+        ue_might_change = False
+        ue_variational = True
 
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
@@ -404,18 +409,18 @@ def main():
             ("variational_classical_networks", "vcn"),
         ]
 
-        init_sigma = 0.0001
-        pseudo_inverse_cutoff = 1e-8
+        init_sigma = 0.0003
+        pseudo_inverse_cutoff = 1e-7
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 10
+        steps = 100
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = scaler * 0.01 * (steps + 1)
+        target_time_in_1_over_u = scaler * 0.05 * (steps + 1)
 
         psi_selection_type = "chain_canonical"
 
@@ -473,6 +478,7 @@ def main():
             record_hamiltonian_properties,
             record_imag_part,
             ue_might_change,
+            ue_variational,
         )
 
     if do_exact_comparison:
@@ -492,6 +498,7 @@ def main():
                 record_hamiltonian_properties,
                 record_imag_part,
                 ue_might_change,
+                ue_variational,
             )
 
     for i in range(different_monte_carlo_tests):
@@ -514,6 +521,7 @@ def main():
                 record_hamiltonian_properties,
                 record_imag_part,
                 ue_might_change,
+                ue_variational,
             )
 
     zip_filename = f"{run_file_name_base}.zip"
