@@ -539,42 +539,40 @@ if __name__ == "__main__":
 
     if record_hamiltonian_properties:
         obs_ham_properties: List[observables.Observable] = []
-        num_etas = 0
-        num_base_params = 0
         if isinstance(ham, hamiltonian.VCNHardCoreBosonicHamiltonian):
             num_etas = ham.get_number_of_eta_parameters()
             num_base_params = ham.get_number_of_base_energy_parameters()
-        # eta params of VCN
-        for real_part_of_property in [True, False]:
-            for eta_index in range(num_etas):
-                obs_ham_properties.append(
-                    observables.VCNFactor(
-                        ham=ham,
-                        param_index=eta_index,
-                        param_real_part=real_part_of_property,
+            # eta params of VCN
+            for real_part_of_property in [True, False]:
+                for eta_index in range(num_etas):
+                    obs_ham_properties.append(
+                        observables.VCNFactor(
+                            ham=ham,
+                            param_index=eta_index,
+                            param_real_part=real_part_of_property,
+                        )
                     )
-                )
-        # variational U
-        for real_part_of_property in [True, False]:
-            obs_ham_properties.append(
-                observables.BaseEnergyFactor(
-                    ham=ham,
-                    param_index=-1,
-                    param_real_part=real_part_of_property,
-                    kind="U",
-                )
-            )
-        # variational eps
-        for real_part_of_property in [True, False]:
-            for base_param_index in range(num_base_params):
+            # variational U
+            for real_part_of_property in [True, False]:
                 obs_ham_properties.append(
                     observables.BaseEnergyFactor(
                         ham=ham,
-                        param_index=base_param_index,
+                        param_index=-1,
                         param_real_part=real_part_of_property,
-                        kind="eps",
+                        kind="U",
                     )
                 )
+            # variational eps
+            for real_part_of_property in [True, False]:
+                for base_param_index in range(num_base_params):
+                    obs_ham_properties.append(
+                        observables.BaseEnergyFactor(
+                            ham=ham,
+                            param_index=base_param_index,
+                            param_real_part=real_part_of_property,
+                            kind="eps",
+                        )
+                    )
 
         obs += obs_ham_properties
 
