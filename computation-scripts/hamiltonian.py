@@ -2522,6 +2522,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 "effective_time_step_size": self.effective_time_step_size,
                 "number_workers": self.number_workers,
                 "variational_step_fraction_multiplier": self.variational_step_fraction_multiplier,
+                "ue_might_change": self.ue_might_change,
+                "ue_variational": self.ue_variational,
                 **additional_info,
             }
         )
