@@ -387,7 +387,7 @@ def main():
 
     elif experiment == "first_vcn_step":
         # ! test the effective step-size of the variational-classical network
-        U = 1.0
+        U = 1
         E = 0.8
         J = 0.1
         n = 2
@@ -409,18 +409,18 @@ def main():
             ("variational_classical_networks", "vcn"),
         ]
 
-        init_sigma = 0.0003
+        init_sigma = 0.000
         pseudo_inverse_cutoff = 1e-7
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 100
+        steps = 10
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = scaler * 0.05 * (steps + 1)
+        target_time_in_1_over_u = scaler * 0.06 * (steps + 1)
 
         psi_selection_type = "chain_canonical"
 

@@ -2283,9 +2283,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             O_vector = np.concatenate(
                 (
                     self.psi_selection.eval_PSIs_on_state(system_state=system_state),
-                    base_energy_factors
-                    * 1j
-                    * time,  # add base energy param differentiation behind Psis
+                    base_energy_factors,
+                    # * time,  # add base energy param differentiation behind Psis
                 ),
                 axis=0,
                 dtype=np.complex128,
