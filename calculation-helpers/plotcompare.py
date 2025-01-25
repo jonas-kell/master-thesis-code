@@ -1,6 +1,11 @@
 from typing import List, Any, Dict, Union, Tuple
 import numpy as np
-from commonsettings import get_full_file_path, scaler_switch, get_newest_file_name
+from commonsettings import (
+    get_full_file_path,
+    scaler_switch,
+    get_newest_file_name,
+    get_filenames_containing,
+)
 import json
 
 
@@ -156,132 +161,86 @@ def plot_experiment_comparison(
 
 if __name__ == "__main__":
 
-    # # was the flip correction justified
-    # time_string = "2024-10-23__23,26,46"  # no flip correction
-    # time_string = "2024-10-23__23,30,23"  # flip correction
+    # test = "2025-01-25__13,51,22"
+    # test = "2025-01-25__13,52,28"
+    # test = "2025-01-25__13,54,03"
+    # test = "2025-01-25__13,54,20"
+    test = "2025-01-25__13,54,34"
+    # test = "2025-01-25__13,54,57"
+    # test = "2025-01-25__13,55,46"
+    # test = "2025-01-25__13,57,26"
+    # test = "2025-01-25__14,01,04"
+    # test = "2025-01-25__14,01,18"
+    # test = "2025-01-25__14,04,38"
+    # test = "2025-01-25__14,05,15"
+    # test = "2025-01-25__14,19,17"
+    # test = "2025-01-25__14,19,52"
+    # test = "2025-01-25__14,20,57"
+    # test = "2025-01-25__14,21,02"
+    # test = "2025-01-25__14,22,48"
+    # test = "2025-01-25__14,36,01"
+    # test = "2025-01-25__14,36,06"
+    # test = "2025-01-25__14,37,41"
+    # test = "2025-01-25__14,37,46"
+    # test = "2025-01-25__14,42,18"
+    # test = "2025-01-25__15,14,39"
+    # test = "2025-01-25__15,17,02"
+    # test = "2025-01-25__15,17,39"
+    # test = "2025-01-25__15,18,25"
+    # test = "2025-01-25__15,19,27"
+    # test = "2025-01-25__15,19,47"
+    # test = "2025-01-25__15,20,45"
+    # test = "2025-01-25__15,21,07"
+    # test = "2025-01-25__15,21,44"
+    # test = "2025-01-25__15,22,24"
+    # test = "2025-01-25__15,27,14"
+    # test = "2025-01-25__15,27,45"
+    # test = "2025-01-25__15,43,56"
+    # test = "2025-01-25__15,45,23"
+    # test = "2025-01-25__15,47,21"
+    # test = "2025-01-25__15,52,02"
+    # test = "2025-01-25__15,52,51"
+    # test = "2025-01-25__16,04,15"
+    # test = "2025-01-25__16,18,07"
+    # test = "2025-01-25__16,20,14"
+    # test = "2025-01-25__16,21,46"
+    # test = "2025-01-25__16,22,09"
+    # test = "2025-01-25__16,29,06"
+    # test = "2025-01-25__18,06,54"
+    # test = "2025-01-25__18,11,06"
+    # test = "2025-01-25__18,12,11"
+    # test = "2025-01-25__18,14,36"
+    # test = "2025-01-25__18,15,37"
+    # test = "2025-01-25__18,16,17"
+    # test = "2025-01-25__18,17,03"
+    # test = "2025-01-25__18,17,47"
+    # test = "2025-01-25__18,18,40"
+    # test = "2025-01-25__18,19,47"
+    # test = "2025-01-25__18,20,29"
+    # test = "2025-01-25__18,22,30"
+    # test = "2025-01-25__18,27,13"
+    # test = "2025-01-25__18,27,33"
+    # test = "2025-01-25__18,50,43"
+    # test = "2025-01-25__18,51,54"
+    # test = "2025-01-25__18,52,44"
+    # test = "2025-01-25__18,53,13"
+    # test = "2025-01-25__19,04,28"
+    # test = "2025-01-25__19,05,23"
+    # test = "2025-01-25__19,06,05"
+    # test = "2025-01-25__19,12,13"
+    # test = "2025-01-25__19,13,33"
+    # test = "2025-01-25__19,13,57"
+    # test = "2025-01-25__19,15,04"
+    # test = "2025-01-25__19,15,24"
+    # test = "2025-01-25__19,15,49"
+    # test = "2025-01-25__19,18,48"
+    # test = "2025-01-25__19,28,59"
+    # test = "2025-01-25__19,29,17"
+    # test = "2025-01-25__19,29,38"
 
-    # # things drastically change from 3 to 4 elements in the chain
-    # time_string = "2024-10-23__23,49,06"  # 3
-    # time_string = "2024-10-23__23,50,51"  # 4
+    list_of_filenames = get_filenames_containing(test)
 
-    # time_string = (
-    #     "2024-10-24__23,12,46"  # un-centered indicees, not locationally invertable
-    # )
-    # time_string = "2024-10-24__23,06,39"  # centered indicees, locationally invertable
-    # time_string = "2024-10-25__09,07,00"  # diagonalization indicees also centered
-
-    # filename_a = "perturbation_measurements_" + time_string
-    # filename_b = "diagonalization_measurements_" + time_string
-
-    # spinToZBasisTransformation
-    # exact = "diagonalization_measurements_2024-11-01__21,29,39"
-    # current = "perturbation_measurements_2024-11-01__21,29,39"
-    # flipped = "perturbation_measurements_2024-11-01__21,25,14"
-    # plot_experiment_comparison(
-    #     [
-    #         exact,
-    #         current,
-    #         flipped,
-    #     ],
-    #     [
-    #         "exact",
-    #         "current",
-    #         "flipped",
-    #     ],
-    # )
-
-    # skip non-knowing terms test
-    # diagonal = "diagonalization_measurements_2024-11-02__13,36,33"
-    # reduced = "perturbation_measurements_2024-11-02__13,19,45"
-    # all_terms = "perturbation_measurements_2024-11-02__13,36,33"
-    # plot_experiment_comparison(
-    #     [diagonal, reduced, all],
-    #     ["diagonal", "reduced", "all_terms"],
-    # )
-
-    # first second order comparison
-    # diagonal = "diagonalization_measurements_2024-11-02__16,32,00"
-    # first_order = "perturbation_measurements_2024-11-02__16,39,46"
-    # second_order = "perturbation_measurements_2024-11-02__16,32,00"
-    # plot_experiment_comparison(
-    #     [diagonal, first_order, second_order],
-    #     ["diagonal", "pert. first", "pert. second"],
-    # )
-
-    # delete summands from second_order array test
-    # drop_one = "perturbation_measurements_2024-11-02__17,38,14"
-    # drop_two = "perturbation_measurements_2024-11-02__17,32,09"
-    # drop_three = "perturbation_measurements_2024-11-02__17,37,34"
-    # all_factors = "perturbation_measurements_2024-11-02__17,36,48"
-    # plot_experiment_comparison(
-    #     [all_factors, drop_one, drop_two, drop_three],
-    #     ["all_factors", "drop_one", "drop_two", "drop_three"],
-    # )
-
-    # second order optimization end to end
-    # diagonal = "diagonalization_measurements_2024-11-03__15,56,10"
-    # second_order_optimized = (
-    #     "perturbation_measurements_2024-11-03__15,56,10"  # 381.560 seconds
-    # )
-    # second_order_canonical = (
-    #     "perturbation_measurements_2024-11-03__16,05,58"  # 403.665 seconds
-    # )
-    # second_order_monte_carlo = (
-    #     "perturbation_measurements_2024-11-03__16,18,32"  # 3625.690 seconds
-    # )
-    # plot_experiment_comparison(
-    #     [
-    #         diagonal,
-    #         second_order_optimized,
-    #         second_order_canonical,
-    #         second_order_monte_carlo,
-    #     ],
-    #     ["diagonal", "opimized", "canonical", "MC"],
-    # )
-
-    # Variational classical networks
-    # first_order_perturbation = "2024-11-05__16,13,17-0"
-    # second_order_perturbation = "2024-11-07__00,58,28-0"
-    # exact_diagonalization = "2024-11-06__14,43,45-0"
-    # zeroth_order = "2024-11-07__00,51,22-0"
-    # vcn_testem3 = "2024-11-07__01,02,13-0"
-    # vcn_testem2 = "2024-11-07__01,19,04-0"
-    # latest = get_newest_file_name()
-    # plot_experiment_comparison(
-    #     [
-    #         exact_diagonalization,
-    #         zeroth_order,
-    #         first_order_perturbation,
-    #         second_order_perturbation,
-    #         # vcn_testem3,
-    #         # vcn_testem2,
-    #         # latest,
-    #     ],
-    #     [
-    #         "exact",
-    #         "zero_order",
-    #         "analytical-o1",
-    #         "analytical-o2",
-    #         # "vcnem3",
-    #         # "vcnem2",
-    #         # "latest",
-    #     ],
-    #     [(0, 1), (0, 2), (0, 3)],
-    # )
-
-    # # Concurrence proof of concept verification
-
-    # diagonal = "diagonal"
-    # diagonalsampled = "diagonal-sampled"
-    # perturbationo0 = "perturbation-o0"
-    # perturbationo1 = "perturbation-o1"
-    # perturbationo2 = "perturbation-o2"
-    # plot_experiment_comparison(
-    #     [diagonal, diagonalsampled, perturbationo0, perturbationo1, perturbationo2],
-    # )
-
-    # Energy for real
-    diagonalization = "diagonalization_measurements_2024-11-26__11,44,27"
+    # diagonalization = "diagonalization_measurements_2024-11-26__11,44,27"
     plot_experiment_comparison(
-        [diagonalization],
+        list_of_filenames,
     )
