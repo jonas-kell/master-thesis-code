@@ -2287,7 +2287,13 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
     ):
         base_energy_factors = self.get_base_energy_factors(system_state=system_state)
 
-        base_energy = np.dot(self.base_energy_params_vec, base_energy_factors)
+        # duplicate, as in get_base_energy so to not calculate the base_energy_factors twice
+        base_energy = np.dot(
+            self.get_initialized_base_energy_params_vec(
+                randomize=False, time=-1j
+            ),  # we want the base factors, which we get by multiplying the 1j-containing value by -1j
+            base_energy_factors,
+        )
 
         # pylint: disable=E1123 it tells "dtype" is not an allowed argument, yet it clearly works
         if self.ue_variational:

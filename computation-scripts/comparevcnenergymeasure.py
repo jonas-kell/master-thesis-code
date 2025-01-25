@@ -64,9 +64,7 @@ for _ in range(number_tests):
         )
         * system_geometry.get_number_sites_wo_spin_degree()
     )
-    _, energy_eloc_vcn = ham.calculate_O_k_and_E_loc(
-        time=measurement_time, system_state=use_state
-    )
+    _, energy_eloc_vcn = ham.calculate_O_k_and_E_loc(system_state=use_state)
 
     if np.abs(energy_eloc_vcn - energy_obs) > 1e-6:
         print(energy_obs)
