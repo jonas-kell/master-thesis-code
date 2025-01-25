@@ -2025,7 +2025,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
         return real_part + 1j * complex_part
 
-    def get_initialized_base_energy_params_vec(self, randomize: bool) -> ETAVecType:
+    def get_initialized_base_energy_params_vec(
+        self, randomize: bool, time: float
+    ) -> ETAVecType:
         if randomize:
             real_part = np.array(
                 [
@@ -2051,18 +2053,21 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 dtype=np.complex128,
             )
 
-        intermediate[-1] += self.U  # place U at the last index
+        intermediate[-1] += 1j * self.U * time  # place U at the last index
         # place the respective eps*E parameters into the first part of the array (no touching the last index)
         for eps_index_into_param_array in range(
             self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
         ):
-            intermediate[
-                eps_index_into_param_array
-            ] += self.E * self.psi_selection.system_geometry.get_eps_multiplier(
-                index=eps_index_into_param_array,
-                phi=self.phi,
-                sin_phi=self.sin_phi,
-                cos_phi=self.cos_phi,
+            intermediate[eps_index_into_param_array] += (
+                self.E
+                * self.psi_selection.system_geometry.get_eps_multiplier(
+                    index=eps_index_into_param_array,
+                    phi=self.phi,
+                    sin_phi=self.sin_phi,
+                    cos_phi=self.cos_phi,
+                )
+                * 1j
+                * time
             )
 
         return intermediate
@@ -2074,10 +2079,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         if self.eta_vec is None or self.base_energy_params_vec is None:
             if time == 0:
                 self.eta_vec = self.get_initialized_eta_vec()
-                self.base_energy_params_vec = (
-                    self.get_initialized_base_energy_params_vec(
-                        randomize=self.ue_variational
-                    )
+                self.base_energy_params_vec = self.get_initialized_base_energy_params_vec(
+                    randomize=self.ue_variational,
+                    time=0,  # initializes the params around 0, as 1j * U * time = 0 for time = 0
                 )
                 self.current_time_cache = 0
                 return  # no need to step in this case
@@ -2107,12 +2111,20 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 parameters_derivative[0 : self.get_number_of_eta_parameters()]
                 * self.effective_time_step_size
             )
-            if self.ue_might_change and self.ue_variational:
-                self.base_energy_params_vec += (
-                    parameters_derivative[
-                        self.get_number_of_eta_parameters() :
-                    ]  # this is "the rest" of the available params
-                    * self.effective_time_step_size
+            if self.ue_variational:
+                if self.ue_might_change:
+                    self.base_energy_params_vec += (
+                        parameters_derivative[
+                            self.get_number_of_eta_parameters() :
+                        ]  # this is "the rest" of the available params
+                        * self.effective_time_step_size
+                    )
+            else:
+                # force the "variational" parameters to the analytically calculated value
+                self.base_energy_params_vec = (
+                    self.get_initialized_base_energy_params_vec(
+                        randomize=False, time=intermediate_step_time
+                    )
                 )
 
         # finished and stepped etas are stored internally
@@ -2243,7 +2255,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 normalization_factor += state_probability
 
                 O_vector, E_loc = self.calculate_O_k_and_E_loc(
-                    time=time, system_state=sampled_state_n
+                    system_state=sampled_state_n
                 )
 
                 O_vector_scaled = O_vector * state_probability
@@ -2271,7 +2283,6 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
     def calculate_O_k_and_E_loc(
         self,
-        time: float,
         system_state: state.SystemState,
     ):
         base_energy_factors = self.get_base_energy_factors(system_state=system_state)
@@ -2283,9 +2294,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             O_vector = np.concatenate(
                 (
                     self.psi_selection.eval_PSIs_on_state(system_state=system_state),
-                    base_energy_factors
-                    * 1j
-                    * time,  # add base energy param differentiation behind Psis
+                    base_energy_factors,  # add base energy param differentiation behind Psis
                 ),
                 axis=0,
                 dtype=np.complex128,
@@ -2294,11 +2303,11 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             O_vector = self.psi_selection.eval_PSIs_on_state(system_state=system_state)
         # pylint: enable=E1123
 
-        E_loc = base_energy + self.eval_V_n(time=time, system_state=system_state)
+        E_loc = base_energy + self.eval_V_n(system_state=system_state)
 
         return O_vector, E_loc
 
-    def eval_V_n(self, time: float, system_state: state.SystemState):
+    def eval_V_n(self, system_state: state.SystemState):
         collecting_sum = np.complex128(0)
 
         for l in range(
@@ -2326,7 +2335,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                             not up and (occ_l_os != occ_m_os)
                         ):
                             # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
-                            # H_VCN is missing ln(psi_0) part: as all psi_0 are equal, they cancel
+                            # the  1j * time is in the parameters, the - stands there
 
                             collecting_sum += np.exp(
                                 np.dot(
@@ -2340,19 +2349,19 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                                         spin_m_up=up,
                                     ),
                                 )
-                                # needs minus, because formula and convention here inverted, but cancels with the -i
-                                + 1j
-                                * time
-                                * self.get_base_energy_difference_double_flipping(
-                                    before_swap_system_state=system_state,
-                                    flipping1_up=up,
-                                    flipping1_index=l,
-                                    flipping1_occupation_before_flip=occ_l,
-                                    flipping1_occupation_before_flip_os=occ_l_os,
-                                    flipping2_up=up,
-                                    flipping2_index=m,
-                                    flipping2_occupation_before_flip=occ_m,
-                                    flipping2_occupation_before_flip_os=occ_m_os,
+                                - np.dot(
+                                    self.base_energy_params_vec,
+                                    # needs minus, because formula and convention here inverted
+                                    -self.get_base_energy_factors_difference_double_flipping(
+                                        flipping1_up=up,
+                                        flipping1_index=l,
+                                        flipping1_occupation_before_flip=occ_l,
+                                        flipping1_occupation_before_flip_os=occ_l_os,
+                                        flipping2_up=up,
+                                        flipping2_index=m,
+                                        flipping2_occupation_before_flip=occ_m,
+                                        flipping2_occupation_before_flip_os=occ_m_os,
+                                    ),
                                 )
                             )
 
@@ -2458,38 +2467,10 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
     ) -> np.complex128:
         """As this is now variational, this could indeed return a complex value"""
         return np.dot(
-            self.base_energy_params_vec,
+            self.get_initialized_base_energy_params_vec(
+                randomize=False, time=-1j
+            ),  # we want the base factors, which we get by multiplying the 1j-containing value by -1j
             self.get_base_energy_factors(system_state=system_state),
-        )
-
-    def get_base_energy_difference_double_flipping(
-        self,
-        flipping1_up: bool,
-        flipping1_index: int,
-        flipping1_occupation_before_flip: int,
-        flipping1_occupation_before_flip_os: int,
-        flipping2_up: bool,
-        flipping2_index: int,
-        flipping2_occupation_before_flip: int,
-        flipping2_occupation_before_flip_os: int,
-        before_swap_system_state: state.SystemState,
-    ) -> np.complex128:
-        """As this is now variational, this could indeed return a complex value"""
-
-        _ = before_swap_system_state  # keep for parameter consisteny sake
-
-        return np.dot(
-            self.base_energy_params_vec,
-            self.get_base_energy_factors_difference_double_flipping(
-                flipping1_up=flipping1_up,
-                flipping1_index=flipping1_index,
-                flipping1_occupation_before_flip=flipping1_occupation_before_flip,
-                flipping1_occupation_before_flip_os=flipping1_occupation_before_flip_os,
-                flipping2_up=flipping2_up,
-                flipping2_index=flipping2_index,
-                flipping2_occupation_before_flip=flipping2_occupation_before_flip,
-                flipping2_occupation_before_flip_os=flipping2_occupation_before_flip_os,
-            ),
         )
 
     def get_H_n(
@@ -2508,6 +2489,22 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         # and all other places the psi_0's cancel in the differences, because of uniform initial state assumption
         # E_0 will be inserted because the E_heff call does that
         return np.dot(self.eta_vec, PSI_vector)
+
+    def get_H_eff(
+        self,
+        time: float,
+        system_state: state.SystemState,
+    ) -> np.complex128:
+        # this must be a custom implementation, as the base_energy_params_vec learns including the t and i
+
+        H_n = self.get_H_n(time=time, system_state=system_state)
+
+        i_t_H0 = np.dot(
+            self.base_energy_params_vec,
+            self.get_base_energy_factors(system_state=system_state),
+        )
+
+        return H_n - i_t_H0
 
     # TODO H_eff differences implementation in sublinear time
 
@@ -2574,8 +2571,9 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         self,
         time: float,
     ):
+        # BASE ENERGY ANALYTICAL COEFFICIENTS FOR COMPARISON
         self.base_energy_params_vec = self.get_initialized_base_energy_params_vec(
-            randomize=False
+            randomize=False, time=time
         )
 
         # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON

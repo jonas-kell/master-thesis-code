@@ -397,7 +397,7 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        ue_might_change = False
+        ue_might_change = True
         ue_variational = True
 
         do_exact_comparison = True
@@ -407,20 +407,21 @@ def main():
         compare_type_hamiltonians = [
             ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ("variational_classical_networks", "vcn"),
+            # ("both_optimizations", "o1"),  # see if starting energy is right
         ]
 
-        init_sigma = 0.0003
-        pseudo_inverse_cutoff = 1e-7
+        init_sigma = 0.0001
+        pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 100
+        steps = 30
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = scaler * 0.05 * (steps + 1)
+        target_time_in_1_over_u = scaler * 0.07 * (steps + 1)
 
         psi_selection_type = "chain_canonical"
 
