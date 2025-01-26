@@ -425,7 +425,9 @@ def main():
 
         psi_selection_type = "chain_canonical"
 
-        variational_step_fraction_multiplier = 10
+        variational_step_fraction_multiplier = (
+            1  # this parameter now also instantly works
+        )
         zip_filename_base = "vcn-first-step"
 
         # this is a test, do not multithread for easier comparability
