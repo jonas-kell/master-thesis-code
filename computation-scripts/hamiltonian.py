@@ -2113,7 +2113,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             )
             if self.ue_variational:
                 if self.ue_might_change:
-                    self.base_energy_params_vec += (
+                    # Look. Why is this a minus? I honestly do not know
+                    self.base_energy_params_vec -= (
                         parameters_derivative[
                             self.get_number_of_eta_parameters() :
                         ]  # this is "the rest" of the available params
