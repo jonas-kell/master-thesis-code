@@ -2113,7 +2113,10 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
             )
             if self.ue_variational:
                 if self.ue_might_change:
-                    # Look. Why is this a minus? I honestly do not know
+                    # Here we need a minus, because of
+                    # H_eff = H_n - i * t * H0
+                    # as the learned parameter includes i*t*(U or eps) which is additionally multiplied by the relevant psi_(U or eps),
+                    # the partial/(partial ln i_t_U) e^H_eff = MINUS psi_U
                     self.base_energy_params_vec -= (
                         parameters_derivative[
                             self.get_number_of_eta_parameters() :
@@ -2266,7 +2269,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 O_averager += O_vector_scaled
                 # We need to provide the conjugate of the energy, as the sign convention follows the formulas in "Variational classical Networks for dynamics in interacting quantum matter"
                 # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefor acts to the left and needs one additional *.
-                # TODO for correct h_eff & h_eff_difference calculation this doesn't seem to matter (which is what we would expect)
+                # for correct h_eff & h_eff_difference calculation this doesn't seem to matter (which is what we would expect)
                 EO_averager += O_vector_scaled.conj() * E_loc_scaled
                 # This is irrelevant for the energy averager, because that one is a hermitian operator and the result after combination is real anyway
                 E_averager += E_loc_scaled
@@ -2401,6 +2404,37 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 system_state.get_state_array()[index]
                 + system_state.get_state_array()[index_os]
             )
+
+        return factors
+
+    def get_base_energy_factors_difference_flipping(
+        self,
+        flipping_up: bool,
+        flipping_index: int,
+        flipping_occupation_before_flip: int,
+        flipping_occupation_before_flip_os: int,
+    ) -> float:
+        """Has the U parameter in last, as per convention"""
+
+        factors = np.zeros(
+            (self.get_number_of_base_energy_parameters(),), dtype=np.float32
+        )
+
+        # double occupations
+        if flipping_up:
+            factors[-1] += flipping_occupation_before_flip_os * (
+                2 * flipping_occupation_before_flip - 1
+            )
+        else:
+            factors[-1] += flipping_occupation_before_flip * (
+                2 * flipping_occupation_before_flip_os - 1
+            )
+
+        # electrical field
+        i_occupation = flipping_occupation_before_flip
+        if not flipping_up:
+            i_occupation = flipping_occupation_before_flip_os
+        factors[flipping_index] += 2 * i_occupation - 1
 
         return factors
 

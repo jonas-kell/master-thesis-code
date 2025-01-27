@@ -410,23 +410,23 @@ def main():
             # ("both_optimizations", "o1"),  # see if starting energy is right
         ]
 
-        init_sigma = 0.0001
+        init_sigma = 0.00001
         pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 300
+        steps = 30
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = scaler * 0.05 * (steps + 1)
+        target_time_in_1_over_u = scaler * 0.07 * (steps + 1)
 
         psi_selection_type = "chain_canonical"
 
         variational_step_fraction_multiplier = (
-            1  # this parameter now also instantly works
+            10  # this parameter now also instantly works
         )
         zip_filename_base = "vcn-first-step"
 
