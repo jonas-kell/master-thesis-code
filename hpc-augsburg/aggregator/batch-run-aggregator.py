@@ -44,14 +44,15 @@ def main():
     #     2e-3,
     # ]
 
-    # needs: --array=0-3
+    # needs: --array=0-4
     # experiment = "seed_and_init_spread"
     # parameter_array: List[Any] = [
-    #     # param is here init_sigma and controls the seed
-    #     0.1,
-    #     0.01,
-    #     0.001,
-    #     0.0001,
+    #     # param here controls the seed
+    #     1.1,
+    #     2.2,
+    #     3.3,
+    #     4.4,
+    #     5.5,
     # ]
 
     # !! use to configure parameter

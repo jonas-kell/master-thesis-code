@@ -142,7 +142,8 @@ def main():
         ]
 
         variational_step_fraction_multiplier = 100
-        init_sigma = 0.0001
+        init_sigma = 0.0001  # not switched on
+        vcn_parameter_init_distribution = "normal"  # not switched on
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
@@ -179,11 +180,12 @@ def main():
 
         variational_step_fraction_multiplier = 100  # not switched on
         init_sigma = 0.0001  # not switched on
+        vcn_parameter_init_distribution = "normal"  # not switched on
+        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
         record_imag_part: bool = False
         observable_set = "concurrence_and_pauli"
-        pseudo_inverse_cutoff = 1e-10  # not switched on
 
         scaler = 1 / J
         target_time_in_1_over_u = scaler * 1
@@ -218,6 +220,7 @@ def main():
 
         variational_step_fraction_multiplier = 100  # not switched on
         init_sigma = 0.0001  # not switched on
+        vcn_parameter_init_distribution = "normal"  # not switched on
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
@@ -254,6 +257,7 @@ def main():
 
         variational_step_fraction_multiplier = 100  # not switched on
         init_sigma = 0.0001  # not switched on
+        vcn_parameter_init_distribution = "normal"  # not switched on
         pseudo_inverse_cutoff = 1e-10  # not switched on
 
         record_hamiltonian_properties: bool = False
@@ -265,6 +269,58 @@ def main():
         target_time_in_1_over_u = scaler * 1.25
 
         zip_filename_base = "energy-variance"
+
+    elif experiment == "seed_and_init_spread":
+        parameter = cast(
+            float, get_argument(args, "parameter", float, 0.1)
+        )  # parameter is for deciding seed
+
+        # overwrites the seed
+        randomness_seed = f"{float_to_str(parameter)}{float_to_str(parameter)}{float_to_str(parameter)}"
+
+        # ! test the effective step-size of the variational-classical network
+        U = 1.0
+        E = 2.5
+        J = 0.1
+        n = 8
+        phi = 0.1
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        ue_might_change = False
+        ue_variational = False
+
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        do_exact_diagonalization = False
+        compare_type_hamiltonians = [
+            (
+                "variational_classical_networks",
+                f"vcn-sigma{float_to_str(parameter).replace('.', '')}",
+            ),
+        ]
+
+        init_sigma = 0.3
+        vcn_parameter_init_distribution = (
+            "uniform"  # we want to show different starting values here
+        )
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
+        observable_set = "energy_and_variance"
+
+        scaler = 1 / U
+        num_samples_over_timespan = 20
+        target_time_in_1_over_u = scaler * 1.5
+
+        variational_step_fraction_multiplier = 3
+        zip_filename_base = (
+            f"vcn-init-tests-sigma{float_to_str(init_sigma).replace('.', '')}"
+        )
 
     elif experiment == "variational_classical_networks":
         parameter = cast(
@@ -309,6 +365,7 @@ def main():
 
         init_sigma = 0.0001
         pseudo_inverse_cutoff = 1e-10
+        vcn_parameter_init_distribution = "normal"  # not switched on
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
@@ -334,55 +391,6 @@ def main():
         print(
             "Calculated variational_step_fraction_multiplier of:",
             variational_step_fraction_multiplier,
-        )
-
-    elif experiment == "seed_and_init_spread":
-        parameter = cast(
-            float, get_argument(args, "parameter", float, 0.1)
-        )  # parameter is for deciding seed and init_sigma size
-
-        # overwrites the seed so that different init_sigma also have different seeds
-        randomness_seed = f"{float_to_str(parameter)}{float_to_str(parameter)}{float_to_str(parameter)}"
-
-        # ! test the effective step-size of the variational-classical network
-        U = 1.0
-        E = 2.5
-        J = 0.1
-        n = 8
-        phi = 0.1
-        system_geometry_type = "chain"
-
-        num_monte_carlo_samples = 1  # not switched on
-        num_samples_per_chain = num_monte_carlo_samples // 10
-
-        ue_might_change = False
-        ue_variational = False
-
-        do_exact_comparison = True
-        different_monte_carlo_tests = 0  # not switched on
-
-        do_exact_diagonalization = False
-        compare_type_hamiltonians = [
-            (
-                "variational_classical_networks",
-                f"vcn-sigma{float_to_str(parameter).replace('.', '')}",
-            ),
-        ]
-
-        init_sigma = parameter
-        pseudo_inverse_cutoff = 1e-10
-
-        record_hamiltonian_properties: bool = True
-        record_imag_part: bool = True
-        observable_set = "energy_and_variance"
-
-        scaler = 1 / U
-        num_samples_over_timespan = 20
-        target_time_in_1_over_u = scaler * 1.5
-
-        variational_step_fraction_multiplier = 3
-        zip_filename_base = (
-            f"vcn-init-tests-sigma{float_to_str(init_sigma).replace('.', '')}"
         )
 
     elif experiment == "first_vcn_step":
@@ -411,6 +419,7 @@ def main():
         ]
 
         init_sigma = 0.00001
+        vcn_parameter_init_distribution = "normal"
         pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = True
@@ -463,6 +472,7 @@ def main():
         "pseudo_inverse_cutoff": pseudo_inverse_cutoff,
         "randomness_seed": randomness_seed,
         "psi_selection_type": psi_selection_type,
+        "vcn_parameter_init_distribution": vcn_parameter_init_distribution,
     }
 
     if do_exact_diagonalization:

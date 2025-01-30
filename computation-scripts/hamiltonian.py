@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING, TypeAlias
+from typing import Dict, List, Tuple, Union, Any, TYPE_CHECKING, TypeAlias, Literal
 import numpy.typing as npt
 import multiprocessing
 from enum import Enum
@@ -1946,6 +1946,10 @@ class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
         number_workers: int,
         ue_might_change: bool,
         ue_variational: bool,
+        vcn_parameter_init_distribution: Literal[
+            "normal",
+            "uniform",
+        ],
     ):
         if not isinstance(initial_system_state, state.HomogenousInitialSystemState):
             raise Exception(
@@ -1958,6 +1962,12 @@ class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
         self.psi_selection = psi_selection
 
         self.init_sigma = init_sigma
+        if not vcn_parameter_init_distribution in [
+            "normal",
+            "uniform",
+        ]:
+            raise Exception("Not a supported Distribution")
+        self.vcn_parameter_init_distribution = vcn_parameter_init_distribution
 
         self.eta_calculation_sampler = eta_calculation_sampler
         self.random_generator = random_generator.derive()
@@ -2004,14 +2014,20 @@ class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
     def get_initialized_eta_vec(self) -> ETAVecType:
         real_part = np.array(
             [
-                self.random_generator.normal(sigma=self.init_sigma)
+                self.random_generator.distribution(
+                    sigma=self.init_sigma,
+                    distribution=self.vcn_parameter_init_distribution,
+                )
                 for _ in range(self.psi_selection.get_number_of_PSIs())
             ],
             dtype=np.complex128,
         )
         complex_part = np.array(
             [
-                self.random_generator.normal(sigma=self.init_sigma)
+                self.random_generator.distribution(
+                    sigma=self.init_sigma,
+                    distribution=self.vcn_parameter_init_distribution,
+                )
                 for _ in range(self.psi_selection.get_number_of_PSIs())
             ],
             dtype=np.complex128,
@@ -2025,14 +2041,20 @@ class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
         if randomize:
             real_part = np.array(
                 [
-                    self.random_generator.normal(sigma=self.init_sigma)
+                    self.random_generator.distribution(
+                        sigma=self.init_sigma,
+                        distribution=self.vcn_parameter_init_distribution,
+                    )
                     for _ in range(self.get_number_of_base_energy_parameters())
                 ],
                 dtype=np.complex128,
             )
             complex_part = np.array(
                 [
-                    self.random_generator.normal(sigma=self.init_sigma)
+                    self.random_generator.distribution(
+                        sigma=self.init_sigma,
+                        distribution=self.vcn_parameter_init_distribution,
+                    )
                     for _ in range(self.get_number_of_base_energy_parameters())
                 ],
                 dtype=np.complex128,
@@ -2721,6 +2743,10 @@ class FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
         initial_system_state: state.InitialSystemState,
         psi_selection: PSISelection,
         random_generator: RandomGenerator,
+        vcn_parameter_init_distribution: Literal[
+            "normal",
+            "uniform",
+        ],
     ):
         super().__init__(
             U=U,
@@ -2738,6 +2764,7 @@ class FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
             number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
             ue_might_change=False,  # base energy parameters must stay constant
             ue_variational=False,  # base energy parameters must stay constant
+            vcn_parameter_init_distribution=vcn_parameter_init_distribution,
         )
 
         if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):

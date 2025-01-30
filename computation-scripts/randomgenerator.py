@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Literal
 import random
 
 
@@ -22,11 +22,23 @@ class RandomGenerator:
         """
         return self.random.random()
 
-    def normal(self, sigma: float = 1) -> float:
+    def distribution(
+        self,
+        sigma: float = 1,
+        distribution: Literal[
+            "normal",
+            "uniform",
+        ] = "normal",
+    ) -> float:
         """
-        Return a float, pulled from a binomial distribution
+        Return a float, pulled from a specified distribution
         """
-        return self.random.normalvariate(mu=0, sigma=sigma)
+        if distribution == "normal":
+            return self.random.normalvariate(mu=0, sigma=sigma)
+        if distribution == "uniform":
+            return self.random.uniform(a=-sigma, b=sigma)
+
+        raise Exception("Not a supported distribution")
 
     def randbool(self) -> bool:
         """

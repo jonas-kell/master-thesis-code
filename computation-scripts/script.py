@@ -72,6 +72,7 @@ if __name__ == "__main__":
     parser.add_argument("--pseudo_inverse_cutoff", required=False)
     parser.add_argument("--observable_set", required=False)
     parser.add_argument("--psi_selection_type", required=False)
+    parser.add_argument("--vcn_parameter_init_distribution", required=False)
 
     args = vars(parser.parse_args())
 
@@ -244,6 +245,16 @@ if __name__ == "__main__":
         "comparison_validation",
     ] = cast(str, get_argument(args, "observable_set", str, "current_and_occupation"))
 
+    vcn_parameter_init_distribution: Literal[
+        "normal",
+        "uniform",
+    ] = cast(str, get_argument(args, "vcn_parameter_init_distribution", str, "normal"))
+    if (
+        vcn_parameter_init_distribution != "normal"
+        and vcn_parameter_init_distribution != "uniform"
+    ):
+        raise Exception("Not supported Distribution")
+
     # !!!!!!! ABOVE THIS, ONE CAN SET SIMULATION PARAMETERS (if not overwritten by input arguments) !!!!!!!!!!!
     # !!!!!!! BELOW THIS, THE VALUES GET USED, NO LONGER CHANGE THEM ONLY COMPUTE WITH THEM !!!!!!!!!!!
 
@@ -365,6 +376,7 @@ if __name__ == "__main__":
             number_workers=number_workers,
             ue_might_change=ue_might_change,
             ue_variational=ue_variational,
+            vcn_parameter_init_distribution=vcn_parameter_init_distribution,
         )
     elif hamiltonian_type == "variational_classical_networks_analytical_factors":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
@@ -375,6 +387,7 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             random_generator=random_generator,
             psi_selection=psi_selection,
+            vcn_parameter_init_distribution=vcn_parameter_init_distribution,
         )
     else:
         raise Exception("Invalid arguments")
