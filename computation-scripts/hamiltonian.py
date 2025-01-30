@@ -2341,39 +2341,27 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                             )
                         ]
 
+                        # this requires pre-filtering, or we have numerical errors,
+                        # so it is not enough to just get the difference from all the ones that do not change as it turned out
                         if (up and (occ_l != occ_m)) or (
                             not up and (occ_l_os != occ_m_os)
                         ):
                             # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
-                            # the -1j * time is in the parameters, because of that we need +
+                            # the ln-parts cancel, and because of that we may use normal H_eff implementations here
 
-                            collecting_sum += np.exp(
-                                np.dot(
-                                    self.eta_vec,
-                                    # needs minus, because formula and convention here inverted
-                                    -self.psi_selection.eval_PSI_differences_double_flipping(
-                                        before_swap_system_state=system_state,
-                                        l=l,
-                                        m=m,
-                                        spin_l_up=up,
-                                        spin_m_up=up,
-                                    ),
-                                )
-                                + np.dot(
-                                    self.base_energy_params_vec,
-                                    # needs minus, because formula and convention here inverted
-                                    -self.get_base_energy_factors_difference_double_flipping(
-                                        flipping1_up=up,
-                                        flipping1_index=l,
-                                        flipping1_occupation_before_flip=occ_l,
-                                        flipping1_occupation_before_flip_os=occ_l_os,
-                                        flipping2_up=up,
-                                        flipping2_index=m,
-                                        flipping2_occupation_before_flip=occ_m,
-                                        flipping2_occupation_before_flip_os=occ_m_os,
-                                    ),
+                            h_eff_diff, psi_factor = (
+                                self.get_H_eff_difference_double_flipping(
+                                    time=0,  # this is not used in this function any more, as the learned parameters include it
+                                    flipping1_up=up,
+                                    flipping1_index=l,
+                                    flipping2_up=up,
+                                    flipping2_index=m,
+                                    before_swap_system_state=system_state,
                                 )
                             )
+
+                            # needs minus, because formula and convention here inverted
+                            collecting_sum += np.exp(-h_eff_diff) / psi_factor
 
         return -self.psi_selection.J * collecting_sum
 
@@ -2547,15 +2535,170 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
         return H_n + m_i_t_H0
 
-    # TODO H_eff differences implementation in sublinear time
+    def get_H_eff_difference_swapping(
+        self,
+        time: float,
+        sw1_up: bool,
+        sw1_index: int,
+        sw2_up: bool,
+        sw2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        _ = time  # no longer used
+
+        sw1_occupation = before_swap_system_state.get_state_array()[sw1_index]
+        sw1_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw1_index)
+        ]
+        sw2_occupation = before_swap_system_state.get_state_array()[sw2_index]
+        sw2_occupation_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(sw2_index)
+        ]
+
+        if sw1_occupation * sw1_up + sw1_occupation_os * (
+            not sw1_up
+        ) == sw2_occupation * sw2_up + sw2_occupation_os * (not sw2_up):
+            # The swapped occupations are equal. We know the result
+            return (np.complex128(0), 1.0)
+
+        # After the successful swapped-occupation-non-identical check, one can implement swapping with double flipping
+
+        # H_eff is all from the lerned parameters,
+        # We need to have a + for both parts, as the -i t U in the base-energy is completely contained in the parameter (no extra minus)
+        return (
+            np.dot(
+                self.eta_vec,
+                self.psi_selection.eval_PSI_differences_double_flipping(
+                    before_swap_system_state=before_swap_system_state,
+                    l=sw1_index,
+                    m=sw2_index,
+                    spin_l_up=sw1_up,
+                    spin_m_up=sw2_up,
+                ),
+            )
+            + np.dot(
+                self.base_energy_params_vec,
+                self.get_base_energy_factors_difference_double_flipping(
+                    flipping1_up=sw1_up,
+                    flipping1_index=sw1_index,
+                    flipping1_occupation_before_flip=sw1_occupation,
+                    flipping1_occupation_before_flip_os=sw1_occupation_os,
+                    flipping2_up=sw2_up,
+                    flipping2_index=sw2_index,
+                    flipping2_occupation_before_flip=sw2_occupation,
+                    flipping2_occupation_before_flip_os=sw2_occupation_os,
+                ),
+            ),
+            1.0,
+        )
+
+    def get_H_eff_difference_flipping(
+        self,
+        time: float,
+        flipping_up: bool,
+        flipping_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        _ = time  # no longer used
+
+        flipping_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping_index
+        ]
+        flipping_occupation_before_flip_os = before_swap_system_state.get_state_array()[
+            before_swap_system_state.get_opposite_spin_index(flipping_index)
+        ]
+
+        # H_eff is all from the lerned parameters,
+        # We need to have a + for both parts, as the -i t U in the base-energy is completely contained in the parameter (no extra minus)
+        return (
+            np.dot(
+                self.eta_vec,
+                self.psi_selection.eval_PSI_differences_flipping(
+                    before_swap_system_state=before_swap_system_state,
+                    l=flipping_index,
+                    spin_up=flipping_up,
+                ),
+            )
+            + np.dot(
+                self.base_energy_params_vec,
+                self.get_base_energy_factors_difference_flipping(
+                    flipping_up=flipping_up,
+                    flipping_index=flipping_index,
+                    flipping_occupation_before_flip=flipping_occupation_before_flip,
+                    flipping_occupation_before_flip_os=flipping_occupation_before_flip_os,
+                ),
+            ),
+            1.0,
+        )
+
+    def get_H_eff_difference_double_flipping(
+        self,
+        time: float,
+        flipping1_up: bool,
+        flipping1_index: int,
+        flipping2_up: bool,
+        flipping2_index: int,
+        before_swap_system_state: state.SystemState,
+    ) -> Tuple[np.complex128, float]:
+        _ = time  # no longer used
+
+        flipping1_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping1_index
+        ]
+        flipping1_occupation_before_flip_os = (
+            before_swap_system_state.get_state_array()[
+                before_swap_system_state.get_opposite_spin_index(flipping1_index)
+            ]
+        )
+        flipping2_occupation_before_flip = before_swap_system_state.get_state_array()[
+            flipping2_index
+        ]
+        flipping2_occupation_before_flip_os = (
+            before_swap_system_state.get_state_array()[
+                before_swap_system_state.get_opposite_spin_index(flipping2_index)
+            ]
+        )
+
+        # H_eff is all from the lerned parameters,
+        # We need to have a + for both parts, as the -i t U in the base-energy is completely contained in the parameter (no extra minus)
+        return (
+            np.dot(
+                self.eta_vec,
+                self.psi_selection.eval_PSI_differences_double_flipping(
+                    before_swap_system_state=before_swap_system_state,
+                    l=flipping1_index,
+                    m=flipping2_index,
+                    spin_l_up=flipping1_up,
+                    spin_m_up=flipping2_up,
+                ),
+            )
+            + np.dot(
+                self.base_energy_params_vec,
+                self.get_base_energy_factors_difference_double_flipping(
+                    flipping1_up=flipping1_up,
+                    flipping1_index=flipping1_index,
+                    flipping1_occupation_before_flip=flipping1_occupation_before_flip,
+                    flipping1_occupation_before_flip_os=flipping1_occupation_before_flip_os,
+                    flipping2_up=flipping2_up,
+                    flipping2_index=flipping2_index,
+                    flipping2_occupation_before_flip=flipping2_occupation_before_flip,
+                    flipping2_occupation_before_flip_os=flipping2_occupation_before_flip_os,
+                ),
+            ),
+            1.0,
+        )
 
     def get_log_info(
         self, additional_info: Dict[str, Union[float, str, Dict[str, Any]]] = {}
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
+        sampler_log = {}
+        if self.eta_calculation_sampler is not None:
+            sampler_log = self.eta_calculation_sampler.get_log_info()
+
         return super().get_log_info(
             {
                 "type": "VCNHardCoreBosonicHamiltonian",
-                "eta_calculation_sampler": self.eta_calculation_sampler.get_log_info(),
+                "eta_calculation_sampler": sampler_log,
                 "psi_selection": self.psi_selection.get_log_info(),
                 "random_generator": self.random_generator.get_log_info(),
                 "init_sigma": self.init_sigma,
@@ -2584,8 +2727,6 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
         initial_system_state: state.InitialSystemState,
         psi_selection: PSISelection,
         random_generator: RandomGenerator,
-        eta_calculation_sampler: "sampler.GeneralSampler",
-        time_step_size: float,
     ):
         super().__init__(
             U=U,
@@ -2596,10 +2737,10 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
             psi_selection=psi_selection,
             random_generator=random_generator,
             init_sigma=0,  # no base energy waves
-            eta_calculation_sampler=eta_calculation_sampler,
+            eta_calculation_sampler=None,  # deactivated
             pseudo_inverse_cutoff=0,  # deactivated
             variational_step_fraction_multiplier=1,  # deactivated
-            time_step_size=time_step_size,
+            time_step_size=0,  # decativated
             number_workers=1,  # this comparison class doesn't use expensive sampling to get the eta
             ue_might_change=False,  # base energy parameters must stay constant
             ue_variational=False,  # base energy parameters must stay constant

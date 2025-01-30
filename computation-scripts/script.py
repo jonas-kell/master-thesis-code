@@ -374,8 +374,6 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             random_generator=random_generator,
             psi_selection=psi_selection,
-            eta_calculation_sampler=eta_calculation_sampler,
-            time_step_size=time_step,
         )
     else:
         raise Exception("Invalid arguments")

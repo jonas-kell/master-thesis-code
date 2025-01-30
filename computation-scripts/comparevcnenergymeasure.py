@@ -3,7 +3,6 @@ import state
 import systemgeometry
 import observables
 import hamiltonian
-import sampler
 import numpy as np
 from randomgenerator import RandomGenerator
 from variationalclassicalnetworks import ChainDirectionDependentAllSameFirstOrder
@@ -26,10 +25,6 @@ vcn_chain = ChainDirectionDependentAllSameFirstOrder(
     system_geometry=system_geometry, J=J
 )
 
-exact_sampler = sampler.ExactSampler(
-    system_geometry=system_geometry, initial_system_state=initial_system_state
-)
-
 ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     U=U,
     E=E,
@@ -38,8 +33,6 @@ ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     initial_system_state=initial_system_state,
     psi_selection=vcn_chain,
     random_generator=random_generator,
-    eta_calculation_sampler=exact_sampler,
-    time_step_size=0,
 )
 ham_first_order = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
     U=U,
