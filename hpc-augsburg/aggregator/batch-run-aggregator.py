@@ -12,6 +12,8 @@ def main():
         print(f"Environment variable {experiment_name_env_var_name} is not set.")
         return
 
+    print(f"Prepare Batch run of experiment: {experiment_name_env_value}")
+
     if experiment_name_env_value == "concurrence_from_spin":
         # needs: --array=0-0
         experiment = "concurrence_from_spin"
