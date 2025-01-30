@@ -165,16 +165,19 @@ if __name__ == "__main__":
     )
     hamiltonian_type: Literal[
         "exact",
-        "canonical",
-        "canonical_second_order",
-        "swap_optimized",
-        "flip_optimized",
-        "both_optimizations",
-        "canonical_legacy_care_for_psi",
-        "both_optimizations_second_order",
+        #
+        "first_order_legacy_care_for_psi",
+        "first_order_cononical",
+        "second_order_canonical",
+        "first_order_swap_optimized",
+        "first_order_flip_optimized",
+        #
+        "zeroth_order_optimized",
+        "first_order_optimized",
+        "second_order_optimized",
+        #
         "variational_classical_networks",
         "variational_classical_networks_analytical_factors",
-        "base_energy_only",
     ] = cast(str, get_argument(args, "hamiltonian_type", str, "exact"))
     sampling_strategy: Literal["exact", "monte_carlo"] = cast(
         str, get_argument(args, "sampling_strategy", str, "exact")
@@ -301,19 +304,19 @@ if __name__ == "__main__":
             ),
             number_of_workers=number_workers,
         )
-    elif hamiltonian_type == "swap_optimized":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "first_order_swap_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    elif hamiltonian_type == "flip_optimized":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "first_order_flip_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    elif hamiltonian_type == "both_optimizations":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "first_order_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    elif hamiltonian_type == "both_optimizations_second_order":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "second_order_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             U=U,
             E=E,
@@ -322,7 +325,7 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
         )
-    elif hamiltonian_type == "base_energy_only":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "zeroth_order_optimized":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
             U=U,
             E=E,
@@ -330,11 +333,11 @@ if __name__ == "__main__":
             phi=phi,
             initial_system_state=initial_system_state,
         )
-    elif hamiltonian_type == "canonical":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "first_order_cononical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
-    elif hamiltonian_type == "canonical_second_order":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "second_order_canonical":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
             U=U,
             E=E,
@@ -343,7 +346,7 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
             system_geometry=system_geometry,
         )
-    elif hamiltonian_type == "canonical_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
+    elif hamiltonian_type == "first_order_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
             U=U, E=E, J=J, phi=phi
         )

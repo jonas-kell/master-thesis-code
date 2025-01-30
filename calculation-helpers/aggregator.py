@@ -136,9 +136,9 @@ def main():
         different_monte_carlo_tests = 1
 
         compare_type_hamiltonians = [
-            ("base_energy_only", "o0"),
-            ("both_optimizations", "o1"),
-            ("both_optimizations_second_order", "o2"),
+            ("zeroth_order_optimized", "o0"),
+            ("first_order_optimized", "o1"),
+            ("second_order_optimized", "o2"),
         ]
 
         variational_step_fraction_multiplier = 100
@@ -172,9 +172,9 @@ def main():
         different_monte_carlo_tests = 0  # not switched on
 
         compare_type_hamiltonians = [
-            ("base_energy_only", "o0"),
-            ("both_optimizations", "o1"),
-            ("both_optimizations_second_order", "o2"),
+            ("zeroth_order_optimized", "o0"),
+            ("first_order_optimized", "o1"),
+            ("second_order_optimized", "o2"),
         ]
 
         variational_step_fraction_multiplier = 100  # not switched on
@@ -211,9 +211,9 @@ def main():
         different_monte_carlo_tests = 10  # switched on in variance mode
 
         compare_type_hamiltonians = [
-            ("base_energy_only", "o0"),
-            ("both_optimizations", "o1"),
-            ("both_optimizations_second_order", "o2"),
+            ("zeroth_order_optimized", "o0"),
+            ("first_order_optimized", "o1"),
+            ("second_order_optimized", "o2"),
         ]
 
         variational_step_fraction_multiplier = 100  # not switched on
@@ -247,9 +247,9 @@ def main():
         different_monte_carlo_tests = 0  # not switched on
 
         compare_type_hamiltonians = [
-            ("base_energy_only", "o0"),
-            ("both_optimizations", "o1"),
-            ("both_optimizations_second_order", "o2"),
+            ("zeroth_order_optimized", "o0"),
+            ("first_order_optimized", "o1"),
+            ("second_order_optimized", "o2"),
         ]
 
         variational_step_fraction_multiplier = 100  # not switched on
@@ -293,9 +293,9 @@ def main():
         if parameter == 0:
             # do the "exact" comparisons
             compare_type_hamiltonians = [
-                ("base_energy_only", "o0"),
-                ("both_optimizations", "o1"),
-                ("both_optimizations_second_order", "o2"),
+                ("zeroth_order_optimized", "o0"),
+                ("first_order_optimized", "o1"),
+                ("second_order_optimized", "o2"),
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ]
         else:
@@ -407,7 +407,7 @@ def main():
         compare_type_hamiltonians = [
             ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ("variational_classical_networks", "vcn"),
-            # ("both_optimizations", "o1"),  # see if starting energy is right
+            # ("first_order_optimized", "o1"),  # see if starting energy is right
         ]
 
         init_sigma = 0.00001
