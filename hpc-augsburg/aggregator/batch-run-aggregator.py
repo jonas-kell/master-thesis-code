@@ -5,6 +5,10 @@ from typing import Any, List
 def main():
     # !! use to configure parameter
 
+    # needs: --array=0-0
+    experiment = "concurrence_from_spin"
+    parameter_array: List[Any] = [0]
+
     # needs: --array=0-6
     # experiment = "j_sweep"
     # parameter_array: List[Any] = [
@@ -30,15 +34,15 @@ def main():
     # ]
 
     # needs: --array=0-4
-    experiment = "variational_classical_networks"
-    parameter_array: List[Any] = [
-        # param is here effective time-steps in 1/U
-        0,  # this does the exact calculations
-        6e-2,
-        2e-2,
-        6e-3,
-        2e-3,
-    ]
+    # experiment = "variational_classical_networks"
+    # parameter_array: List[Any] = [
+    #     # param is here effective time-steps in 1/U
+    #     0,  # this does the exact calculations
+    #     6e-2,
+    #     2e-2,
+    #     6e-3,
+    #     2e-3,
+    # ]
 
     # needs: --array=0-3
     # experiment = "seed_and_init_spread"

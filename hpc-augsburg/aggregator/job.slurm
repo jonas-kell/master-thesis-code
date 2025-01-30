@@ -6,8 +6,8 @@
 #SBATCH --ntasks=1                              # total number of tasks across all nodes
 #SBATCH --cpus-per-task=6                       # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=4G                        # memory per cpu-core (4G is default)
-#SBATCH --time=05:00:00                         # total run time limit (HH:MM:SS)
-#SBATCH --array=0-4                             # job array with index values (both ends inclusive)
+#SBATCH --time=07:00:00                         # total run time limit (HH:MM:SS)
+#SBATCH --array=0-0                             # job array with index values (both ends inclusive)
 #SBATCH --mail-type=all                         # send email on job start, end and fault
 #SBATCH --mail-user=jonas.kell@uni-a.de         # send email address
 #SBATCH --partition=epyc                        # Select a partiton (epyc, epyc-mem or epyc-gpu)
