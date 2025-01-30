@@ -417,7 +417,7 @@ def main():
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 30
+        steps = 120
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
@@ -426,7 +426,7 @@ def main():
         psi_selection_type = "chain_canonical"
 
         variational_step_fraction_multiplier = (
-            10  # this parameter now also instantly works
+            50  # this parameter now also instantly works
         )
         zip_filename_base = "vcn-first-step"
 

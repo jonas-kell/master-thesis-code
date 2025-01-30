@@ -2053,7 +2053,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 dtype=np.complex128,
             )
 
-        intermediate[-1] += 1j * self.U * time  # place U at the last index
+        intermediate[-1] += -1j * self.U * time  # place U at the last index
         # place the respective eps*E parameters into the first part of the array (no touching the last index)
         for eps_index_into_param_array in range(
             self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
@@ -2066,7 +2066,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                     sin_phi=self.sin_phi,
                     cos_phi=self.cos_phi,
                 )
-                * 1j
+                * -1j
                 * time
             )
 
@@ -2115,9 +2115,9 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                 if self.ue_might_change:
                     # Here we need a minus, because of
                     # H_eff = H_n - i * t * H0
-                    # as the learned parameter includes i*t*(U or eps) which is additionally multiplied by the relevant psi_(U or eps),
-                    # the partial/(partial ln i_t_U) e^H_eff = MINUS psi_U
-                    self.base_energy_params_vec -= (
+                    # as the learned parameter includes -i*t*(U or eps) which is additionally multiplied by the relevant psi_(U or eps),
+                    # the partial/(partial ln -i_t_U) e^H_eff = PLUS psi_U
+                    self.base_energy_params_vec += (
                         parameters_derivative[
                             self.get_number_of_eta_parameters() :
                         ]  # this is "the rest" of the available params
@@ -2294,8 +2294,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         # duplicate, as in get_base_energy so to not calculate the base_energy_factors twice
         base_energy = np.dot(
             self.get_initialized_base_energy_params_vec(
-                randomize=False, time=-1j
-            ),  # we want the base factors, which we get by multiplying the 1j-containing value by -1j
+                randomize=False, time=1j
+            ),  # we want the base factors, which we get by multiplying the -1j-containing value by 1j
             base_energy_factors,
         )
 
@@ -2345,7 +2345,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                             not up and (occ_l_os != occ_m_os)
                         ):
                             # H^0(n,t) = -i * E_0(n) * t + ln(psi_0(s))
-                            # the  1j * time is in the parameters, the - stands there
+                            # the -1j * time is in the parameters, because of that we need +
 
                             collecting_sum += np.exp(
                                 np.dot(
@@ -2359,7 +2359,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
                                         spin_m_up=up,
                                     ),
                                 )
-                                - np.dot(
+                                + np.dot(
                                     self.base_energy_params_vec,
                                     # needs minus, because formula and convention here inverted
                                     -self.get_base_energy_factors_difference_double_flipping(
@@ -2509,8 +2509,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         """As this is now variational, this could indeed return a complex value"""
         return np.dot(
             self.get_initialized_base_energy_params_vec(
-                randomize=False, time=-1j
-            ),  # we want the base factors, which we get by multiplying the 1j-containing value by -1j
+                randomize=False, time=1j
+            ),  # we want the base factors, which we get by multiplying the -1j-containing value by 1j
             self.get_base_energy_factors(system_state=system_state),
         )
 
@@ -2540,12 +2540,12 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
         H_n = self.get_H_n(time=time, system_state=system_state)
 
-        i_t_H0 = np.dot(
-            self.base_energy_params_vec,
+        m_i_t_H0 = np.dot(
+            self.base_energy_params_vec,  # NOT with the base-energy function. As this requires time-dependent parameters
             self.get_base_energy_factors(system_state=system_state),
         )
 
-        return H_n - i_t_H0
+        return H_n + m_i_t_H0
 
     # TODO H_eff differences implementation in sublinear time
 
