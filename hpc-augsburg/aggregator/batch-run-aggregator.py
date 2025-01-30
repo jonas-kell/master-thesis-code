@@ -5,55 +5,73 @@ from typing import Any, List
 def main():
     # !! use to configure parameter
 
-    # needs: --array=0-0
-    experiment = "concurrence_from_spin"
-    parameter_array: List[Any] = [0]
+    experiment_name_env_var_name = "EXPERIMENT_TASK_NAME"
+    experiment_name_env_value = os.getenv(experiment_name_env_var_name)
 
-    # needs: --array=0-6
-    # experiment = "j_sweep"
-    # parameter_array: List[Any] = [
-    #     # param*U here is J
-    #     0.1,
-    #     0.09,
-    #     0.08,
-    #     0.07,
-    #     0.06,
-    #     0.04,
-    #     0.02,
-    # ]
+    if experiment_name_env_value is None:
+        print(f"Environment variable {experiment_name_env_var_name} is not set.")
+        return
 
-    # needs: --array=0-4
-    # experiment = "monte_carlo_variance_test"
-    # parameter_array: List[Any] = [
-    #     # param is here num mc-samples
-    #     400,
-    #     2000,
-    #     4000,
-    #     20000,
-    #     40000,
-    # ]
+    if experiment_name_env_value == "concurrence_from_spin":
+        # needs: --array=0-0
+        experiment = "concurrence_from_spin"
+        parameter_array: List[Any] = [0]
 
-    # needs: --array=0-4
-    # experiment = "variational_classical_networks"
-    # parameter_array: List[Any] = [
-    #     # param is here effective time-steps in 1/U
-    #     0,  # this does the exact calculations
-    #     6e-2,
-    #     2e-2,
-    #     6e-3,
-    #     2e-3,
-    # ]
+    elif experiment_name_env_value == "j_sweep":
+        # needs: --array=0-6
+        experiment = "j_sweep"
+        parameter_array: List[Any] = [
+            # param*U here is J
+            0.1,
+            0.09,
+            0.08,
+            0.07,
+            0.06,
+            0.04,
+            0.02,
+        ]
 
-    # needs: --array=0-4
-    # experiment = "seed_and_init_spread"
-    # parameter_array: List[Any] = [
-    #     # param here controls the seed
-    #     1.1,
-    #     2.2,
-    #     3.3,
-    #     4.4,
-    #     5.5,
-    # ]
+    elif experiment_name_env_value == "monte_carlo_variance_test":
+        # needs: --array=0-4
+        experiment = "monte_carlo_variance_test"
+        parameter_array: List[Any] = [
+            # param is here num mc-samples
+            400,
+            2000,
+            4000,
+            20000,
+            40000,
+        ]
+
+    elif experiment_name_env_value == "variational_classical_networks":
+        # needs: --array=0-4
+        experiment = "variational_classical_networks"
+        parameter_array: List[Any] = [
+            # param is here effective time-steps in 1/U
+            0,  # this does the exact calculations
+            6e-2,
+            2e-2,
+            6e-3,
+            2e-3,
+        ]
+
+    elif experiment_name_env_value == "seed_and_init_spread":
+        # needs: --array=0-4
+        experiment = "seed_and_init_spread"
+        parameter_array: List[Any] = [
+            # param here controls the seed
+            1.1,
+            2.2,
+            3.3,
+            4.4,
+            5.5,
+        ]
+
+    else:
+        print(
+            f"Environment variable {experiment_name_env_var_name} has non-allowed value: {experiment_name_env_value}"
+        )
+        return
 
     # !! use to configure parameter
     print(
@@ -110,6 +128,13 @@ def main():
         for index, parameter in enumerate(parameter_array)
         if index % task_count_int_value == task_id_int_value
     ]
+
+    if len(relevant_parameters) == 0:
+        print("Nothing to do for this task runner in this case")
+        print(
+            "(If you wait long to get the number of tasks on your server, try setting the requested number of jobs more precisely)"
+        )
+        return
 
     # shell out calling the main script
     for parameter in relevant_parameters:
