@@ -19,21 +19,19 @@ system_geometry = systemgeometry.SquareSystemNonPeriodicState(5)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
-ham_canonical_legacy = (
-    hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
-        U=U, E=E, J=J, phi=phi
-    )
+ham_canonical_legacy = hamiltonian.FirstOrderDifferentiatesPsiHamiltonian(
+    U=U, E=E, J=J, phi=phi
 )
-ham_canonical = hamiltonian.HardcoreBosonicHamiltonian(
+ham_canonical = hamiltonian.FirstOrderCanonicalHamiltonian(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
 )
-ham_swap_optimized = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
+ham_swap_optimized = hamiltonian.FirstOrderSwappingOptimizedHamiltonian(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
 )
-ham_flip_optimized = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
+ham_flip_optimized = hamiltonian.FirstOrderFlippingOptimizedHamiltonian(
     U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
 )
-ham_canonical_second_order = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+ham_canonical_second_order = hamiltonian.SecondOrderCanonicalHamiltonian(
     U=U,
     E=E,
     J=J,
@@ -41,15 +39,13 @@ ham_canonical_second_order = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
     initial_system_state=initial_system_state,
     system_geometry=system_geometry,
 )
-ham_second_order_optimized = (
-    hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
-        U=U,
-        E=E,
-        J=J,
-        phi=phi,
-        initial_system_state=initial_system_state,
-        system_geometry=system_geometry,
-    )
+ham_second_order_optimized = hamiltonian.SecondOrderOptimizedHamiltonian(
+    U=U,
+    E=E,
+    J=J,
+    phi=phi,
+    initial_system_state=initial_system_state,
+    system_geometry=system_geometry,
 )
 
 
@@ -631,7 +627,7 @@ print(
 system_geometry_chain = systemgeometry.LinearChainNonPeriodicState(3)
 initial_system_state_chain = state.HomogenousInitialSystemState(system_geometry)
 use_state_chain = state.SystemState(system_geometry_chain, initial_system_state)
-hailtonian_chain_plus = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+hamiltonian_chain_plus = hamiltonian.SecondOrderCanonicalHamiltonian(
     U=U,
     E=E,
     J=J,
@@ -639,7 +635,7 @@ hailtonian_chain_plus = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
     initial_system_state=initial_system_state_chain,
     system_geometry=system_geometry_chain,
 )
-hailtonian_chain_minus = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+hamiltonian_chain_minus = hamiltonian.SecondOrderCanonicalHamiltonian(
     U=U,
     E=-E,
     J=J,
@@ -674,13 +670,13 @@ for _ in range(iterations_symmetry):
     index_to_flip_inverse = size_of_system - index_to_flip - 1
     flip_up: bool = random.randbool()
 
-    plus_energy_gap = hailtonian_chain_plus.get_H_eff_difference_flipping(
+    plus_energy_gap = hamiltonian_chain_plus.get_H_eff_difference_flipping(
         time=measurement_time,
         flipping_up=flip_up,
         flipping_index=index_to_flip,
         before_swap_system_state=use_state_chain,
     )[0]
-    minus_energy_gap = hailtonian_chain_minus.get_H_eff_difference_flipping(
+    minus_energy_gap = hamiltonian_chain_minus.get_H_eff_difference_flipping(
         time=measurement_time,
         flipping_up=flip_up,
         flipping_index=index_to_flip_inverse,
@@ -699,11 +695,11 @@ for _ in range(iterations_symmetry):
         print(plus_energy_gap)
         print(minus_energy_gap)
 
-    plus_energy = hailtonian_chain_plus.get_H_eff(
+    plus_energy = hamiltonian_chain_plus.get_H_eff(
         time=measurement_time,
         system_state=use_state_chain,
     )
-    minus_energy = hailtonian_chain_minus.get_H_eff(
+    minus_energy = hamiltonian_chain_minus.get_H_eff(
         time=measurement_time,
         system_state=locationally_inverted_copy,
     )

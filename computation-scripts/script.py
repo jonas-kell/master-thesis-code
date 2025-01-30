@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
     # Hamiltonian
     if hamiltonian_type == "exact":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianExact(
+        ham = hamiltonian.ExactHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -305,19 +305,19 @@ if __name__ == "__main__":
             number_of_workers=number_workers,
         )
     elif hamiltonian_type == "first_order_swap_optimized":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianSwappingOptimization(
+        ham = hamiltonian.FirstOrderSwappingOptimizedHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     elif hamiltonian_type == "first_order_flip_optimized":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingOptimization(
+        ham = hamiltonian.FirstOrderFlippingOptimizedHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     elif hamiltonian_type == "first_order_optimized":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+        ham = hamiltonian.FirstOrderOptimizedHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     elif hamiltonian_type == "second_order_optimized":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
+        ham = hamiltonian.SecondOrderOptimizedHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -326,7 +326,7 @@ if __name__ == "__main__":
             system_geometry=system_geometry,
         )
     elif hamiltonian_type == "zeroth_order_optimized":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
+        ham = hamiltonian.ZerothOrderOptimizedHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -334,11 +334,11 @@ if __name__ == "__main__":
             initial_system_state=initial_system_state,
         )
     elif hamiltonian_type == "first_order_cononical":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonian(
+        ham = hamiltonian.FirstOrderCanonicalHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
     elif hamiltonian_type == "second_order_canonical":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianSecondOrder(
+        ham = hamiltonian.SecondOrderCanonicalHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -347,11 +347,9 @@ if __name__ == "__main__":
             system_geometry=system_geometry,
         )
     elif hamiltonian_type == "first_order_legacy_care_for_psi":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(
-            U=U, E=E, J=J, phi=phi
-        )
+        ham = hamiltonian.FirstOrderDifferentiatesPsiHamiltonian(U=U, E=E, J=J, phi=phi)
     elif hamiltonian_type == "variational_classical_networks":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.VCNHardCoreBosonicHamiltonian(
+        ham = hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -369,7 +367,7 @@ if __name__ == "__main__":
             ue_variational=ue_variational,
         )
     elif hamiltonian_type == "variational_classical_networks_analytical_factors":  # type: ignore - switch is hard-coded.
-        ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
+        ham = hamiltonian.FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -540,7 +538,9 @@ if __name__ == "__main__":
 
     if record_hamiltonian_properties:
         obs_ham_properties: List[observables.Observable] = []
-        if isinstance(ham, hamiltonian.VCNHardCoreBosonicHamiltonian):
+        if isinstance(
+            ham, hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian
+        ):
             num_etas = ham.get_number_of_eta_parameters()
             num_base_params = ham.get_number_of_base_energy_parameters()
             # eta params of VCN

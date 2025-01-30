@@ -5,7 +5,9 @@ import systemgeometry
 import numpy as np
 from randomgenerator import RandomGenerator
 from variationalclassicalnetworks import ChainDirectionDependentAllSameFirstOrder
-from hamiltonian import VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder
+from hamiltonian import (
+    FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian,
+)
 
 
 def compare_arrays(src: str, comp_a: np.ndarray, comp_b: np.ndarray):
@@ -34,7 +36,7 @@ vcn_helper = ChainDirectionDependentAllSameFirstOrder(
     system_geometry=system_geometry, J=J
 )
 
-ham = VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
+ham = FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
     U=U,
     E=E,
     J=J,

@@ -1059,9 +1059,14 @@ class VCNFactor(HamiltonianProperty):
         self.param_real_part = param_real_part
 
         self.can_return_value: bool = False
-        self.vcn_hamiltonian: hamiltonian.VCNHardCoreBosonicHamiltonian = None
+        self.vcn_hamiltonian: (
+            hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian
+        ) = None
 
-        if isinstance(self.hamiltonian, hamiltonian.VCNHardCoreBosonicHamiltonian):
+        if isinstance(
+            self.hamiltonian,
+            hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian,
+        ):
             self.can_return_value = True
             self.vcn_hamiltonian = self.hamiltonian
             self.number_eta_params = self.vcn_hamiltonian.get_number_of_eta_parameters()
@@ -1125,11 +1130,16 @@ class BaseEnergyFactor(HamiltonianProperty):
         self.param_real_part = param_real_part
 
         self.can_return_value: bool = False
-        self.vcn_hamiltonian: hamiltonian.VCNHardCoreBosonicHamiltonian = None
+        self.vcn_hamiltonian: (
+            hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian
+        ) = None
 
         self.kind = kind
 
-        if isinstance(self.hamiltonian, hamiltonian.VCNHardCoreBosonicHamiltonian):
+        if isinstance(
+            self.hamiltonian,
+            hamiltonian.FirstOrderVariationalClassicalNetworkHamiltonian,
+        ):
             self.can_return_value = True
             self.vcn_hamiltonian = self.hamiltonian
             self.number_parameters = (

@@ -259,7 +259,7 @@ class Hamiltonian(ABC):
         }
 
 
-class HardcoreBosonicHamiltonianExact(Hamiltonian):
+class ExactHamiltonian(Hamiltonian):
     """
     This is requires diagonalization, so it will have exponential time-complexity!!
     Only check for correctness on small systems with this.
@@ -482,7 +482,7 @@ class HardcoreBosonicHamiltonianExact(Hamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianExact",
+                "type": "ExactHamiltonian",
                 **additional_info,
             }
         )
@@ -494,7 +494,7 @@ class VPartsMapping(Enum):
     C = "c"
 
 
-class HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(Hamiltonian):
+class FirstOrderDifferentiatesPsiHamiltonian(Hamiltonian):
     """
     This is implemented EXTREMELY inefficient.
     This used to make more sense in the past, when there would be 3*8 operator-strings with different factors that later would have been required to be re-assembled.
@@ -743,13 +743,13 @@ class HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder(Hamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianStraightCalcPsiDiffFirstOrder",
+                "type": "FirstOrderDifferentiatesPsiHamiltonian",
                 **additional_info,
             }
         )
 
 
-class HardcoreBosonicHamiltonian(Hamiltonian):
+class FirstOrderCanonicalHamiltonian(Hamiltonian):
     def __init__(
         self,
         U: float,
@@ -850,13 +850,13 @@ class HardcoreBosonicHamiltonian(Hamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonian",
+                "type": "FirstOrderCanonicalHamiltonian",
                 **additional_info,
             }
         )
 
 
-class HardcoreBosonicHamiltonianSecondOrder(HardcoreBosonicHamiltonian):
+class SecondOrderCanonicalHamiltonian(FirstOrderCanonicalHamiltonian):
     def __init__(
         self,
         U: float,
@@ -909,13 +909,13 @@ class HardcoreBosonicHamiltonianSecondOrder(HardcoreBosonicHamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianSecondOrder",
+                "type": "SecondOrderCanonicalHamiltonian",
                 **additional_info,
             }
         )
 
 
-class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian):
+class FirstOrderSwappingOptimizedHamiltonian(FirstOrderCanonicalHamiltonian):
     def __init__(
         self,
         U: float,
@@ -1107,13 +1107,13 @@ class HardcoreBosonicHamiltonianSwappingOptimization(HardcoreBosonicHamiltonian)
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianSwappingOptimization",
+                "type": "FirstOrderSwappingOptimizedHamiltonian",
                 **additional_info,
             }
         )
 
 
-class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian):
+class FirstOrderFlippingOptimizedHamiltonian(FirstOrderCanonicalHamiltonian):
     def __init__(
         self,
         U: float,
@@ -1467,16 +1467,14 @@ class HardcoreBosonicHamiltonianFlippingOptimization(HardcoreBosonicHamiltonian)
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianFlippingOptimization",
+                "type": "FirstOrderFlippingOptimizedHamiltonian",
                 **additional_info,
             }
         )
 
 
 # python COULD do multiple inheritance https://www.programiz.com/python-programming/multiple-inheritance
-class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
-    HardcoreBosonicHamiltonianFlippingOptimization
-):
+class FirstOrderOptimizedHamiltonian(FirstOrderFlippingOptimizedHamiltonian):
     def __init__(
         self,
         U: float,
@@ -1494,7 +1492,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
                 "The simplified Hamiltonian requires a HomogenousInitialSystemState as a pre-requirement"
             )
 
-        self.swapping_hamiltonian = HardcoreBosonicHamiltonianSwappingOptimization(
+        self.swapping_hamiltonian = FirstOrderSwappingOptimizedHamiltonian(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
 
@@ -1547,15 +1545,13 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimization",
+                "type": "FirstOrderOptimizedHamiltonian",
                 **additional_info,
             }
         )
 
 
-class ZerothOrderFlippingAndSwappingOptimization(
-    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
-):
+class ZerothOrderOptimizedHamiltonian(FirstOrderOptimizedHamiltonian):
     "Basically just sets H_n to 0, but has the swapping, flipping and double flipping optimizations for the base energy"
 
     def __init__(
@@ -1685,13 +1681,13 @@ class ZerothOrderFlippingAndSwappingOptimization(
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "ZerothOrderFlippingAndSwappingOptimization",
+                "type": "ZerothOrderOptimizedHamiltonian",
                 **additional_info,
             }
         )
 
 
-class ZerothOrder(HardcoreBosonicHamiltonian):
+class ZerothOrderCanonicalHamiltonian(FirstOrderCanonicalHamiltonian):
     "Basically just sets H_n to 0"
 
     def __init__(
@@ -1721,15 +1717,13 @@ class ZerothOrder(HardcoreBosonicHamiltonian):
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "ZerothOrder",
+                "type": "ZerothOrderCanonicalHamiltonian",
                 **additional_info,
             }
         )
 
 
-class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
-    HardcoreBosonicHamiltonianFlippingAndSwappingOptimization
-):
+class SecondOrderOptimizedHamiltonian(FirstOrderOptimizedHamiltonian):
     def __init__(
         self,
         U: float,
@@ -1748,7 +1742,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
             U=U, E=E, J=J, phi=phi, initial_system_state=initial_system_state
         )
 
-        self.second_order_base_hamiltonian = HardcoreBosonicHamiltonianSecondOrder(
+        self.second_order_base_hamiltonian = SecondOrderCanonicalHamiltonian(
             U=U,
             E=E,
             J=J,
@@ -1923,7 +1917,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder",
+                "type": "SecondOrderOptimizedHamiltonian",
                 **additional_info,
             }
         )
@@ -1932,7 +1926,7 @@ class HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
 ETAVecType: TypeAlias = npt.NDArray[np.complex128]
 
 
-class VCNHardCoreBosonicHamiltonian(Hamiltonian):
+class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
     eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
 
     def __init__(
@@ -2697,7 +2691,7 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
 
         return super().get_log_info(
             {
-                "type": "VCNHardCoreBosonicHamiltonian",
+                "type": "FirstOrderVariationalClassicalNetworkHamiltonian",
                 "eta_calculation_sampler": sampler_log,
                 "psi_selection": self.psi_selection.get_log_info(),
                 "random_generator": self.random_generator.get_log_info(),
@@ -2713,8 +2707,8 @@ class VCNHardCoreBosonicHamiltonian(Hamiltonian):
         )
 
 
-class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
-    VCNHardCoreBosonicHamiltonian
+class FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
+    FirstOrderVariationalClassicalNetworkHamiltonian
 ):
     eta_vec: ETAVecType  # typechecker whines around, when I use inline type annotation for this...
 
@@ -2790,7 +2784,7 @@ class VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     ) -> Dict[str, Union[float, str, Dict[str, Any]]]:
         return super().get_log_info(
             {
-                "type": "VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder",  # overwrites this
+                "type": "FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian",  # overwrites this
                 **additional_info,
             }
         )

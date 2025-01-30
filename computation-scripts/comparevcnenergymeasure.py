@@ -25,7 +25,7 @@ vcn_chain = ChainDirectionDependentAllSameFirstOrder(
     system_geometry=system_geometry, J=J
 )
 
-ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
+ham = hamiltonian.FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
     U=U,
     E=E,
     J=J,
@@ -34,7 +34,7 @@ ham = hamiltonian.VCNHardCoreBosonicHamiltonianAnalyticalParamsFirstOrder(
     psi_selection=vcn_chain,
     random_generator=random_generator,
 )
-ham_first_order = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+ham_first_order = hamiltonian.FirstOrderOptimizedHamiltonian(
     U=U,
     E=E,
     J=J,

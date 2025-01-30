@@ -249,7 +249,7 @@ def main():
 
     initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
-    use_hamiltonian = hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimizationSecondOrder(
+    use_hamiltonian = hamiltonian.SecondOrderOptimizedHamiltonian(
         U=U,
         E=E,
         J=J,
@@ -258,7 +258,7 @@ def main():
         system_geometry=system_geometry,
     )
     # use_hamiltonian = (
-    #     hamiltonian.HardcoreBosonicHamiltonianFlippingAndSwappingOptimization(
+    #     hamiltonian.FirstOrderOptimizedHamiltonian(
     #         U=U,
     #         E=E,
     #         J=J,
@@ -266,7 +266,7 @@ def main():
     #         initial_system_state=initial_system_state,
     #     )
     # )
-    # use_hamiltonian = hamiltonian.ZerothOrderFlippingAndSwappingOptimization(
+    # use_hamiltonian = hamiltonian.ZerothOrderOptimizedHamiltonian(
     #     U=U,
     #     E=E,
     #     J=J,
