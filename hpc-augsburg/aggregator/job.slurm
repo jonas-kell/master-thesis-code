@@ -27,7 +27,9 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 # export EXPERIMENT_TASK_NAME="j_sweep"
 # export EXPERIMENT_TASK_NAME="monte_carlo_variance_test"
 # export EXPERIMENT_TASK_NAME="variational_classical_networks"
-export EXPERIMENT_TASK_NAME="seed_and_init_spread"
+# export EXPERIMENT_TASK_NAME="seed_and_init_spread"
+export EXPERIMENT_TASK_NAME="energy_behavior"
+
 
 # Loading modules here
 module purge

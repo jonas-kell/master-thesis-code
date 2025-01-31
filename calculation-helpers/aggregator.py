@@ -234,7 +234,11 @@ def main():
         zip_filename_base = str(num_monte_carlo_samples) + "samples"
 
     elif experiment == "energy_behavior":
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 0)
+        )  # parameter is for selecting one of the compare hamiltonians (faster calculation)
         # ! energy-behavior
+
         U = 1.0
         E = 2.5
         J = 0.1
@@ -245,14 +249,21 @@ def main():
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
 
-        do_exact_diagonalization = True
-        do_exact_comparison = True
+        do_exact_diagonalization = parameter == 3
+        do_exact_comparison = parameter != 3  # comparison only on parameter == 3
         different_monte_carlo_tests = 0  # not switched on
 
         compare_type_hamiltonians = [
-            ("zeroth_order_optimized", "o0"),
-            ("first_order_optimized", "o1"),
-            ("second_order_optimized", "o2"),
+            comp
+            for index, comp in enumerate(
+                [
+                    ("zeroth_order_optimized", "o0"),
+                    ("first_order_optimized", "o1"),
+                    ("second_order_optimized", "o2"),
+                ]
+            )
+            if index
+            == parameter  # filter the respective comparison model, if parameter is 0,1,2
         ]
 
         variational_step_fraction_multiplier = 100  # not switched on
@@ -268,7 +279,7 @@ def main():
         num_samples_over_timespan = 150
         target_time_in_1_over_u = scaler * 1.25
 
-        zip_filename_base = "energy-variance"
+        zip_filename_base = f"energy-variance-run{parameter}"
 
     elif experiment == "seed_and_init_spread":
         parameter = cast(

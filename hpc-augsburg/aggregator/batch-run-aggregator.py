@@ -69,6 +69,17 @@ def main():
             5.5,
         ]
 
+    elif experiment_name_env_value == "energy_behavior":
+        # needs: --array=0-3
+        experiment = "energy_behavior"
+        parameter_array: List[Any] = [
+            # param here controls the model to compare
+            0,  # o0
+            1,  # o1
+            2,  # o2
+            3,  # exact
+        ]
+
     else:
         print(
             f"Environment variable {experiment_name_env_var_name} has non-allowed value: {experiment_name_env_value}"
