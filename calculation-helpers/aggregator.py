@@ -299,7 +299,7 @@ def main():
         compare_type_hamiltonians = [
             (
                 "variational_classical_networks",
-                f"vcn-sigma{float_to_str(parameter).replace('.', '')}",
+                f"vcn-{float_to_str(parameter).replace('.', '')}",
             ),
         ]
 
@@ -319,7 +319,7 @@ def main():
 
         variational_step_fraction_multiplier = 3
         zip_filename_base = (
-            f"vcn-init-tests-sigma{float_to_str(init_sigma).replace('.', '')}"
+            f"vcn-init-tests-{float_to_str(init_sigma).replace('.', '')}"
         )
 
     elif experiment == "variational_classical_networks":
