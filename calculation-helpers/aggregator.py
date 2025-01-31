@@ -242,7 +242,7 @@ def main():
         U = 1.0
         E = 2.5
         J = 0.1
-        n = 4
+        n = 4  # for n=5 this is basically no longer reasonably computable  100% prognosis: 51628.4s
         phi = 0.1
         system_geometry_type = "chain"
 
