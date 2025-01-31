@@ -242,7 +242,7 @@ def main():
         U = 1.0
         E = 2.5
         J = 0.1
-        n = 6
+        n = 4
         phi = 0.1
         system_geometry_type = "chain"
 
@@ -343,7 +343,7 @@ def main():
         U = 1.0
         E = 2.5
         J = 0.1
-        n = 4
+        n = 6
         phi = 0.1
         system_geometry_type = "chain"
 
