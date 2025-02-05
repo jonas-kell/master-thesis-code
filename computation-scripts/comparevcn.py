@@ -4,7 +4,10 @@ import state
 import systemgeometry
 import numpy as np
 from randomgenerator import RandomGenerator
-from variationalclassicalnetworks import ChainDirectionDependentAllSameFirstOrder
+from variationalclassicalnetworks import (
+    # ChainDirectionDependentAllSameFirstOrder,
+    SquareDirectionDependentAllSameFirstOrder,
+)
 from hamiltonian import (
     FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian,
 )
@@ -26,13 +29,13 @@ measurement_time = 5 * (1 / J)
 random = RandomGenerator(str(time.time()))
 
 # Caution: This breaks from linear Chain, n<=3 because then no 3 different comparison indices can be found
-system_geometry = systemgeometry.LinearChainNonPeriodicState(10)
+system_geometry = systemgeometry.SquareSystemNonPeriodicState(10)
 
 initial_system_state = state.HomogenousInitialSystemState(system_geometry)
 
 use_state = state.SystemState(system_geometry, initial_system_state)
 
-vcn_helper = ChainDirectionDependentAllSameFirstOrder(
+vcn_helper = SquareDirectionDependentAllSameFirstOrder(
     system_geometry=system_geometry, J=J
 )
 
@@ -44,6 +47,7 @@ ham = FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
     initial_system_state=initial_system_state,
     psi_selection=vcn_helper,
     random_generator=random,
+    vcn_parameter_init_distribution="normal",
 )
 
 total_time_optimized_single = 0
@@ -62,7 +66,7 @@ total_time_h_eff_direct_swapping = 0
 total_time_h_eff_optimized_swapping = 0
 
 
-iterations = 1000
+iterations = 200
 for _ in range(iterations):
     use_state.init_random_filling(random)
 

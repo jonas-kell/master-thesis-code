@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # ! Control behavioral settings here ----------------------------------------------------
     # singular basically only for testing in the beginning
     initial_system_state_type: Literal["homogenous", "singular"] = "homogenous"
-    system_geometry_type: Literal["square_np", "chain"] = cast(
+    system_geometry_type: Literal["square", "chain"] = cast(
         str, get_argument(args, "system_geometry_type", str, "chain")
     )
     hamiltonian_type: Literal[
@@ -231,9 +231,9 @@ if __name__ == "__main__":
     pseudo_inverse_cutoff: float = cast(
         float, get_argument(args, "pseudo_inverse_cutoff", float, 1e-10)
     )
-    psi_selection_type: Literal["chain_canonical", "chain_combined"] = cast(
-        str, get_argument(args, "psi_selection_type", str, "chain_canonical")
-    )
+    psi_selection_type: Literal[
+        "chain_canonical", "chain_combined", "square_canonical"
+    ] = cast(str, get_argument(args, "psi_selection_type", str, "chain_canonical"))
     variational_step_fraction_multiplier: int = cast(
         int, get_argument(args, "variational_step_fraction_multiplier", int, 1)
     )
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     random_generator = RandomGenerator(randomness_seed)
 
     # ! Geometry of system
-    if system_geometry_type == "square_np":  # type: ignore - switch is hard-coded.
+    if system_geometry_type == "square":  # type: ignore - switch is hard-coded.
         system_geometry = systemgeometry.SquareSystemNonPeriodicState(n)
     elif system_geometry_type == "chain":  # type: ignore - switch is hard-coded.
         system_geometry = systemgeometry.LinearChainNonPeriodicState(n)
@@ -290,6 +290,12 @@ if __name__ == "__main__":
     elif psi_selection_type == "chain_combined":  # type: ignore - switch is hard-coded.
         psi_selection = (
             variationalclassicalnetworks.ChainNotDirectionDependentAllSameFirstOrder(
+                J=J, system_geometry=system_geometry
+            )
+        )
+    elif psi_selection_type == "square_canonical":  # type: ignore - switch is hard-coded.
+        psi_selection = (
+            variationalclassicalnetworks.SquareDirectionDependentAllSameFirstOrder(
                 J=J, system_geometry=system_geometry
             )
         )

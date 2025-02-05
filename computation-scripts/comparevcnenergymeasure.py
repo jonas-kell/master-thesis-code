@@ -33,6 +33,7 @@ ham = hamiltonian.FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltoni
     initial_system_state=initial_system_state,
     psi_selection=vcn_chain,
     random_generator=random_generator,
+    vcn_parameter_init_distribution="normal",
 )
 ham_first_order = hamiltonian.FirstOrderOptimizedHamiltonian(
     U=U,

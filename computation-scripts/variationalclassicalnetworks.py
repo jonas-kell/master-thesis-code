@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Union, Any, Tuple, List
 from state import SystemState
-from systemgeometry import SystemGeometry, LinearChainNonPeriodicState
+from systemgeometry import (
+    SystemGeometry,
+    LinearChainNonPeriodicState,
+    SquareSystemNonPeriodicState,
+)
 import numpy.typing as npt
 import numpy as np
 
@@ -386,5 +390,77 @@ class ChainNotDirectionDependentAllSameFirstOrder(PSISelection):
         return super().get_log_info(
             {
                 "type": "ChainNotDirectionDependentAllSameFirstOrder",
+            }
+        )
+
+
+class SquareDirectionDependentAllSameFirstOrder(PSISelection):
+    def __init__(
+        self,
+        system_geometry: SystemGeometry,
+        J: float,
+    ):
+        super().__init__(
+            system_geometry=system_geometry,
+            J=J,
+        )
+
+        if not isinstance(self.system_geometry, SquareSystemNonPeriodicState):
+            raise Exception("PSI Selection is only compatible with a square-geometry")
+        else:
+            # do not need to take the root, as we have identified the calss we can direct access it
+            self.square_side_length = self.system_geometry.size
+
+    def get_number_of_PSIs(self) -> int:
+        # one in each direction, for A,B,C parts of V
+        return 12
+
+    def PSI_contribution(
+        self,
+        l: int,
+        m: int,
+        occ_l: int,
+        occ_l_os: int,
+        occ_m: int,
+        occ_m_os: int,
+    ) -> List[Tuple[int, np.complex128]]:
+
+        is_vertical = (l % self.square_side_length) == (m % self.square_side_length)
+
+        if not is_vertical:
+            # index add determines the right/left neighbor interaction
+            if m > l:
+                index_add = 0
+            else:
+                index_add = 3
+        else:
+            # index add determines the up/down neighbor interaction
+            if m > l:
+                index_add = 6
+            else:
+                index_add = 9
+
+        return [
+            (
+                0 + index_add,
+                occ_l * (1 - occ_m) * (occ_l_os == occ_m_os)
+                + occ_l_os * (1 - occ_m_os) * (occ_l == occ_m),
+            ),
+            (
+                1 + index_add,
+                occ_l * (1 - occ_m) * occ_l_os * (1 - occ_m_os)
+                + occ_l_os * (1 - occ_m_os) * occ_l * (1 - occ_m),
+            ),
+            (
+                2 + index_add,
+                occ_l * (1 - occ_m) * occ_m_os * (1 - occ_l_os)
+                + occ_l_os * (1 - occ_m_os) * occ_m * (1 - occ_l),
+            ),
+        ]
+
+    def get_log_info(self) -> Dict[str, Union[float, str, Dict[Any, Any]]]:
+        return super().get_log_info(
+            {
+                "type": "SquareDirectionDependentAllSameFirstOrder",
             }
         )

@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 import state
 import systemgeometry
 import numpy as np
+import math
 from vcomponents import (
     v as calculate_v_plain,
     v_flip as calculate_v_flip,
@@ -18,6 +19,7 @@ from randomgenerator import RandomGenerator
 from variationalclassicalnetworks import (
     PSISelection,
     ChainDirectionDependentAllSameFirstOrder,
+    SquareDirectionDependentAllSameFirstOrder,
 )
 
 if TYPE_CHECKING:
@@ -2767,7 +2769,13 @@ class FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
             vcn_parameter_init_distribution=vcn_parameter_init_distribution,
         )
 
-        if not isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
+        self.geometry_type: Literal["chain", "square"]
+
+        if isinstance(psi_selection, ChainDirectionDependentAllSameFirstOrder):
+            self.geometry_type = "chain"
+        elif isinstance(psi_selection, SquareDirectionDependentAllSameFirstOrder):
+            self.geometry_type = "square"
+        else:
             raise Exception(
                 'The Hamiltonian has hard-coded "variational" parameters, it can only be used with the correct comparison PSI-Selection'
             )
@@ -2781,27 +2789,63 @@ class FirstOrderVariationalClassicalNetworkAnalyticalParamsHamiltonian(
             randomize=False, time=time
         )
 
-        # FIRST ORDER ANALYTICAL COEFFICIENTS FOR COMPARISON
         eps_0 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
             0, self.phi, self.sin_phi, self.cos_phi
         )
         eps_1 = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
             1, self.phi, self.sin_phi, self.cos_phi
         )
-        self.eta_vec = np.array(
-            [
-                np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
-                np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
-                / (eps_0 - eps_1 + self.U),
-                np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
-                / (eps_0 - eps_1 - self.U),
-                np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
-                np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
-                / (eps_1 - eps_0 + self.U),
-                np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
-                / (eps_1 - eps_0 - self.U),
-            ]
-        )
+        if self.geometry_type == "chain":
+            # FIRST ORDER ANALYTICAL CHAIN COEFFICIENTS FOR COMPARISON
+            self.eta_vec = np.array(
+                [
+                    np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
+                    np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
+                    / (eps_0 - eps_1 + self.U),
+                    np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
+                    / (eps_0 - eps_1 - self.U),
+                    np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
+                    np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
+                    / (eps_1 - eps_0 + self.U),
+                    np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
+                    / (eps_1 - eps_0 - self.U),
+                ]
+            )
+        elif self.geometry_type == "square":
+            # FIRST ORDER ANALYTICAL SQUARE COEFFICIENTS FOR COMPARISON
+            m = math.isqrt(
+                self.psi_selection.system_geometry.get_number_sites_wo_spin_degree()
+            )  # the first index in the second row of the square
+            eps_m = self.E * self.psi_selection.system_geometry.get_eps_multiplier(
+                m, self.phi, self.sin_phi, self.cos_phi
+            )
+            self.eta_vec = np.array(
+                [
+                    np.expm1(1j * (eps_0 - eps_1) * time) / (eps_0 - eps_1),
+                    np.expm1(1j * (eps_0 - eps_1 + self.U) * time)
+                    / (eps_0 - eps_1 + self.U),
+                    np.expm1(1j * (eps_0 - eps_1 - self.U) * time)
+                    / (eps_0 - eps_1 - self.U),
+                    np.expm1(1j * (eps_1 - eps_0) * time) / (eps_1 - eps_0),
+                    np.expm1(1j * (eps_1 - eps_0 + self.U) * time)
+                    / (eps_1 - eps_0 + self.U),
+                    np.expm1(1j * (eps_1 - eps_0 - self.U) * time)
+                    / (eps_1 - eps_0 - self.U),
+                    #
+                    np.expm1(1j * (eps_0 - eps_m) * time) / (eps_0 - eps_m),
+                    np.expm1(1j * (eps_0 - eps_m + self.U) * time)
+                    / (eps_0 - eps_m + self.U),
+                    np.expm1(1j * (eps_0 - eps_m - self.U) * time)
+                    / (eps_0 - eps_m - self.U),
+                    np.expm1(1j * (eps_m - eps_0) * time) / (eps_m - eps_0),
+                    np.expm1(1j * (eps_m - eps_0 + self.U) * time)
+                    / (eps_m - eps_0 + self.U),
+                    np.expm1(1j * (eps_m - eps_0 - self.U) * time)
+                    / (eps_m - eps_0 - self.U),
+                ]
+            )
+        else:
+            raise Exception("Reached state that should be impossible per configuration")
 
         # finished and the result is that trained self.eta_vec
         self.current_time_cache = time

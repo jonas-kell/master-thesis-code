@@ -411,7 +411,7 @@ def main():
         J = 0.1
         n = 2
         phi = np.pi * 0.6
-        system_geometry_type = "chain"
+        system_geometry_type = "square"
 
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
@@ -424,9 +424,9 @@ def main():
 
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
         compare_type_hamiltonians = [
-            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
             ("variational_classical_networks", "vcn"),
-            # ("first_order_optimized", "o1"),  # see if starting energy is right
+            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+            # ("first_order_optimized", "o1"),  # compare energy for programming correctness
         ]
 
         init_sigma = 0.00001
@@ -437,16 +437,17 @@ def main():
         record_imag_part: bool = True
         observable_set = "comparison_validation"
 
-        steps = 120
+        steps = 300
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
         target_time_in_1_over_u = scaler * 0.07 * (steps + 1)
 
-        psi_selection_type = "chain_canonical"
+        # computed, works with "chain..." and "square..."
+        psi_selection_type = system_geometry_type + "_canonical"
 
         variational_step_fraction_multiplier = (
-            50  # this parameter now also instantly works
+            150  # this parameter now also instantly works
         )
         zip_filename_base = "vcn-first-step"
 
