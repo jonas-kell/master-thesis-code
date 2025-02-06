@@ -87,9 +87,9 @@ def main():
             # param here controls the model to compare
             0,  # vcn - analytical
             1,  # vcn - step mult
-            50,  # vcn - step mult
-            100,  # vcn - step mult
-            200,  # vcn - step mult
+            5,  # vcn - step mult
+            10,  # vcn - step mult
+            20,  # vcn - step mult
         ]
 
     else:

@@ -413,7 +413,7 @@ def main():
         U = 1.0
         E = 0.8
         J = 0.1
-        n = 2
+        n = 3
         phi = np.pi * 0.6
         system_geometry_type = "square"
 
@@ -452,11 +452,11 @@ def main():
         record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
-        steps = 400
+        steps = 60
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = scaler * 0.07 * (steps + 1)
+        target_time_in_1_over_u = scaler * 0.35 * (steps + 1)
 
         # computed, works with "chain..." and "square..."
         psi_selection_type = system_geometry_type + "_canonical"
