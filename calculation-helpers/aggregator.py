@@ -97,8 +97,8 @@ def main():
         "energy_behavior",
         "variational_classical_networks",
         "seed_and_init_spread",
-        "first_vcn_step",
-    ] = cast(str, get_argument(args, "experiment", str, "first_vcn_step"))
+        "square_vcn_comparison",
+    ] = cast(str, get_argument(args, "experiment", str, "square_vcn_comparison"))
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -404,8 +404,12 @@ def main():
             variational_step_fraction_multiplier,
         )
 
-    elif experiment == "first_vcn_step":
-        # ! test the effective step-size of the variational-classical network
+    elif experiment == "square_vcn_comparison":
+        parameter = cast(
+            float, get_argument(args, "parameter", float, 0)
+        )  # parameter is for setting number of intermediate steps
+
+        # ! test a complete square vcn comparison
         U = 1.0
         E = 0.8
         J = 0.1
@@ -423,11 +427,22 @@ def main():
         different_monte_carlo_tests = 0  # not switched on
 
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
-        compare_type_hamiltonians = [
-            ("variational_classical_networks", "vcn"),
-            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
-            # ("first_order_optimized", "o1"),  # compare energy for programming correctness
-        ]
+        if parameter == 0:
+            compare_type_hamiltonians = [
+                ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+                (
+                    "first_order_optimized",
+                    "o1",
+                ),  # compare energy for programming correctness
+                (
+                    "second_order_optimized",
+                    "o2",
+                ),  # show how much better vcn is (hopefully)
+            ]
+        else:
+            compare_type_hamiltonians = [
+                ("variational_classical_networks", "vcn"),
+            ]
 
         init_sigma = 0.00001
         vcn_parameter_init_distribution = "normal"
@@ -435,9 +450,9 @@ def main():
 
         record_hamiltonian_properties: bool = True
         record_imag_part: bool = True
-        observable_set = "comparison_validation"
+        observable_set = "energy_and_variance"
 
-        steps = 300
+        steps = 400
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
@@ -446,13 +461,8 @@ def main():
         # computed, works with "chain..." and "square..."
         psi_selection_type = system_geometry_type + "_canonical"
 
-        variational_step_fraction_multiplier = (
-            150  # this parameter now also instantly works
-        )
+        variational_step_fraction_multiplier = parameter  # this now does things!!
         zip_filename_base = "vcn-first-step"
-
-        # this is a test, do not multithread for easier comparability
-        num_multithread_workers = 1
 
     else:
         raise Exception("Unknown Experiment Specification")

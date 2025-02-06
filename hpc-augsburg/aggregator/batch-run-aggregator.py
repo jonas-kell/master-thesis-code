@@ -80,6 +80,18 @@ def main():
             3,  # exact
         ]
 
+    elif experiment_name_env_value == "square_vcn_comparison":
+        # needs: --array=0-4
+        experiment = "square_vcn_comparison"
+        parameter_array: List[Any] = [
+            # param here controls the model to compare
+            0,  # vcn - analytical
+            1,  # vcn - step mult
+            50,  # vcn - step mult
+            100,  # vcn - step mult
+            200,  # vcn - step mult
+        ]
+
     else:
         print(
             f"Environment variable {experiment_name_env_var_name} has non-allowed value: {experiment_name_env_value}"
