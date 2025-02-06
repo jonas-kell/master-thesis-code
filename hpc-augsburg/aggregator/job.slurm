@@ -29,6 +29,7 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 # export EXPERIMENT_TASK_NAME="variational_classical_networks"
 # export EXPERIMENT_TASK_NAME="seed_and_init_spread"
 # export EXPERIMENT_TASK_NAME="energy_behavior"
+# export EXPERIMENT_TASK_NAME="square_vcn_small"
 export EXPERIMENT_TASK_NAME="square_vcn_comparison"
 
 

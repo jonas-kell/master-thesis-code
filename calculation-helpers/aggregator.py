@@ -404,6 +404,75 @@ def main():
             variational_step_fraction_multiplier,
         )
 
+    elif experiment == "square_vcn_small":
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 0)
+        )  # parameter is for setting number of intermediate steps
+
+        # ! test a complete square vcn comparison
+        U = 1.0
+        E = 0.8
+        J = 0.1
+        n = 2
+        phi = np.pi * 0.6
+        system_geometry_type = "square"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        ue_might_change = True
+        ue_variational = True
+
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        if parameter == 0:
+            compare_type_hamiltonians = [
+                ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+                (
+                    "first_order_optimized",
+                    "o1",
+                ),  # compare energy for programming correctness
+                (
+                    "second_order_optimized",
+                    "o2",
+                ),  # show how much better vcn is (hopefully)
+            ]
+        else:
+            compare_type_hamiltonians = [
+                ("variational_classical_networks", f"vcn{parameter}"),
+            ]
+
+        init_sigma = 0.00001
+        vcn_parameter_init_distribution = "normal"
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
+        observable_set = "energy_and_variance"
+
+        steps = 400
+
+        scaler = 1 / U
+        num_samples_over_timespan = steps + 1
+        target_time_in_1_over_u = scaler * 0.07 * (steps + 1)
+
+        # computed, works with "chain..." and "square..."
+        psi_selection_type = system_geometry_type + "_canonical"
+
+        variational_step_fraction_multiplier = parameter  # this now does things!!
+        print(
+            "Uses variational_step_fraction_multiplier of:",
+            variational_step_fraction_multiplier,
+        )
+
+        zip_filename_base = "square-vcn-" + (
+            "comparisons"
+            if parameter == 0
+            else f"variational-{variational_step_fraction_multiplier}"
+        )
+
     elif experiment == "square_vcn_comparison":
         parameter = cast(
             int, get_argument(args, "parameter", int, 0)
