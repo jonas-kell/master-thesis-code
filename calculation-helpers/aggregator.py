@@ -406,7 +406,7 @@ def main():
 
     elif experiment == "square_vcn_comparison":
         parameter = cast(
-            float, get_argument(args, "parameter", float, 0)
+            int, get_argument(args, "parameter", int, 0)
         )  # parameter is for setting number of intermediate steps
 
         # ! test a complete square vcn comparison
