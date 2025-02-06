@@ -95,3 +95,13 @@ rm ~/master-thesis-code/hpc-augsburg/aggregator/*.out
 rm ~/master-thesis-code/run-outputs/*.zip
 rm ~/master-thesis-code/run-outputs/*.json
 ```
+
+## Add time
+
+This might not be allowed on the cluster
+
+```shell
+squeue -u $USER --format="%.18i %.9P %.8j %.8u %.2t %.10M %.10l %.6D %R"
+
+scontrol update job=XXXXX TimeLimit=+05:00:00
+```
