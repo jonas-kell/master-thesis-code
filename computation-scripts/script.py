@@ -302,12 +302,88 @@ if __name__ == "__main__":
     else:
         raise Exception("Invalid arguments")
 
-    # TODO make this be monte carlo applicable also
-    eta_calculation_sampler = sampler.ExactSampler(
-        system_geometry=system_geometry, initial_system_state=initial_system_state
-    )
+    # ! Sampling Strategy
+    if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
+        if initial_system_state_type != "homogenous":  # type: ignore - switch is hard-coded.
+            # ! These can NOT be monte carlo sampled as it seems.
+            # The answers are way over-inflated, as we seem to have a not smooth-enough energy landscape and can "drop" into the one high energy state for way too long once found
+            print(
+                "Warning: Non-Homogenous system probably cannot be mc-sampled, because not smooth enough"
+            )
+        # Step-State-Modification
+        if mc_modification_mode == "hopping":  # type: ignore - switch is hard-coded.
+            allow_hopping_across_spin_direction = True
+            state_modification = state.LatticeNeighborHopping(
+                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
+                system_geometry=system_geometry,
+            )
+        elif mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
+            state_modification = state.RandomFlipping(
+                system_geometry=system_geometry,
+            )
+        else:
+            raise Exception("Invalid arguments")
 
-    # Hamiltonian
+        if mc_thermalization_mode == "hopping":  # type: ignore - switch is hard-coded.
+            allow_hopping_across_spin_direction = True
+            state_modification_thermalization = state.LatticeNeighborHopping(
+                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
+                system_geometry=system_geometry,
+            )
+        elif mc_thermalization_mode == "flipping":  # type: ignore - switch is hard-coded.
+            state_modification_thermalization = state.RandomFlipping(
+                system_geometry=system_geometry,
+            )
+        else:
+            raise Exception("Invalid arguments")
+
+        if mc_pre_therm_strategy == "vacuum":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = sampler.VacuumStateBeforeThermalization()
+        elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToSpecifiedFillLevelBeforeThermalization(
+                    mc_pre_therm_specified_fill_level
+                )
+            )
+        elif mc_pre_therm_strategy == "random_level_uniform":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToFillLevelPulledFromUniformDistributionBeforeThermalization()
+            )
+        elif mc_pre_therm_strategy == "random_level_binomial":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = (
+                sampler.FillRandomlyToFillLevelPulledFromBinomialDistributionBeforeThermalization()
+            )
+        elif mc_pre_therm_strategy == "each_random":  # type: ignore - switch is hard-coded.
+            pre_therm_strategy = sampler.EachSiteRandomBeforeThermalization()
+        else:
+            raise Exception("Invalid arguments")
+
+        # Monte Carlo Sampler
+        num_intermediate_mc_steps: int = 2 * (
+            2 * system_geometry.get_number_sites_wo_spin_degree()
+        )
+        # arbitrary increase for thermalization at the moment
+        num_thermalization_steps: int = 10 * num_intermediate_mc_steps
+        state_sampler = sampler.MonteCarloSampler(
+            system_geometry=system_geometry,
+            initial_system_state=initial_system_state,
+            num_intermediate_mc_steps=num_intermediate_mc_steps,
+            num_samples=num_monte_carlo_samples,
+            num_thermalization_steps=num_thermalization_steps,
+            num_samples_per_chain=num_samples_per_chain,
+            state_modification=state_modification,
+            state_modification_thermalization=state_modification_thermalization,
+            before_thermalization_initialization=pre_therm_strategy,
+        )
+    elif sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
+        state_sampler = sampler.ExactSampler(
+            system_geometry=system_geometry,
+            initial_system_state=initial_system_state,
+        )
+    else:
+        raise Exception("Invalid arguments")
+
+    # ! Hamiltonian
     if hamiltonian_type == "exact":  # type: ignore - switch is hard-coded.
         ham = hamiltonian.ExactHamiltonian(
             U=U,
@@ -375,7 +451,7 @@ if __name__ == "__main__":
             random_generator=random_generator,
             psi_selection=psi_selection,
             init_sigma=init_sigma,
-            eta_calculation_sampler=eta_calculation_sampler,
+            eta_calculation_sampler=state_sampler,
             pseudo_inverse_cutoff=pseudo_inverse_cutoff,
             variational_step_fraction_multiplier=variational_step_fraction_multiplier,
             time_step_size=time_step,
@@ -397,6 +473,10 @@ if __name__ == "__main__":
         )
     else:
         raise Exception("Invalid arguments")
+
+    # ! Need to cross-share the hamiltonian reference and sampler reference
+    if isinstance(state_sampler, sampler.MonteCarloSampler):
+        state_sampler.init_hamiltonian(system_hamiltonian=ham)
 
     # ! Observables that are tested for
     num_of_sites = system_geometry.get_number_sites_wo_spin_degree()
@@ -595,88 +675,6 @@ if __name__ == "__main__":
                     )
 
         obs += obs_ham_properties
-
-    # ! Sampling Strategy
-    if sampling_strategy == "monte_carlo":  # type: ignore - switch is hard-coded.
-        if initial_system_state_type != "homogenous":  # type: ignore - switch is hard-coded.
-            # ! These can NOT be monte carlo sampled as it seems.
-            # The answers are way over-inflated, as we seem to have a not smooth-enough energy landscape and can "drop" into the one high energy state for way too long once found
-            print(
-                "Warning: Non-Homogenous system probably cannot be mc-sampled, because not smooth enough"
-            )
-        # Step-State-Modification
-        if mc_modification_mode == "hopping":  # type: ignore - switch is hard-coded.
-            allow_hopping_across_spin_direction = True
-            state_modification = state.LatticeNeighborHopping(
-                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
-                system_geometry=system_geometry,
-            )
-        elif mc_modification_mode == "flipping":  # type: ignore - switch is hard-coded.
-            state_modification = state.RandomFlipping(
-                system_geometry=system_geometry,
-            )
-        else:
-            raise Exception("Invalid arguments")
-
-        if mc_thermalization_mode == "hopping":  # type: ignore - switch is hard-coded.
-            allow_hopping_across_spin_direction = True
-            state_modification_thermalization = state.LatticeNeighborHopping(
-                allow_hopping_across_spin_direction=allow_hopping_across_spin_direction,
-                system_geometry=system_geometry,
-            )
-        elif mc_thermalization_mode == "flipping":  # type: ignore - switch is hard-coded.
-            state_modification_thermalization = state.RandomFlipping(
-                system_geometry=system_geometry,
-            )
-        else:
-            raise Exception("Invalid arguments")
-
-        if mc_pre_therm_strategy == "vacuum":  # type: ignore - switch is hard-coded.
-            pre_therm_strategy = sampler.VacuumStateBeforeThermalization()
-        elif mc_pre_therm_strategy == "specified_level":  # type: ignore - switch is hard-coded.
-            pre_therm_strategy = (
-                sampler.FillRandomlyToSpecifiedFillLevelBeforeThermalization(
-                    mc_pre_therm_specified_fill_level
-                )
-            )
-        elif mc_pre_therm_strategy == "random_level_uniform":  # type: ignore - switch is hard-coded.
-            pre_therm_strategy = (
-                sampler.FillRandomlyToFillLevelPulledFromUniformDistributionBeforeThermalization()
-            )
-        elif mc_pre_therm_strategy == "random_level_binomial":  # type: ignore - switch is hard-coded.
-            pre_therm_strategy = (
-                sampler.FillRandomlyToFillLevelPulledFromBinomialDistributionBeforeThermalization()
-            )
-        elif mc_pre_therm_strategy == "each_random":  # type: ignore - switch is hard-coded.
-            pre_therm_strategy = sampler.EachSiteRandomBeforeThermalization()
-        else:
-            raise Exception("Invalid arguments")
-
-        # Monte Carlo Sampler
-        num_intermediate_mc_steps: int = 2 * (
-            2 * system_geometry.get_number_sites_wo_spin_degree()
-        )
-        # arbitrary increase for thermalization at the moment
-        num_thermalization_steps: int = 10 * num_intermediate_mc_steps
-        state_sampler = sampler.MonteCarloSampler(
-            system_geometry=system_geometry,
-            initial_system_state=initial_system_state,
-            system_hamiltonian=ham,
-            num_intermediate_mc_steps=num_intermediate_mc_steps,
-            num_samples=num_monte_carlo_samples,
-            num_thermalization_steps=num_thermalization_steps,
-            num_samples_per_chain=num_samples_per_chain,
-            state_modification=state_modification,
-            state_modification_thermalization=state_modification_thermalization,
-            before_thermalization_initialization=pre_therm_strategy,
-        )
-    elif sampling_strategy == "exact":  # type: ignore - switch is hard-coded.
-        state_sampler = sampler.ExactSampler(
-            system_geometry=system_geometry,
-            initial_system_state=initial_system_state,
-        )
-    else:
-        raise Exception("Invalid arguments")
 
     # ! Simulation
     (time_list, values_list, plotting_observables) = (

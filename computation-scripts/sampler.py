@@ -200,7 +200,6 @@ class MonteCarloSampler(GeneralSampler):
         self,
         system_geometry: state.SystemGeometry,
         initial_system_state: state.InitialSystemState,
-        system_hamiltonian: hamiltonian.Hamiltonian,
         num_samples: int,
         num_intermediate_mc_steps: int,
         state_modification: state.StateModification,
@@ -212,7 +211,7 @@ class MonteCarloSampler(GeneralSampler):
         super().__init__(
             system_geometry=system_geometry, initial_system_state=initial_system_state
         )
-        self.system_hamiltonian = system_hamiltonian
+        self.system_hamiltonian = None
         self.num_samples = num_samples
         self.num_intermediate_mc_steps = num_intermediate_mc_steps
         self.state_modification = state_modification
@@ -228,6 +227,13 @@ class MonteCarloSampler(GeneralSampler):
         print(
             f"Monte Carlo Sampling used. Approximately {self.num_samples} samples and {self.num_samples_per_chain} which means ca. {self.num_samples/self.num_samples_per_chain:.1f} chains will be run across all workers"
         )
+
+    def init_hamiltonian(
+        self,
+        system_hamiltonian: hamiltonian.Hamiltonian,
+    ):
+        """In initialization it is otherwise notpossible to init hamiltonian and sampler, because they cross-reference"""
+        self.system_hamiltonian = system_hamiltonian
 
     def accepts_modification(
         self,
@@ -253,6 +259,10 @@ class MonteCarloSampler(GeneralSampler):
         """
         Advances the system_state in-place by num_steps metropolis steps
         """
+
+        if self.system_hamiltonian is None:
+            raise Exception("Need to call 'init_hamiltonian' before using!!")
+
         for _ in range(num_steps):
             if isinstance(state_modification, state.RandomFlipping):
                 # Propose a new state modification
