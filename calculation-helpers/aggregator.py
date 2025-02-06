@@ -441,7 +441,7 @@ def main():
             ]
         else:
             compare_type_hamiltonians = [
-                ("variational_classical_networks", "vcn"),
+                ("variational_classical_networks", f"vcn{parameter}"),
             ]
 
         init_sigma = 0.00001
