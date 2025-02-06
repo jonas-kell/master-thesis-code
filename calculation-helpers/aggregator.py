@@ -452,7 +452,7 @@ def main():
         record_imag_part: bool = True
         observable_set = "energy_and_variance"
 
-        steps = 80
+        steps = 40
 
         scaler = 1 / U
         num_samples_over_timespan = steps + 1
