@@ -462,7 +462,16 @@ def main():
         psi_selection_type = system_geometry_type + "_canonical"
 
         variational_step_fraction_multiplier = parameter  # this now does things!!
-        zip_filename_base = "vcn-first-step"
+        print(
+            "Uses variational_step_fraction_multiplier of:",
+            variational_step_fraction_multiplier,
+        )
+
+        zip_filename_base = "square-vcn-" + (
+            "comparisons"
+            if parameter == 0
+            else f"variational-{variational_step_fraction_multiplier}"
+        )
 
     else:
         raise Exception("Unknown Experiment Specification")
