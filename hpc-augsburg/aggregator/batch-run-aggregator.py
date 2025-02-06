@@ -81,7 +81,7 @@ def main():
         ]
 
     elif experiment_name_env_value == "square_vcn_comparison":
-        # needs: --array=0-4
+        # needs: --array=0-6
         experiment = "square_vcn_comparison"
         parameter_array: List[Any] = [
             # param here controls the model to compare
@@ -90,6 +90,8 @@ def main():
             5,  # vcn - step mult
             10,  # vcn - step mult
             20,  # vcn - step mult
+            100,  # vcn - step mult
+            200,  # vcn - step mult
         ]
 
     else:
