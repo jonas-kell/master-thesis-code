@@ -112,7 +112,7 @@ def main():
 
     elif experiment_name_env_value == "energy_conservation":
         # needs: --array=0-8
-        experiment = "square_vcn_comparison"
+        experiment = "energy_conservation"
         parameter_array: List[Any] = [
             # 10-thousands digit controls the n-parameter (yes that is kindof ugly, but didn't want to insert a second parameter)
             # here all bigger than 3 gets you a chain geometry and all smaller a square
