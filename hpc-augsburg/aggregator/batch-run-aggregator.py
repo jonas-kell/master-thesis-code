@@ -97,13 +97,14 @@ def main():
         experiment = "square_vcn_comparison"
         parameter_array: List[Any] = [
             # param here controls the step multiplier
-            0,  # vcn - analytical
-            1,  # vcn - step mult
-            5,  # vcn - step mult
-            10,  # vcn - step mult
-            20,  # vcn - step mult
-            100,  # vcn - step mult
-            200,  # vcn - step mult
+            # 0,  # vcn - analytical
+            # 1,  # vcn - step mult
+            2,  # vcn - step mult
+            # 5,  # vcn - step mult
+            # 10,  # vcn - step mult
+            # 20,  # vcn - step mult
+            # 100,  # vcn - step mult
+            # 200,  # vcn - step mult
         ]
 
     else:
