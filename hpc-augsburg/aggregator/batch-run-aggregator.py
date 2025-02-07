@@ -81,19 +81,22 @@ def main():
         ]
 
     elif experiment_name_env_value == "square_vcn_small":
-        # needs: --array=0-5
+        # needs: --array=0-7
         experiment = "square_vcn_small"
         parameter_array: List[Any] = [
             # param here controls the step multiplier
             0,  # vcn - analytical
             1,  # vcn - step mult
-            50,  # vcn - step mult
-            100,  # vcn - step mult
+            2,  # vcn - step mult
+            5,  # vcn - step mult
+            10,  # vcn - step mult
+            20,  # vcn - step mult
             200,  # vcn - step mult
+            800,  # vcn - step mult
         ]
 
     elif experiment_name_env_value == "square_vcn_comparison":
-        # needs: --array=0-6
+        # needs: --array=0-7
         experiment = "square_vcn_comparison"
         parameter_array: List[Any] = [
             # param here controls the step multiplier
