@@ -100,14 +100,43 @@ def main():
         experiment = "square_vcn_comparison"
         parameter_array: List[Any] = [
             # param here controls the step multiplier
-            # 0,  # vcn - analytical
-            # 1,  # vcn - step mult
+            0,  # vcn - analytical
+            1,  # vcn - step mult
             2,  # vcn - step mult
-            # 5,  # vcn - step mult
-            # 10,  # vcn - step mult
-            # 20,  # vcn - step mult
-            # 100,  # vcn - step mult
-            # 200,  # vcn - step mult
+            5,  # vcn - step mult
+            10,  # vcn - step mult
+            20,  # vcn - step mult
+            100,  # vcn - step mult
+            200,  # vcn - step mult
+        ]
+
+    elif experiment_name_env_value == "energy_conservation":
+        # needs: --array=0-8
+        experiment = "square_vcn_comparison"
+        parameter_array: List[Any] = [
+            # 10-thousands digit controls the n-parameter (yes that is kindof ugly, but didn't want to insert a second parameter)
+            # here all bigger than 3 gets you a chain geometry and all smaller a square
+            #
+            # param here controls the step multiplier
+            20000,  # first and second order and analytical vcn
+            20001,  # vcn - step mult
+            20002,  # vcn - step mult
+            20004,  # vcn - step mult
+            20008,  # vcn - step mult
+            20016,  # vcn - step mult
+            20032,  # vcn - step mult
+            20064,  # vcn - step mult
+            20128,  # vcn - step mult
+            # param here controls the step multiplier
+            40000,  # first and second order and analytical vcn
+            40001,  # vcn - step mult
+            40002,  # vcn - step mult
+            40004,  # vcn - step mult
+            40008,  # vcn - step mult
+            40016,  # vcn - step mult
+            40032,  # vcn - step mult
+            40064,  # vcn - step mult
+            40128,  # vcn - step mult
         ]
 
     else:

@@ -543,8 +543,13 @@ def main():
         )
 
     elif experiment == "energy_conservation":
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 0)
+        )  # parameter is for setting number of intermediate steps
+        second_parameter = parameter % 10000  # the one parameter encodes two params
 
         # ! test the energy is conserved in the beginning
+        # (and that it is conserved better, the smaller the effective step-size is)
         U = 1.0
         E = 0.8
         J = 0.1
@@ -552,8 +557,10 @@ def main():
 
         # chain: n=4
         # square: n=2
-        n = 4
-        system_geometry_type = "chain"
+        n = parameter // 10000  # the one parameter encodes two params
+        system_geometry_type = (
+            "chain" if n > 3 else "square"
+        )  # small sizes may be square, larger only chain
 
         num_monte_carlo_samples = 1  # not switched on
         num_samples_per_chain = num_monte_carlo_samples // 10
@@ -565,12 +572,22 @@ def main():
         different_monte_carlo_tests = 0  # not switched on
 
         do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
-        compare_type_hamiltonians = [
-            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
-            ("first_order_optimized", "o1"),
-            ("second_order_optimized", "o2"),
-            ("variational_classical_networks", f"vcn"),
-        ]
+        if second_parameter == 0:
+            compare_type_hamiltonians = [
+                (
+                    "variational_classical_networks_analytical_factors",
+                    f"vcnanalytical_{system_geometry_type}",
+                ),
+                ("first_order_optimized", f"o1_{system_geometry_type}"),
+                ("second_order_optimized", f"o2_{system_geometry_type}"),
+            ]
+        else:
+            compare_type_hamiltonians = [
+                (
+                    "variational_classical_networks",
+                    f"vcn_{system_geometry_type}_{second_parameter}",
+                ),
+            ]
 
         init_sigma = 0.00001
         vcn_parameter_init_distribution = "normal"
@@ -585,29 +602,16 @@ def main():
         steps = 30
 
         num_samples_over_timespan = steps + 1
-        # square 3 -> breaks at 1.5 U
+        # square 3 -> breaks at 1.5 U -> but is generally fine, so same range overall, second step is there -> 10
         # chain 10 -> breaks at ?? U
         target_time_in_1_over_u = 10 / U
 
         # computed, works with "chain..." and "square..."
         psi_selection_type = system_geometry_type + "_canonical"
 
-        variational_step_fraction_multiplier = (
-            1
-            # 2
-            # 4
-            # 8
-            # 16
-            # 32
-            # 64
-            # 128
-        )
-        print(
-            "Uses variational_step_fraction_multiplier of:",
-            variational_step_fraction_multiplier,
-        )
+        variational_step_fraction_multiplier = second_parameter  # generally grows eponentially to make a differene to the time-step in later sizes
 
-        zip_filename_base = "energy-conservation"
+        zip_filename_base = f"energy-conservation-{variational_step_fraction_multiplier}-{system_geometry_type}"
 
     else:
         raise Exception("Unknown Experiment Specification")

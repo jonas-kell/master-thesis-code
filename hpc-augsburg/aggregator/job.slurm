@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=16                      # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=4G                        # memory per cpu-core (4G is default)
 #SBATCH --time=14:00:00                         # total run time limit (HH:MM:SS)
-#SBATCH --array=0-7                             # job array with index values (both ends inclusive) - is set to be enough for all relevant experiments and early-exits if it doesn't need as many CPUs
+#SBATCH --array=0-8                             # job array with index values (both ends inclusive) - is set to be enough for all relevant experiments and early-exits if it doesn't need as many CPUs
 #SBATCH --mail-type=all                         # send email on job start, end and fault
 #SBATCH --mail-user=jonas.kell@uni-a.de         # send email address
 #SBATCH --partition=epyc                        # Select a partiton (epyc, epyc-mem or epyc-gpu)
@@ -30,7 +30,8 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 # export EXPERIMENT_TASK_NAME="seed_and_init_spread"
 # export EXPERIMENT_TASK_NAME="energy_behavior"
 # export EXPERIMENT_TASK_NAME="square_vcn_small"
-export EXPERIMENT_TASK_NAME="square_vcn_comparison"
+# export EXPERIMENT_TASK_NAME="square_vcn_comparison"
+export EXPERIMENT_TASK_NAME="energy_conservation"
 
 
 # Loading modules here
