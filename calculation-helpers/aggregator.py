@@ -97,8 +97,10 @@ def main():
         "energy_behavior",
         "variational_classical_networks",
         "seed_and_init_spread",
+        "square_vcn_small",
         "square_vcn_comparison",
-    ] = cast(str, get_argument(args, "experiment", str, "square_vcn_comparison"))
+        "energy_conservation",
+    ] = cast(str, get_argument(args, "experiment", str, "energy_conservation"))
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -541,6 +543,73 @@ def main():
             if parameter == 0
             else f"variational-{variational_step_fraction_multiplier}"
         )
+
+    elif experiment == "energy_conservation":
+
+        # ! test the energy is conserved in the beginning
+        U = 1.0
+        E = 0.8
+        J = 0.1
+        phi = np.pi * 0.8
+
+        # chain: n=4
+        # square: n=2
+        n = 4
+        system_geometry_type = "chain"
+
+        num_monte_carlo_samples = 1  # not switched on
+        num_samples_per_chain = num_monte_carlo_samples // 10
+
+        ue_might_change = True
+        ue_variational = True
+
+        do_exact_comparison = True
+        different_monte_carlo_tests = 0  # not switched on
+
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        compare_type_hamiltonians = [
+            ("variational_classical_networks_analytical_factors", "vcnanalytical"),
+            ("first_order_optimized", "o1"),
+            ("second_order_optimized", "o2"),
+            ("variational_classical_networks", f"vcn"),
+        ]
+
+        init_sigma = 0.00001
+        vcn_parameter_init_distribution = "normal"
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = True
+        record_imag_part: bool = True
+        observable_set = "energy_and_variance"
+
+        # chain: 30
+        # square: 30
+        steps = 30
+
+        num_samples_over_timespan = steps + 1
+        # square 3 -> breaks at 1.5 U
+        # chain 10 -> breaks at ?? U
+        target_time_in_1_over_u = 10 / U
+
+        # computed, works with "chain..." and "square..."
+        psi_selection_type = system_geometry_type + "_canonical"
+
+        variational_step_fraction_multiplier = (
+            1
+            # 2
+            # 4
+            # 8
+            # 16
+            # 32
+            # 64
+            # 128
+        )
+        print(
+            "Uses variational_step_fraction_multiplier of:",
+            variational_step_fraction_multiplier,
+        )
+
+        zip_filename_base = "energy-conservation"
 
     else:
         raise Exception("Unknown Experiment Specification")
