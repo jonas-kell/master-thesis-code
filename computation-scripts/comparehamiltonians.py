@@ -13,7 +13,9 @@ J = 1.1
 phi = np.pi / 3.1
 measurement_time = 5 * (1 / J)
 
-do_additional_checks = False  # this makes it take more time for collecting data this should be disabled  # TODO re-activate after data collection
+do_additional_checks = (
+    True  # this makes it take more time for collecting data this should be disabled
+)
 
 random = RandomGenerator(str(time.time()))
 
