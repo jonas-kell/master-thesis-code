@@ -37,7 +37,7 @@ random = RandomGenerator(str(time.time()))
 
 iterations = 300
 range_upper_bound = 226  # end is excluded
-range_upper_bound_square = 15  # end is excluded
+range_upper_bound_square = 16  # end is excluded
 for geometry_type in ["chain", "square"]:
 
     fileo1 = open(
