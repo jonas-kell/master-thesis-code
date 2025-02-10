@@ -13,7 +13,7 @@ python3 script.py
 
 The program is controlled via setting command line arguments to the `script.py`.
 Quite a few settings need to be adapted to get correct behavior.
-Therefor specific experiments can be started with the `aggregator.py` script.
+Therefore specific experiments can be started with the `aggregator.py` script.
 
 The arguments itself can be seen in th respective scripts and should for the most part be self-explanatory.
 

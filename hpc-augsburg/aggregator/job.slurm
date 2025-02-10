@@ -31,7 +31,8 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 # export EXPERIMENT_TASK_NAME="energy_behavior"
 # export EXPERIMENT_TASK_NAME="square_vcn_small"
 # export EXPERIMENT_TASK_NAME="square_vcn_comparison"
-export EXPERIMENT_TASK_NAME="energy_conservation"
+# export EXPERIMENT_TASK_NAME="energy_conservation"
+export EXPERIMENT_TASK_NAME="system_size_dependency"
 
 
 # Loading modules here

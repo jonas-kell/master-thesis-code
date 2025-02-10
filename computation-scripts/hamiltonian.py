@@ -2286,7 +2286,7 @@ class FirstOrderVariationalClassicalNetworkHamiltonian(Hamiltonian):
                 OO_averager += np.outer(O_vector_scaled.conj(), O_vector_scaled)
                 O_averager += O_vector_scaled
                 # We need to provide the conjugate of the energy, as the sign convention follows the formulas in "Variational classical Networks for dynamics in interacting quantum matter"
-                # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefor acts to the left and needs one additional *.
+                # The "observable" is <E_loc * O_k^*>. That means that the 1 needs to be inserted in the center and the E term therefore acts to the left and needs one additional *.
                 # for correct h_eff & h_eff_difference calculation this doesn't seem to matter (which is what we would expect)
                 EO_averager += O_vector_scaled.conj() * E_loc_scaled
                 # This is irrelevant for the energy averager, because that one is a hermitian operator and the result after combination is real anyway

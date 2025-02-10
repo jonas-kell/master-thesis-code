@@ -243,6 +243,7 @@ if __name__ == "__main__":
         "concurrence_and_pauli",
         "energy_and_variance",
         "comparison_validation",
+        "energy_and_variance_and_entanglement_test",
     ] = cast(str, get_argument(args, "observable_set", str, "current_and_occupation"))
 
     vcn_parameter_init_distribution: Literal[
@@ -632,6 +633,80 @@ if __name__ == "__main__":
             ),
         ]
         obs += obs_hard_coded
+    elif observable_set == "energy_and_variance_and_entanglement_test":
+        if not isinstance(system_geometry, systemgeometry.SquareSystemNonPeriodicState):
+            raise Exception(
+                "Index calculation for this observable only supports square geometry"
+            )
+
+        square_sidelengh = system_geometry.size  # is the sidelenght
+
+        if square_sidelengh % 2 != 0:
+            raise Exception(
+                "Index calculation for this observable only supports even side-lenghts"
+            )
+
+        # we search for sidelength 2 the xxx and for 4 the yyy and so on
+        #
+        #   0  x  0  0
+        #   x  x  y  0
+        #   0  y  y  0
+        #   0  0  0  0
+        #
+
+        use_edge_index = square_sidelengh // 2
+        tr_index = (use_edge_index - 1) * square_sidelengh + use_edge_index
+        bl_index = use_edge_index * square_sidelengh + (use_edge_index - 1)
+        br_index = use_edge_index * (square_sidelengh + 1)
+
+        obs_hard_coded: List[observables.Observable] = [
+            observables.Energy(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+            observables.EnergyVariance(
+                ham=ham,
+                geometry=system_geometry,
+            ),
+            observables.SpinCurrent(
+                direction_dependent=True,
+                site_index_from=tr_index,
+                site_index_to=br_index,
+                spin_up=True,
+                system_geometry=system_geometry,
+                system_hamiltonian=ham,
+            ),
+            observables.SpinCurrent(
+                direction_dependent=True,
+                site_index_from=bl_index,
+                site_index_to=br_index,
+                spin_up=True,
+                system_geometry=system_geometry,
+                system_hamiltonian=ham,
+            ),
+            observables.Concurrence(
+                site_index_from=tr_index,
+                site_index_to=br_index,
+                spin_up_from=True,
+                spin_up_to=True,
+                system_hamiltonian=ham,
+                system_geometry=system_geometry,
+                perform_checks=check_observable_imag,
+                check_threshold=check_observable_imag_threshold,
+            ),
+            observables.Concurrence(
+                site_index_from=bl_index,
+                site_index_to=br_index,
+                spin_up_from=True,
+                spin_up_to=True,
+                system_hamiltonian=ham,
+                system_geometry=system_geometry,
+                perform_checks=check_observable_imag,
+                check_threshold=check_observable_imag_threshold,
+            ),
+        ]
+        obs += obs_hard_coded
+
     else:
         raise Exception("Invalid arguments")
 

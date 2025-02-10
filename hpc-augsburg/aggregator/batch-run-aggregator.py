@@ -139,6 +139,18 @@ def main():
             40128,  # vcn - step mult
         ]
 
+    elif experiment_name_env_value == "system_size_dependency":
+        # needs: --array=0-4
+        experiment = "system_size_dependency"
+        parameter_array: List[Any] = [
+            # param here controls the system size
+            2,
+            4,
+            6,
+            8,
+            10,
+        ]
+
     else:
         print(
             f"Environment variable {experiment_name_env_var_name} has non-allowed value: {experiment_name_env_value}"

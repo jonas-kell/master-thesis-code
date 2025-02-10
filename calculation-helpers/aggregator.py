@@ -100,7 +100,8 @@ def main():
         "square_vcn_small",
         "square_vcn_comparison",
         "energy_conservation",
-    ] = cast(str, get_argument(args, "experiment", str, "energy_conservation"))
+        "system_size_dependency",
+    ] = cast(str, get_argument(args, "experiment", str, "system_size_dependency"))
     plotting = True
 
     print("Running aggregator script for experiment:", experiment)
@@ -358,7 +359,7 @@ def main():
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
-        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefore useless to compute exact diagonalization measurements
         if parameter == 0:
             # do the "exact" comparisons
             compare_type_hamiltonians = [
@@ -428,7 +429,7 @@ def main():
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
-        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefore useless to compute exact diagonalization measurements
         if parameter == 0:
             compare_type_hamiltonians = [
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
@@ -495,7 +496,7 @@ def main():
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
-        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefore useless to compute exact diagonalization measurements
         if parameter == 0:
             compare_type_hamiltonians = [
                 ("variational_classical_networks_analytical_factors", "vcnanalytical"),
@@ -571,7 +572,7 @@ def main():
         do_exact_comparison = True
         different_monte_carlo_tests = 0  # not switched on
 
-        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefor useless to compute exact diagonalization measurements
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefore useless to compute exact diagonalization measurements
         if second_parameter == 0:
             compare_type_hamiltonians = [
                 (
@@ -612,6 +613,59 @@ def main():
         variational_step_fraction_multiplier = second_parameter  # generally grows eponentially to make a differene to the time-step in later sizes
 
         zip_filename_base = f"energy-conservation-{variational_step_fraction_multiplier}-{system_geometry_type}"
+
+    elif experiment == "system_size_dependency":
+
+        parameter = cast(
+            int, get_argument(args, "parameter", int, 2)
+        )  # parameter is for setting system size
+
+        # ! test the energy is conserved in the beginning
+        # (and that it is conserved better, the smaller the effective step-size is)
+        U = 1.0
+        E = 0.8
+        J = 0.1
+        phi = np.pi * 0.8
+
+        n = parameter
+        system_geometry_type = "square"
+
+        num_monte_carlo_samples = 30000
+        num_samples_per_chain = 1000
+
+        ue_might_change = True
+        ue_variational = True
+
+        do_exact_comparison = False
+        different_monte_carlo_tests = 1
+
+        do_exact_diagonalization = False  # for energy and variance we know the t=0 values are correct, therefore useless to compute exact diagonalization measurements
+        compare_type_hamiltonians = [
+            (
+                "variational_classical_networks",
+                f"vcn_size{n}",
+            ),
+        ]
+
+        init_sigma = 0.00001
+        vcn_parameter_init_distribution = "normal"
+        pseudo_inverse_cutoff = 1e-10
+
+        record_hamiltonian_properties: bool = False
+        record_imag_part: bool = False
+        observable_set = "energy_and_variance_and_entanglement_test"
+
+        steps = 50
+
+        num_samples_over_timespan = steps + 1
+        target_time_in_1_over_u = 12 / U
+
+        # computed, works with "chain..." and "square..."
+        psi_selection_type = system_geometry_type + "_canonical"
+
+        variational_step_fraction_multiplier = 20
+
+        zip_filename_base = f"system-size-dependency-size{n}"
 
     else:
         raise Exception("Unknown Experiment Specification")
