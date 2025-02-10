@@ -1,17 +1,15 @@
 # python treats (1 == True) -> True and (0 == False) -> True
 
 
+# controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
 def part_A_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
-    # controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
     Lup = Lu == (not (flip_up and flip_l))
     Mup = Mu == (not flip_up or flip_l)  # (not (flip_up and not flip_l))
     Ldp = Ld == (flip_up or not flip_l)  # (not (not flip_up and flip_l))
     Mdp = Md == (flip_up or flip_l)  # (not (not flip_up and not flip_l))
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Ld == Md
@@ -22,17 +20,15 @@ def part_A_flipping_if_free(
     return res
 
 
+# controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
 def part_B_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
-    # controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
     Lup = Lu == (not (flip_up and flip_l))
     Mup = Mu == (not flip_up or flip_l)  # (not (flip_up and not flip_l))
     Ldp = Ld == (flip_up or not flip_l)  # (not (not flip_up and flip_l))
     Mdp = Md == (flip_up or flip_l)  # (not (not flip_up and not flip_l))
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and not Md and Ld
@@ -43,17 +39,15 @@ def part_B_flipping_if_free(
     return res
 
 
+# controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
 def part_C_flipping_if_free(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
-    # controlled negation of one of the one var decided by flip_up/flip_l, purely computational, no jumps (probably slower in python)
     Lup = Lu == (not (flip_up and flip_l))
     Mup = Mu == (not flip_up or flip_l)  # (not (flip_up and not flip_l))
     Ldp = Ld == (flip_up or not flip_l)  # (not (not flip_up and flip_l))
     Mdp = Md == (flip_up or flip_l)  # (not (not flip_up and not flip_l))
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Md and not Ld
@@ -68,7 +62,6 @@ def part_A_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if flip_up:
         if flip_l:
             Lup = not Lu
@@ -91,7 +84,6 @@ def part_A_flipping(
             Ldp = Ld
             Mup = Mu
             Mdp = not Md
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Ld == Md
@@ -106,7 +98,6 @@ def part_B_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if flip_up:
         if flip_l:
             Lup = not Lu
@@ -129,7 +120,6 @@ def part_B_flipping(
             Ldp = Ld
             Mup = Mu
             Mdp = not Md
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and not Md and Ld
@@ -144,7 +134,6 @@ def part_C_flipping(
     Lu: int, Ld: int, Mu: int, Md: int, flip_up: bool, flip_l: bool
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if flip_up:
         if flip_l:
             Lup = not Lu
@@ -167,7 +156,6 @@ def part_C_flipping(
             Ldp = Ld
             Mup = Mu
             Mdp = not Md
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Md and not Ld
@@ -191,7 +179,6 @@ def part_A_hopping(
     swp_j_l: bool | None,
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if swp_i_l is not None:
         if swp_i_l:
             if i_up:
@@ -231,7 +218,6 @@ def part_A_hopping(
                 Mup = J
             else:
                 Mdp = J
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Ld == Md
@@ -255,7 +241,6 @@ def part_B_hopping(
     swp_j_l: bool | None,
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if swp_i_l is not None:
         if swp_i_l:
             if i_up:
@@ -295,7 +280,6 @@ def part_B_hopping(
                 Mup = J
             else:
                 Mdp = J
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and not Md and Ld
@@ -319,7 +303,6 @@ def part_C_hopping(
     swp_j_l: bool | None,
 ) -> int:
 
-    # ! make sure to clone block to all the same functions, inline for speed
     if swp_i_l is not None:
         if swp_i_l:
             if i_up:
@@ -359,7 +342,6 @@ def part_C_hopping(
                 Mup = J
             else:
                 Mdp = J
-    # ! make sure to clone block to all the same functions, inline for speed
 
     res = 0
     res += Lu and not Mu and Md and not Ld

@@ -1,0 +1,4 @@
+took comparison 114.9s
+took espresso 23.12s
+took pure_logic 22.02s
+took pure_logic_if 18.8s
