@@ -655,10 +655,10 @@ def main():
         record_imag_part: bool = True
         observable_set = "energy_and_variance_and_entanglement_test"
 
-        steps = 50
+        steps = 100
 
         num_samples_over_timespan = steps + 1
-        target_time_in_1_over_u = 12 / U
+        target_time_in_1_over_u = 25 / U
 
         # computed, works with "chain..." and "square..."
         psi_selection_type = system_geometry_type + "_canonical"

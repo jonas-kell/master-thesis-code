@@ -704,6 +704,26 @@ if __name__ == "__main__":
                 perform_checks=check_observable_imag,
                 check_threshold=check_observable_imag_threshold,
             ),
+            observables.Purity(
+                site_index_from=tr_index,
+                site_index_to=br_index,
+                spin_up_from=True,
+                spin_up_to=True,
+                system_hamiltonian=ham,
+                system_geometry=system_geometry,
+                perform_checks=check_observable_imag,
+                check_threshold=check_observable_imag_threshold,
+            ),
+            observables.Purity(
+                site_index_from=bl_index,
+                site_index_to=br_index,
+                spin_up_from=True,
+                spin_up_to=True,
+                system_hamiltonian=ham,
+                system_geometry=system_geometry,
+                perform_checks=check_observable_imag,
+                check_threshold=check_observable_imag_threshold,
+            ),
         ]
         obs += obs_hard_coded
 
