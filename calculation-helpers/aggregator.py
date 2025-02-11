@@ -652,7 +652,7 @@ def main():
         pseudo_inverse_cutoff = 1e-10
 
         record_hamiltonian_properties: bool = False
-        record_imag_part: bool = False
+        record_imag_part: bool = True
         observable_set = "energy_and_variance_and_entanglement_test"
 
         steps = 50
